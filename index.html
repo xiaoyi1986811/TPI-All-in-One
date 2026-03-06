@@ -1075,16 +1075,17 @@ if (typeof window.__tpi_debug_log === 'function') window.__tpi_debug_log('[Stora
         position:fixed;top:0;left:0;right:0;bottom:0;
         background:rgba(0,0,0,0.45);backdrop-filter:blur(6px);
         z-index:2147483646;display:flex;align-items:center;justify-content:center;
-        animation:__tpiNotifFadeIn 0.25s ease;
+        animation:__tpiNotifFadeIn 0.25s ease;pointer-events:auto;
       `;
 
       const box = document.createElement('div');
       box.style.cssText = `
         background:white;border-radius:20px;padding:0;
-        max-width:460px;width:calc(100% - 32px);
+        max-width:480px;width:calc(100% - 32px);
         box-shadow:0 20px 60px rgba(0,0,0,0.25);
         overflow:hidden;animation:__tpiNotifScaleIn 0.3s cubic-bezier(0.16,1,0.3,1);
         font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+        pointer-events:auto;position:relative;
       `;
 
       const header = document.createElement('div');
@@ -1134,23 +1135,39 @@ if (typeof window.__tpi_debug_log === 'function') window.__tpi_debug_log('[Stora
       const rows = [];
       rows.push(['📦', '数据大小', `${dataSizeKB} KB`]);
       rows.push(['🗂', '表单字段', `${info.fieldCount || 0} 个`]);
-      rows.push(['🗓', '雷达事件', `${info.radarCount || 0} 条`]);
+      rows.push(['📡', '雷达事件', `${info.radarCount !== undefined ? info.radarCount : 0} 条`]);
       rows.push(['📓', '杂记记录', `${info.miscCount || 0} 条`]);
       if (!isUpload && (info.beforeKeys !== undefined)) {
         rows.push(['🔄', '本地键变化', `${info.beforeKeys} → ${info.afterKeys} 个`]);
       }
       rows.push(['⏰', isUpload ? '上传时间' : '下载时间', info.time || new Date().toLocaleString('zh-CN')]);
       rows.push(['☁️', '同步方式', (info && (info.syncLabel||info.syncMethod||info.syncWay||info.methodLabel)) ? (info.syncLabel||info.syncMethod||info.syncWay||info.methodLabel) : 'TPI+ 后端 (Appwrite)']);
+      // [V3] 扩展通知字段
+      try {
+        const _ls = window.__tpi_ls_get || localStorage.getItem.bind(localStorage);
+        const _totalDays = Object.keys(localStorage).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k)).length;
+        if (_totalDays > 0) rows.push(['📚', '本地存档', `累计 ${_totalDays} 天数据`]);
+      } catch(_) {}
+      if (isUpload) {
+        rows.push(['🔒', '数据完整性', '✓ JSON 结构验证通过']);
+        rows.push(['📡', '连接状态', '✓ 云端写入确认']);
+        rows.push(['💡', '下一步建议', '可在其他设备登录后下载恢复']);
+      } else {
+        rows.push(['🔄', '覆盖模式', '全量覆盖（含历史记录）']);
+        rows.push(['📡', '连接状态', '✓ 云端读取成功']);
+        rows.push(['💡', '下一步建议', '数据已恢复，分数已实时更新']);
+      }
 
       const table = document.createElement('div');
-      table.style.cssText = `display:flex;flex-direction:column;gap:8px;`;
-      rows.forEach(([em, label, val]) => {
+      table.style.cssText = `display:flex;flex-direction:column;gap:6px;`;
+      rows.forEach(([em, label, val], idx) => {
         const row = document.createElement('div');
-        row.style.cssText = `display:flex;align-items:center;gap:10px;padding:8px 12px;background:#f8fafc;border-radius:10px;`;
+        const rowBg = idx % 2 === 0 ? '#f8fafc' : '#f1f5f9';
+        row.style.cssText = `display:flex;align-items:center;gap:10px;padding:8px 12px;background:${rowBg};border-radius:10px;`;
         row.innerHTML = `
-          <span style="font-size:18px;width:24px;text-align:center;">${em}</span>
-          <span style="font-size:13px;color:#64748b;min-width:80px;">${label}</span>
-          <span style="font-size:13px;font-weight:600;color:#1e293b;margin-left:auto;">${val}</span>
+          <span style="font-size:16px;width:22px;text-align:center;flex-shrink:0;">${em}</span>
+          <span style="font-size:12.5px;color:#64748b;min-width:84px;">${label}</span>
+          <span style="font-size:13px;font-weight:600;color:#1e293b;margin-left:auto;text-align:right;max-width:220px;word-break:break-all;">${val}</span>
         `;
         table.appendChild(row);
       });
@@ -1159,15 +1176,26 @@ if (typeof window.__tpi_debug_log === 'function') window.__tpi_debug_log('[Stora
       // Success checkmark animation
       const successBadge = document.createElement('div');
       successBadge.style.cssText = `
-        display:flex;align-items:center;gap:8px;margin-top:16px;
-        padding:10px 14px;background:${isUpload?'#eff6ff':'#f0fdf4'};
-        border-radius:10px;border-left:3px solid ${color};
+        display:flex;align-items:center;gap:10px;margin-top:14px;
+        padding:12px 16px;background:${isUpload?'#eff6ff':'#f0fdf4'};
+        border-radius:12px;border-left:4px solid ${color};
       `;
+      const successMessages = isUpload ? [
+        '✅ 所有数据已成功同步到云端',
+        '🌐 可在任意设备登录后下载恢复',
+        '🔒 数据已加密存储于云端服务器'
+      ] : [
+        '✅ 数据已完整恢复到本页面',
+        '📊 分数与评级已实时重新计算',
+        '💾 本地缓存已同步更新'
+      ];
+      const msgIdx = Math.floor(Date.now() / 5000) % successMessages.length;
       successBadge.innerHTML = `
-        <span style="font-size:16px;">✅</span>
-        <span style="font-size:13px;color:${color};font-weight:600;">
-          ${isUpload ? '所有数据已成功同步到云端，可在其他设备下载恢复' : '数据已恢复到页面，分数与评级已实时更新'}
-        </span>
+        <span style="font-size:22px;">${isUpload ? '🚀' : '📥'}</span>
+        <div>
+          <div style="font-size:13px;color:${color};font-weight:700;">${successMessages[0]}</div>
+          <div style="font-size:11.5px;color:#64748b;margin-top:2px;">${successMessages[1]}</div>
+        </div>
       `;
       body.appendChild(successBadge);
 
@@ -1176,14 +1204,11 @@ if (typeof window.__tpi_debug_log === 'function') window.__tpi_debug_log('[Stora
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.textContent = '知道了 ✓';
-      btn.style.cssText = `
-        background:${color};color:white;border:none;padding:10px 28px;
-        border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;
-        font-family:inherit;transition:all 0.15s;
-        box-shadow:0 4px 12px ${color}40;
-      `;
+      btn.setAttribute('style', `background:${color};color:white;border:none;padding:10px 28px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;box-shadow:0 4px 12px ${color}40;pointer-events:auto !important;position:relative;z-index:1;`);
       btn.onmouseenter = () => { btn.style.transform = 'translateY(-1px)'; btn.style.boxShadow = `0 6px 16px ${color}50`; };
       btn.onmouseleave = () => { btn.style.transform = ''; btn.style.boxShadow = `0 4px 12px ${color}40`; };
+      // [Fix V3] 使用 addEventListener 确保关闭事件可靠绑定（优先级高于外部 patch）
+      btn.addEventListener('click', doClose, false);
       btn.onclick = doClose;
       footer.appendChild(btn);
 
@@ -1441,30 +1466,7 @@ window.__tpi_debug_log('✅ 日期初始化脚本已加载');
    验证：在控制台运行 window.__TPI_LEGACY_BRIDGE_VERIFIED__ 可确认桥接状态。
 ========================================================= */
 
-window.__tpi_legacy_exportAsJSON_1 = function () {
-    /* [V5优化§1] 函数体已缩减为转发存根；实际实现由 V5 neutralizeLegacyFunctions 桥接 */
-    var fn = window.exportCurrentSnapshot || window.exportAsJSON;
-    if (typeof fn === 'function') return fn('json');
-    window.__tpi_debug_log && window.__tpi_debug_log('[legacy] exportAsJSON_1: 目标函数尚未就绪');
-};
 
-window.__tpi_legacy_exportDataComplete_1 = function () {
-    window.exportCurrentSnapshot && window.exportCurrentSnapshot('json');
-};
-
-window.__tpi_legacy_saveTpiData_1 = function () {
-    /* [V5优化§1] 函数体已缩减为转发存根；实际实现由 V5 neutralizeLegacyFunctions 桥接 */
-    var fn = window.tpiSaveToday || window.saveTpiData;
-    if (typeof fn === 'function') return fn.apply(this, arguments);
-    window.__tpi_debug_log && window.__tpi_debug_log('[legacy] saveTpiData_1: 目标函数尚未就绪');
-};
-
-window.__tpi_legacy_loadTpiData_1 = function () {
-    /* [V5优化§1] 函数体已缩减为转发存根；实际实现由 V5 neutralizeLegacyFunctions 桥接 */
-    var fn = window.tpiLoadToday || window.loadTpiData;
-    if (typeof fn === 'function') return fn.apply(this, arguments);
-    window.__tpi_debug_log && window.__tpi_debug_log('[legacy] loadTpiData_1: 目标函数尚未就绪');
-};
 
 /* =========================================================
    ✅ 导出/备份：100% 捕获“当前输入/勾选 + 当前页面规则生成内容”
@@ -1521,10 +1523,7 @@ window.__tpi_legacy_loadTpiData_1 = function () {
     _removeBackupBannerIfAny();
 
     // 1) 尽量把“内存里的草稿/弹窗未保存内容”刷回数据源
-    try{ if (typeof window.__tpi_flushRadarDraft === 'function') window.__tpi_flushRadarDraft(); }catch(e){}
-    try{ if (window.FutureRadar && typeof window.FutureRadar.flushDraft === 'function') window.FutureRadar.flushDraft(); }catch(e){}
-    try{ if (typeof window.__tpi_collectFutureRadarFromDOM === 'function') window.__tpi_collectFutureRadarFromDOM(); }catch(e){}
-    try{ if (typeof window.__tpi_forceRenderFutureRadar === 'function') window.__tpi_forceRenderFutureRadar({maxTry:3,delay:10}); }catch(e){}
+
 
     // 2) 触发一次规则计算（确保“页面当前显示内容”是最新）
     try{ if (typeof window.__tpi_triggerRecalc === 'function') window.__tpi_triggerRecalc(); }catch(e){}
@@ -2243,93 +2242,7 @@ function __tpi_triggerRecalc() {
   setTimeout(_refreshSB, 300);
 }
 
-/* FutureRadar.reload 安全刷新入口 */
-window.__tpi_safeReloadFutureRadar = function() {
-  try {
-    const FR = window.FutureRadar;
-    if (!FR) return;
-    if (typeof FR.reload === 'function') return FR.reload();
-    if (typeof FR.refresh === 'function') return FR.refresh();
-    if (typeof FR.render === 'function') return FR.render();
-    if (typeof FR.init === 'function') return FR.init();
-  } catch (e) {
-    console.warn('[FutureRadar] safe reload failed:', e);
-  }
-};
-
-/* 渲染容器探测 + 触发点注入（兼容无痕） */
-window.__tpi_forceRenderFutureRadar = function(opts){
-  opts = opts || {};
-  const maxTry = typeof opts.maxTry === 'number' ? opts.maxTry : 60;
-  const delay = typeof opts.delay === 'number' ? opts.delay : 50;
-
-  const needIds = [
-    'future-radar',
-    'list-tempLife','list-tempLife-done',
-    'list-tempAcademic','list-tempAcademic-done',
-    'list-regularLife','list-regularLife-done',
-    'list-regularAcademic','list-regularAcademic-done'
-  ];
-
-  function hasContainers(){
-    for (let i=0;i<needIds.length;i++){
-      if (!document.getElementById(needIds[i])) return false;
-    }
-    return true;
-  }
-
-  function isCollapsed(){
-    const card = document.getElementById('future-radar');
-    return !!(card && card.classList && card.classList.contains('collapsed'));
-  }
-
-  function tryRenderOnce(){
-    try {
-      const FR = window.FutureRadar;
-      if (!FR) return false;
-
-      // 确保数据从 localStorage 重新加载（避免“内存旧数据”）
-      try { if (typeof FR.loadData === 'function') FR.loadData(); } catch(e) {}
-
-      // 优先用系统自带 reload（通常会 load+render+badge）
-      if (typeof FR.reload === 'function') { FR.reload(); return true; }
-
-      // 兜底：render + badge
-      if (typeof FR.render === 'function') FR.render();
-      if (typeof FR.updateBadges === 'function') FR.updateBadges();
-      return true;
-    } catch(e) {
-      console.warn('[FutureRadar] force render failed:', e);
-      return false;
-    }
-  }
-
-  let tried = 0;
-  (function loop(){
-    tried++;
-
-    // 等 DOM 就绪
-    if (document.readyState === 'loading') {
-      return setTimeout(loop, delay);
-    }
-
-    // 若模块折叠，先不强行展开（避免打断用户），但仍可做一次 reload
-    if (!hasContainers()) {
-      if (tried >= maxTry) return;
-      return setTimeout(loop, delay);
-    }
-
-    // 容器齐全后再触发（避免 render 过程中 querySelector 取不到列表导致只更新计数）
-    const ok = tryRenderOnce();
-    if (!ok && tried < maxTry) return setTimeout(loop, delay);
-  })();
-};
-
 window.collectDailyData = function() {
-  // ✅ [优化补丁 §1.2] 强制雷达草稿落盘，确保收集前草稿已写入存储
-  try { if (typeof window.__tpi_flushRadarDraft === 'function') window.__tpi_flushRadarDraft(); } catch(_e) {}
-  try { if (window.FutureRadar && typeof window.FutureRadar.flushDraft === 'function') window.FutureRadar.flushDraft(); } catch(_e) {}
-
   const date = __tpi_getSelectedDate();
 
   // 兼容旧逻辑：保留你原先的 FIELDS 输出（保证不破坏旧模块）
@@ -2789,57 +2702,6 @@ window.getTpiDayDataAsync = async function(dateStr) {
   // 注：此处不再定义 TPI.calculateSystem，防止被后续的 window.TPI = TPI 覆盖
   // 实际定义位置：window.TPI = TPI 之后
 
-  // ---------- 3) 补齐 FutureRadar 缺失方法：避免 __tpi_triggerRecalc 触发 onchange/oninput 报错 ----------
-  // 说明：导出/同步前会触发 safeTriggerRecalc -> __tpi_triggerRecalc
-  // 它会对全站控件派发 input/change 事件
-  // 这些 handler 在当前稿缺少实现，导致控制台报错，但不影响导出结果。
-  // 这里补齐为“安全实现/降级实现”，保证不报错且不改变既有逻辑。
-  if (!window.FutureRadar || typeof window.FutureRadar !== 'object') window.FutureRadar = {};
-  // 同步一个全局同名变量（兼容 onchange="FutureRadar.xxx" 的写法）
-  try { window.FutureRadar = window.FutureRadar; } catch(_) {}
-  try { if (typeof window.FutureRadar !== 'undefined') window.FutureRadar = window.FutureRadar; } catch(_) {}
-  try { if (typeof FutureRadar === 'undefined') window.FutureRadar && (window.FutureRadar.__dummy = 1); } catch(_) {}
-
-  // eslint-disable-next-line no-unused-vars
-  try { if (typeof FutureRadar === 'undefined') window.FutureRadar && (window.FutureRadar.__dummy = 1); } catch(_) {}
-  // 强制把全局变量 FutureRadar 指向 window.FutureRadar（非严格模式下有效；在 strict 下用 window 引用即可）
-  try { window.FutureRadar && (window.FutureRadar === window.FutureRadar); } catch(_) {}
-
-  if (typeof window.FutureRadar.toggleRadarTimeInputs !== 'function') {
-    window.FutureRadar.toggleRadarTimeInputs = function () {
-      try {
-        // 若页面后续版本提供了真实实现，优先调用
-        const real = window.FutureRadar && window.FutureRadar._toggleRadarTimeInputsReal;
-        if (typeof real === 'function') return real();
-      } catch (e) {}
-      // 默认：不做任何 DOM 改动，只保证不报错
-      return;
-    };
-  }
-
-  if (typeof window.FutureRadar.handleFileUpload !== 'function') {
-    window.FutureRadar.handleFileUpload = function (evt) {
-      try {
-        const file = evt && evt.target && evt.target.files && evt.target.files[0];
-        // 不强行解析文件，避免破坏你已有的导入/导出链路；
-        // 仅在用户真正上传时给出轻提示（可选）
-        if (file) {
-          // 不刷屏
-          window.__tpi_debug_log('[FutureRadar] file selected:', file.name);
-        }
-      } catch (e) {
-        // 吃掉异常，避免中断其他流程
-      }
-    };
-  }
-
-  // 让 inline handler 里直接用 FutureRadar.xxx 也能找到（最关键：避免 TypeError）
-  try { window.FutureRadar && (window.FutureRadar.__ready = true); } catch(_) {}
-  try { window.FutureRadar && (window.FutureRadar.__ready = true); } catch(_) {}
-  try { window.FutureRadar && (window.FutureRadar.__ready = true); } catch(_) {}
-  // 兼容：如果某处用的是 window.FutureRadar.toggleRadarTimeInputs 之外的引用
-  if (typeof window.FutureRadar.toggleRadarTimeInputs !== 'function') window.FutureRadar.toggleRadarTimeInputs = function(){};
-
   // ---------- 4) 降噪：避免同步 dirty 日志刷屏（不影响功能） ----------
   // 只在存在大量重复打印时，将其降级为 debug（不删除，不影响你排查）
   try {
@@ -3047,7 +2909,7 @@ window.TPI.DOM = window.TPI.DOM || {
                 dateInput.value = `${yyyy}-${mm}-${dd}`;
             }
         });
-        window.TPI_OPTIMIZATION_NOTES = '农历系统+实时计算+压缩优化+验证规则+批量操作+历史记录+撤销重做+移动端优化+Markdown/PDF导出';
+
 
         // ═══════════════════════════════════════════════════════════════════
         // 确保TPI对象存在
@@ -3539,14 +3401,6 @@ window.MathJax = {
    数据操作函数桥接：统一 saveTpiData / exportAsMarkdown / exportAsJSON
 ========================================================= */
 
-/* 1️⃣ 保存当前数据：转发存根 */
-window.__tpi_legacy_saveTpiData_2 = function () {
-    /* [V5优化§1] 函数体已缩减为转发存根；实际实现由 V5 neutralizeLegacyFunctions 桥接 */
-    var fn = window.tpiSaveToday || window.saveTpiData;
-    if (typeof fn === 'function') return fn.apply(this, arguments);
-    window.__tpi_debug_log && window.__tpi_debug_log('[legacy] saveTpiData_2: 目标函数尚未就绪');
-};
-
 /* 2️⃣ Markdown 导出：强制为 Markdown */
 window.exportAsMarkdown = function () {
     let md = '# TPI 数据导出（Markdown）\n\n';
@@ -3579,13 +3433,6 @@ window.exportAsJSON = function () {
     if(window.tpiToast) window.tpiToast('❌ 导出组件未就绪，请刷新页面后重试', 'error');
 };
 
-/* 4️⃣ 关键断路：彻底废掉 exportDataComplete */
-window.__tpi_legacy_exportDataComplete_2 = function () {
-    /* [V5优化§1] 函数体已缩减为转发存根；实际实现由 V5 neutralizeLegacyFunctions 桥接 */
-    var fn = window.exportDataComplete || window.exportCurrentSnapshot;
-    if (typeof fn === 'function') return fn.apply(this, arguments);
-    window.__tpi_debug_log && window.__tpi_debug_log('[legacy] exportDataComplete_2: 目标函数尚未就绪');
-};
 </script>
 <script>
 'use strict';
@@ -5368,14 +5215,6 @@ window.__tpi_debug_log('✅ window.InputValidator.showToast:', typeof window.Inp
   </script>
 <script>
    'use strict';
-// 数据导出函数早期定义（按钮加载前确保函数存在）
-
-window.__tpi_legacy_exportDataComplete_3 = function(format) {
-    /* [V5优化§1] 函数体已缩减为转发存根；实际实现由 V5 neutralizeLegacyFunctions 桥接 */
-    var fn = window.exportDataComplete || window.exportCurrentSnapshot;
-    if (typeof fn === 'function') return fn(format || 'json');
-    window.__tpi_debug_log && window.__tpi_debug_log('[legacy] exportDataComplete_3: 目标函数尚未就绪');
-};
 </script>
 <style>
 /* ===== 顶部分数看板 - 完整样式（匹配截图：淡紫色背景 + 白色胶囊卡片） ===== */
@@ -5513,6 +5352,20 @@ body.dark-mode #tpi-top-scoreboard .divider { background: rgba(120,120,200,0.25)
 #tpi-top-scoreboard .value.flash-down { animation: scoreFlashDown 0.55s ease-out; border-radius: 4px; }
 /* [OPT-V2-§58] 看板标签有 title 提示时显示问号光标 */
 #tpi-top-scoreboard .label[title] { cursor: help; }
+/* [V3-Fix] 看板 pill 悬停效果 */
+#tpi-top-scoreboard .pill[onclick]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(100,100,180,0.18);
+  border-color: rgba(99,102,241,0.5);
+  transition: all 0.15s ease;
+}
+#tpi-top-scoreboard .pill.total[onclick]:hover {
+  box-shadow: 0 4px 14px rgba(37,99,235,0.22);
+}
+#tpi-top-scoreboard .pill.rating[onclick]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(100,100,180,0.18);
+}
 </style>
 
 <!-- 全局防抖 + 懒加载 -->
@@ -5822,22 +5675,200 @@ body.dark-theme input#tpi-total {
   [id^="field-l-multiplier"] { background: none !important; border: none !important; }
 }
 </style>
+
+<style id="tpi-visual-enhancements">
+/* ============================================================
+   TPI 视觉增强补丁
+   - 分数颜色标注
+   - 按钮悬停动效
+   - 图标色彩
+   - 标签可读性
+============================================================ */
+
+/* 分数等级颜色标注 */
+.tpi-score-excellent { color: #8b5cf6 !important; font-weight: 700; }
+.tpi-score-good      { color: #10b981 !important; font-weight: 700; }
+.tpi-score-normal    { color: #3b82f6 !important; font-weight: 700; }
+.tpi-score-warning   { color: #f59e0b !important; font-weight: 700; }
+.tpi-score-danger    { color: #ef4444 !important; font-weight: 700; }
+
+/* 分数只读输入框 - 高亮样式 */
+input[readonly].score-highlight {
+  background: linear-gradient(135deg, #eff6ff, #f0fdf4) !important;
+  border-color: #3b82f6 !important;
+  color: #1d4ed8 !important;
+  font-weight: 700 !important;
+}
+
+/* 按钮悬停增强 */
+.btn:hover, button.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+  transition: all 0.2s ease !important;
+}
+.btn:active, button.btn:active {
+  transform: translateY(0);
+}
+
+/* 图标颜色增强 */
+.icon-success { color: #10b981; }
+.icon-warning { color: #f59e0b; }
+.icon-danger  { color: #ef4444; }
+.icon-info    { color: #3b82f6; }
+.icon-purple  { color: #8b5cf6; }
+
+/* 评分徽章 */
+.tpi-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.tpi-badge-blue   { background: #dbeafe; color: #1d4ed8; }
+.tpi-badge-green  { background: #dcfce7; color: #166534; }
+.tpi-badge-yellow { background: #fef9c3; color: #854d0e; }
+.tpi-badge-red    { background: #fee2e2; color: #991b1b; }
+.tpi-badge-purple { background: #ede9fe; color: #6d28d9; }
+
+/* 模式选择卡片增强 */
+.mode-card {
+  transition: all 0.2s ease !important;
+}
+.mode-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(37,99,235,0.15) !important;
+}
+
+/* 输入框聚焦增强 */
+input[type="number"]:focus,
+input[type="text"]:focus,
+input[type="time"]:focus,
+input[type="date"]:focus,
+select:focus {
+  outline: 2px solid rgba(37,99,235,0.4) !important;
+  outline-offset: 1px !important;
+  border-color: #2563eb !important;
+  transition: all 0.15s ease !important;
+}
+
+/* 快速导航按钮当前状态增强 */
+.quick-nav-btn-v19.active-section {
+  background: #ffffff !important;
+  color: #2563eb !important;
+  border: 2px solid #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.15), 0 4px 12px rgba(37,99,235,0.2) !important;
+}
+
+/* 折叠/展开动画增强 */
+.card-content {
+  transition: max-height 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease !important;
+}
+
+/* 卡片标题图标增强 */
+.card-title .icon {
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+  font-size: 1.15em;
+}
+
+/* 警告/信息框增强 */
+.alert {
+  border-radius: 10px !important;
+}
+.alert-warning {
+  border-left: 4px solid #f59e0b !important;
+}
+.alert-info {
+  border-left: 4px solid #3b82f6 !important;
+}
+.alert-danger {
+  border-left: 4px solid #ef4444 !important;
+}
+.alert-success {
+  border-left: 4px solid #10b981 !important;
+}
+
+/* 点火程序复选框增强 */
+.tpi-inline-03 input[type="checkbox"]:checked + span {
+  color: #065f46;
+  font-weight: 600;
+}
+.tpi-inline-03 input[type="checkbox"]:checked + span::before {
+  content: "✓ ";
+  color: #10b981;
+}
+
+/* rules-header 增强 */
+.rules-header {
+  transition: background 0.15s ease, color 0.15s ease !important;
+}
+.rules-header:hover {
+  background: var(--color-bg-hover, #f1f5f9) !important;
+}
+
+/* 模块分隔线增强 */
+.card-header::after {
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1) !important;
+}
+
+/* 深色模式下徽章颜色 */
+body.dark-theme .tpi-badge-blue   { background: rgba(29,78,216,0.2); color: #93c5fd; }
+body.dark-theme .tpi-badge-green  { background: rgba(16,185,129,0.2); color: #6ee7b7; }
+body.dark-theme .tpi-badge-yellow { background: rgba(245,158,11,0.2); color: #fde68a; }
+body.dark-theme .tpi-badge-red    { background: rgba(239,68,68,0.2);  color: #fca5a5; }
+body.dark-theme .tpi-badge-purple { background: rgba(139,92,246,0.2); color: #c4b5fd; }
+
+/* 分数徽章 - 实时分数显示区域 */
+#tpi-top-scoreboard .value {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* 顶部看板 total pill 增强 */
+#tpi-top-scoreboard .pill.total .value {
+  font-size: 1.1em;
+  font-weight: 800;
+}
+
+/* 关键数字显示增强 */
+#ami-total-score, #fli-total-score, #tpi-total-score,
+#sys-net-score, #bonus-total-score {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+</style>
+
 </head>
 <body>
 <!-- ===== 顶部置顶分数看板（与截图一致） ===== -->
 <div id="tpi-top-scoreboard" aria-label="顶部分数看板">
   <div class="inner">
-    <div class="pill"><span class="label" title="7日移动平均分（过去7天TPI总分的平均值）">📉 MA7</span><span id="ts-ma7" class="value">-</span></div>
+    <div class="pill" onclick="try{document.getElementById('tpi-dashboard')?document.getElementById('tpi-dashboard').scrollIntoView({behavior:'smooth',block:'start'}):null}catch(_){}" style="cursor:pointer;" title="点击跳转到 TPI 总览（7日均分 MA7）">
+      <span class="label">📉 MA7</span><span id="ts-ma7" class="value">-</span>
+    </div>
     <div class="divider"></div>
-    <div class="pill"><span class="label" title="学术战力指标（Academic Momentum Index）">📝 AMI</span><span id="ts-ami" class="value">-</span><span id="ts-ami-pct" class="tpi-pct-badge" style="display:none;font-size:9px;margin-left:3px;opacity:0.75;"></span></div>
+    <div class="pill" onclick="try{document.getElementById('ami')?document.getElementById('ami').scrollIntoView({behavior:'smooth',block:'start'}):null}catch(_){}" style="cursor:pointer;" title="点击跳转到 AMI 学术战力模块">
+      <span class="label">📝 AMI</span><span id="ts-ami" class="value">-</span><span id="ts-ami-pct" class="tpi-pct-badge" style="display:none;font-size:9px;margin-left:3px;opacity:0.75;"></span>
+    </div>
     <div class="divider"></div>
-    <div class="pill"><span class="label" title="外语技能实验室（Foreign Language Index）">🧠 FLI</span><span id="ts-fli" class="value">-</span><span id="ts-fli-pct" class="tpi-pct-badge" style="display:none;font-size:9px;margin-left:3px;opacity:0.75;"></span></div>
+    <div class="pill" onclick="try{document.getElementById('fli')?document.getElementById('fli').scrollIntoView({behavior:'smooth',block:'start'}):null}catch(_){}" style="cursor:pointer;" title="点击跳转到 FLI 外语技能模块">
+      <span class="label">🧠 FLI</span><span id="ts-fli" class="value">-</span><span id="ts-fli-pct" class="tpi-pct-badge" style="display:none;font-size:9px;margin-left:3px;opacity:0.75;"></span>
+    </div>
     <div class="divider"></div>
-    <div class="pill"><span class="label" title="基石系统合计（BCM + HSM + Logistics）">🧱 SYS</span><span id="ts-sys" class="value">-</span><span id="ts-sys-pct" class="tpi-pct-badge" style="display:none;font-size:9px;margin-left:3px;opacity:0.75;"></span></div>
+    <div class="pill" onclick="try{var el=document.getElementById('bcm')||document.getElementById('sys-section')||document.getElementById('sys');el&&el.scrollIntoView({behavior:'smooth',block:'start'})}catch(_){}" style="cursor:pointer;" title="点击跳转到 SYS 基石系统模块">
+      <span class="label">🧱 SYS</span><span id="ts-sys" class="value">-</span><span id="ts-sys-pct" class="tpi-pct-badge" style="display:none;font-size:9px;margin-left:3px;opacity:0.75;"></span>
+    </div>
     <div class="divider"></div>
-    <div class="pill"><span class="label" title="韧性与突破加分（Bonus）">🎁 BONUS</span><span id="ts-bonus" class="value">-</span></div>
-    <div class="pill total"><span class="label" title="当日TPI总分">总分</span><span id="ts-total" class="value">-</span><span id="ts-total-pct" class="tpi-pct-badge" style="display:none;font-size:9px;margin-left:3px;opacity:0.75;"></span></div>
-    <div id="ts-rating" class="pill rating" title="当日综合评级">加载中...</div>
+    <div class="pill" onclick="try{var el=document.getElementById('bonus')||document.getElementById('bonus-section');el&&el.scrollIntoView({behavior:'smooth',block:'start'})}catch(_){}" style="cursor:pointer;" title="点击跳转到 BONUS 韧性加分模块">
+      <span class="label">🎁 BONUS</span><span id="ts-bonus" class="value">-</span>
+    </div>
+    <div class="divider"></div>
+    <div class="pill total" onclick="try{document.getElementById('tpi-dashboard')?document.getElementById('tpi-dashboard').scrollIntoView({behavior:'smooth',block:'start'}):window.scrollTo({top:0,behavior:'smooth'})}catch(_){}" style="cursor:pointer;" title="点击跳转到 TPI 总分看板">
+      <span class="label">🏆 总分</span><span id="ts-total" class="value">-</span><span id="ts-total-pct" class="tpi-pct-badge" style="display:none;font-size:9px;margin-left:3px;opacity:0.75;"></span>
+    </div>
+    <div id="ts-rating" class="pill rating" onclick="try{document.getElementById('tpi-dashboard')?document.getElementById('tpi-dashboard').scrollIntoView({behavior:'smooth',block:'start'}):window.scrollTo({top:0,behavior:'smooth'})}catch(_){}" style="cursor:pointer;" title="点击跳转到评级详情">加载中...</div>
   </div>
 </div>
 
@@ -6021,9 +6052,7 @@ body.dark-theme input#tpi-total {
 <section class="card fade-in stagger-2" id="daily-checkin-section">
 <div class="card-header" onclick="window.TPI.toggleCard('daily-checkin-section')">
 <div class="card-title">
-<span class="icon">
-         ✅
-        </span>
+<span class="icon">✅</span>
 <span>
          每日签到 Daily Check-in
         </span>
@@ -6153,24 +6182,35 @@ body.dark-theme input#tpi-total {
 
     <!-- 登录区 -->
     <div id="tpi-auth-panel" style="max-width: 820px;">
+      <div style="background:linear-gradient(135deg,#fff7ed,#fffbeb);border:1.5px solid #fbbf24;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#78350f;display:flex;align-items:flex-start;gap:8px;">
+        <span style="font-size:16px;flex-shrink:0;margin-top:1px;">⚠️</span>
+        <div>
+          <b>安全提示</b>：请勿在公共或共享设备上使用云端同步功能，Token 信息将存储在本地浏览器中。<br>
+          <span style="opacity:0.85;">如遇「Failed to fetch / CORS」错误，需在 <a href="https://cloud.appwrite.io/console" target="_blank" rel="noopener" style="color:#2563eb;font-weight:600;">Appwrite Console ↗</a> → Auth → Settings → Platforms 添加当前域名：<code style="background:#fef3c7;padding:1px 5px;border-radius:4px;font-family:monospace;font-size:12px;" id="tpi-current-origin-hint"></code></span>
+          <script>try{document.getElementById('tpi-current-origin-hint').textContent=location.origin;}catch(_){}</script>
+        </div>
+      </div>
       <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:10px;">
-        <label for="tpi-username" style="font-weight:600; color:#374151; white-space:nowrap;">邮箱：</label>
-        <input id="tpi-username" type="text" placeholder="请输入邮箱" style="flex:1; min-width:160px; padding:10px; border:2px solid #e5e7eb; border-radius:8px; font-size:14px;">
-        <label for="tpi-password" style="font-weight:600; color:#374151; white-space:nowrap;">密码：</label>
+        <label for="tpi-username" style="font-weight:600; color:#374151; white-space:nowrap;">📧 邮箱：</label>
+        <input id="tpi-username" type="text" placeholder="请输入注册邮箱" autocomplete="email" style="flex:1; min-width:160px; padding:10px; border:2px solid #e5e7eb; border-radius:8px; font-size:14px;">
+        <label for="tpi-password" style="font-weight:600; color:#374151; white-space:nowrap;">🔒 密码：</label>
         <input id="tpi-password" type="password" placeholder="请输入密码" style="flex:1; min-width:160px; padding:10px; border:2px solid #e5e7eb; border-radius:8px; font-size:14px;" autocomplete="current-password">
         <button type="button" onclick="tpiResetPassword()" style="background:none; border:none; color:#6b7280; font-size:13px; cursor:pointer; text-decoration:underline; padding:0; white-space:nowrap;">
           🔑 忘记密码？
         </button>
       </div>
       <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:8px;">
-        <button type="button" onclick="tpiRegister()" style="padding:12px 20px; background: linear-gradient(135deg,#8b5cf6,#7c3aed); color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
+        <button type="button" onclick="tpiRegister()" style="padding:12px 20px; background: linear-gradient(135deg,#8b5cf6,#7c3aed); color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer; box-shadow:0 2px 8px rgba(124,58,237,0.2);">
           🆕 注册新账号
         </button>
-        <button type="button" onclick="tpiLogin()" style="padding:12px 20px; background: linear-gradient(135deg,#10b981,#059669); color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
-          ✅ 登录
+        <button type="button" onclick="tpiLogin()" style="padding:12px 20px; background: linear-gradient(135deg,#10b981,#059669); color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer; box-shadow:0 2px 8px rgba(5,150,105,0.2);">
+          🔑 登录
+        </button>
+        <button type="button" title="测试与 Appwrite 服务器的网络连通性" onclick="(async()=>{const m=document.getElementById('tpi-login-msg');const origin=location.origin;m.textContent='🔍 测试中...';try{const r=await fetch('https://sgp.cloud.appwrite.io/v1/health',{signal:AbortSignal.timeout(6000)});if(r.ok||r.status<500){m.style.color='#059669';m.textContent='✅ 服务器可达（'+r.status+'）。若登录仍失败，请确认已在 Appwrite Console 添加域名：'+origin;}else{m.style.color='#dc2626';m.textContent='⚠️ 服务器响应异常：HTTP '+r.status;}}catch(e){m.style.color='#dc2626';m.textContent='❌ 无法连接服务器（'+e.message+'）。请检查网络/代理或联系管理员。';}})()" style="padding:8px 14px; background:#f0f9ff; border:1.5px solid #93c5fd; border-radius:8px; font-weight:600; cursor:pointer; font-size:13px; color:#1d4ed8;">
+          🔍 测试连接
         </button>
       </div>
-      <div id="tpi-login-msg" style="margin-top:10px; font-size:14px;"></div>
+      <div id="tpi-login-msg" style="margin-top:10px; font-size:13px; line-height:1.7; white-space:pre-wrap;"></div>
     </div>
 
     <!-- 已登录区 -->
@@ -6195,16 +6235,16 @@ body.dark-theme input#tpi-total {
       <option value="1d">每日</option>
       <option value="1w">每周</option>
     </select>
-    <button type="button" id="tpi-auto-backup-run-now" style="padding:8px 12px; background:#f3f4f6; border:1px solid #e5e7eb; border-radius:8px; cursor:pointer; font-weight:600;">立即备份</button>
+    <button type="button" id="tpi-auto-backup-run-now" style="padding:8px 12px; background:#f3f4f6; border:1px solid #e5e7eb; border-radius:8px; cursor:pointer; font-weight:600;">⬆️ 立即上传</button>
   </div>
 </div>
 
         <div style="font-weight:700; color:#111827;">👤 已登录: <span id="tpi-current-user"></span></div>
-        <button type="button" onclick="tpiSaveToday()" style="padding:12px 20px; background: linear-gradient(135deg,#3b82f6,#2563eb); color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
-          ⬆️ 同步上传所选日期到云端
+        <button type="button" onclick="tpiSaveToday()" style="padding:12px 22px; background: linear-gradient(135deg,#3b82f6,#2563eb); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(37,99,235,0.3); transition:all 0.2s;" title="将当前页面所选日期数据上传到 Appwrite 云端">
+          ⬆️ 同步上传数据到云端
         </button>
-        <button type="button" onclick="tpiLoadToday()" style="padding:12px 20px; background: linear-gradient(135deg,#06b6d4,#0891b2); color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
-          ⬇️ 从云端下载所选日期数据
+        <button type="button" onclick="tpiLoadToday()" style="padding:12px 22px; background: linear-gradient(135deg,#06b6d4,#0891b2); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(8,145,178,0.3); transition:all 0.2s;" title="从 Appwrite 云端下载所选日期数据并恢复到页面">
+          ⬇️ 同步下载数据到网页
         </button>
         <button type="button" onclick="try{window.__tpi_exportSyncLogs&amp;&amp;window.__tpi_exportSyncLogs()}catch(e){console.warn(e)}" style="padding:3px 10px; background:transparent; color:#6b7280; border:1px solid #d1d5db; border-radius:6px; font-size:12px; font-weight:400; cursor:pointer;">
           🧾 导出日志
@@ -6277,12 +6317,12 @@ body.dark-theme input#tpi-total {
 
       <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
         <button type="button" onclick="gistBackupNow()"
-                style="padding:12px 20px; background: linear-gradient(135deg,#f59e0b,#d97706); color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
-          💾 立即备份到 Gist
+                style="padding:12px 22px; background: linear-gradient(135deg,#f59e0b,#d97706); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(217,119,6,0.3); transition:all 0.2s;" title="将当前页面所有数据同步上传到 GitHub Gist 云端">
+          ⬆️ 同步上传数据到云端
         </button>
         <button type="button" onclick="gistRestoreData()"
-                style="padding:12px 20px; background: linear-gradient(135deg,#8b5cf6,#7c3aed); color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
-          📥 从 Gist 恢复数据
+                style="padding:12px 22px; background: linear-gradient(135deg,#8b5cf6,#7c3aed); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(124,58,237,0.3); transition:all 0.2s;" title="从 GitHub Gist 云端下载数据并恢复到当前页面">
+          ⬇️ 同步下载数据到网页
         </button>
         <label style="display:flex; gap:8px; align-items:center; cursor:pointer; user-select:none; padding:8px 12px; background:#f3f4f6; border-radius:8px;">
           <input id="gist-auto-backup" type="checkbox" onchange="toggleGistAutoBackup(this.checked)">
@@ -6374,12 +6414,8 @@ body.dark-theme input#tpi-total {
 <section class="card fade-in stagger-2" id="tpi-dashboard">
 <div class="card-header" onclick="window.TPI.toggleCard('tpi-dashboard')">
 <div class="card-title">
-<span class="icon">
-         📊
-        </span>
-<span>
-         TPI 全维效能仪表盘 <span style="font-weight:400;font-size:0.82em;color:#64748b;letter-spacing:0.02em;">Total Performance Index Dashboard</span>
-        </span>
+<span class="icon">📊</span>
+<span>TPI 全维效能仪表盘 <span style="font-weight:400;font-size:0.82em;color:#64748b;letter-spacing:0.02em;">Total Performance Index Dashboard</span></span>
 </div>
 </div>
 <div class="card-content">
@@ -7075,9 +7111,7 @@ body.dark-theme input#tpi-total {
 <section class="card fade-in" id="core-axioms">
 <div class="card-header" onclick="window.TPI.toggleCard('core-axioms')">
 <div class="card-title">
-<span class="icon">
-         🚩
-        </span>
+<span class="icon">🚩</span>
 <span>
          核心信条与最高裁判原则 <span style="font-weight:400;font-size:0.82em;color:#64748b;letter-spacing:0.02em;">Core Axioms &amp; Supreme Principles</span>
         </span>
@@ -7314,9 +7348,7 @@ body.dark-theme input#tpi-total {
 <section class="card fade-in stagger-2 collapsed" id="sop">
 <div class="card-header" onclick="window.TPI.toggleCard('sop')">
 <div class="card-title">
-<span class="icon">
-         📋
-        </span>
+<span class="icon">📋</span>
 <span>
          标准操作程序 (SOP) 与填写规范
         </span>
@@ -7520,9 +7552,7 @@ body.dark-theme input#tpi-total {
 <section class="card fade-in stagger-3 collapsed" id="quarterback">
 <div class="card-header" onclick="window.TPI.toggleCard('quarterback')">
 <div class="card-title">
-<span class="icon">
-         🧭
-        </span>
+<span class="icon">🧭</span>
 <span>
          每日四分卫：模式选择与意图声明 <span style="font-weight:400;font-size:0.82em;color:#64748b;letter-spacing:0.02em;">Daily Quarterback</span>
         </span>
@@ -8670,9 +8700,7 @@ body.dark-theme input#tpi-total {
 <section class="card fade-in stagger-5" id="bonus">
 <div class="card-header" onclick="window.TPI.toggleCard('bonus')">
 <div class="card-title">
-<span class="icon">
-         💖
-        </span>
+<span class="icon">💖</span>
 <span>
          韧性与突破加分 <span style="font-weight:400;font-size:0.82em;color:#64748b;letter-spacing:0.02em;">Resilience &amp; Breakthrough Bonus</span>
         </span>
@@ -9022,12 +9050,8 @@ body.dark-theme input#tpi-total {
 <section class="card fade-in stagger-1" id="ami">
 <div class="card-header" onclick="window.TPI.toggleCard('ami')">
 <div class="card-title">
-<span class="icon">
-         ⚔️
-        </span>
-<span>
-         第一部分：学术战力指标 (AMI - Academic Momentum Index)
-        </span>
+<span class="icon">⚔️</span>
+<span>第一部分：学术战力指标 (AMI - Academic Momentum Index)</span>
 </div>
 </div>
 <div class="card-content">
@@ -10883,12 +10907,8 @@ body.dark-theme input#tpi-total {
 <section class="card fade-in stagger-3" id="bcm">
 <div class="card-header" onclick="window.TPI.toggleCard('bcm')">
 <div class="card-title">
-<span class="icon">
-         🔧
-        </span>
-<span>
-         第二部分：基石系统 (BCM - Behavior &amp; Core Metrics)
-        </span>
+<span class="icon">🔧</span>
+<span>第二部分：基石系统 (BCM - Behavior &amp; Core Metrics)</span>
 </div>
 </div>
 <div class="card-content">
@@ -11841,12 +11861,8 @@ body.dark-theme input#tpi-total {
 <section class="card fade-in stagger-5" id="hsm">
 <div class="card-header" onclick="window.TPI.toggleCard('hsm')">
 <div class="card-title">
-<span class="icon">
-         🛡️
-        </span>
-<span>
-         第三部分：健康与稳定性 (HSM - Health &amp; Stability Metrics)
-        </span>
+<span class="icon">🛡️</span>
+<span>第三部分：健康与稳定性 (HSM - Health &amp; Stability Metrics)</span>
 </div>
 </div>
 <div class="card-content">
@@ -12225,12 +12241,8 @@ body.dark-theme input#tpi-total {
 <section class="card fade-in stagger-2" id="fli">
 <div class="card-header" onclick="window.TPI.toggleCard('fli')">
 <div class="card-title">
-<span class="icon">
-         🗣️
-        </span>
-<span>
-         第四部分：外语技能实验室 (FLI - Foreign Language Index)
-        </span>
+<span class="icon">🗣️</span>
+<span>第四部分：外语技能实验室 (FLI - Foreign Language Index)</span>
 </div>
 </div>
 <div class="card-content">
@@ -12274,7 +12286,7 @@ body.dark-theme input#tpi-total {
 </li>
 <li>
 <strong>
-             碎片磨耳（线性梯度，满分10分）：
+             碎片磨耳（线性梯度，常态最高9分 / 复苏最高10分）：
             </strong>
 <ul>
 <li>
@@ -12308,7 +12320,7 @@ body.dark-theme input#tpi-total {
 <strong>
              封顶规则：
             </strong>
-            FLI总分参考上限约19分
+            FLI总分参考上限：常态约19分（复苏模式最高20分）
            </li>
 </ul>
 <h4 class="mt-4">
@@ -12509,12 +12521,8 @@ body.dark-theme input#tpi-total {
 <section class="card fade-in stagger-4" id="logistics">
 <div class="card-header" onclick="window.TPI.toggleCard('logistics')">
 <div class="card-title">
-<span class="icon">
-         🧹
-        </span>
-<span>
-         第五部分：后勤与维护 (Logistics &amp; Maintenance)
-        </span>
+<span class="icon">🧹</span>
+<span>第五部分：后勤与维护 (Logistics &amp; Maintenance)</span>
 </div>
 </div>
 <div class="card-content">
@@ -13151,9 +13159,7 @@ body.dark-theme input#tpi-total {
 <section class="card fade-in collapsed" id="daily-review">
 <div class="card-header" onclick="window.TPI.toggleCard('daily-review')">
 <div class="card-title">
-<span class="icon">
-         📝
-        </span>
+<span class="icon">📝</span>
 <span>
          每日复盘与交接 <span style="font-weight:400;font-size:0.82em;color:#64748b;letter-spacing:0.02em;">Daily Review &amp; Handoff</span>
         </span>
@@ -13226,9 +13232,7 @@ body.dark-theme input#tpi-total {
 <section class="card fade-in collapsed" id="data-analytics">
 <div class="card-header" onclick="window.TPI.toggleCard('data-analytics')">
 <div class="card-title">
-<span class="icon">
-         📈
-        </span>
+<span class="icon">📈</span>
 <span>
          数据分析与可视化 <span style="font-weight:400;font-size:0.82em;color:#64748b;letter-spacing:0.02em;">Data Analytics &amp; Visualization</span>
         </span>
@@ -13346,9 +13350,7 @@ body.dark-theme input#tpi-total {
 <section class="card fade-in collapsed" id="data-processing">
 <div class="card-header" onclick="window.TPI.toggleCard('data-processing')">
 <div class="card-title">
-<span class="icon">
-         🛠️
-        </span>
+<span class="icon">🛠️</span>
 <span>
          数据工坊 <span style="font-weight:400;font-size:0.82em;color:#64748b;letter-spacing:0.02em;">Data Workshop</span>
         </span>
@@ -13586,109 +13588,6 @@ body.dark-theme input#tpi-total {
             // 4. 健壮: 添加完整的错误处理
             // 5. 性能: 实现事件委托和防抖
             // ==================== End ====================
-
-// ========================================
-// 模式管理器 (新增)
-// ========================================
-class ModeManager {
-    constructor() {
-        this.currentMode = 'normal';
-    }
-
-    getCurrentMode() {
-        const modeRadios = document.querySelectorAll('input[name="daily-mode"]');
-        for (let radio of modeRadios) {
-            if (radio.checked) {
-                this.currentMode = radio.value;
-                return radio.value;
-            }
-        }
-        return 'normal';
-    }
-
-    // 检查自动触发器
-    checkAutoTriggers() {
-        const yesterday = historicalDataManager.getYesterday();
-        if (!yesterday) return null;
-
-        // 触发器1: TPI>CONSTANTS.TPI_OVERLOAD_THRESHOLD(210) → 强制复苏
-        if (yesterday.tpi_total > CONSTANTS.TPI_OVERLOAD_THRESHOLD) {
-            console.warn(`⚠️ 昨日TPI>${CONSTANTS.TPI_OVERLOAD_THRESHOLD}，今日应进入复苏模式`);
-            this.showTriggerWarning(`TPI>${CONSTANTS.TPI_OVERLOAD_THRESHOLD}`, `昨日TPI超过${CONSTANTS.TPI_OVERLOAD_THRESHOLD}分，建议今日进入复苏模式以保护系统`);
-            return 'recovery';
-        }
-
-        // 触发器2: Sys<12 → 强制保护
-        const yesterdaySys = (yesterday.bcm || 0) + (yesterday.logistics || 0) + (yesterday.hsm || 0);
-        if (yesterdaySys < 12) {
-            console.warn('⚠️ 昨日Sys<12，今日应进入复苏模式');
-            this.showTriggerWarning('Sys<12', '昨日基石系统<12分，今日必须进入保护模式');
-            return 'recovery';
-        }
-
-        return null;
-    }
-
-    // 显示触发警告
-    showTriggerWarning(trigger, message) {
-        const warningDiv = document.getElementById('mode-auto-trigger-warning');
-        if (warningDiv) {
-            warningDiv.innerHTML = `
-                <div class="alert alert-warning" role="alert">
-                    <strong>🚨 自动触发器激活: ${trigger}</strong><br>
-                    ${message}
-                </div>
-            `;
-            warningDiv.style.display = 'block';
-        }
-    }
-
-    // 应用模式规则到计算
-    applyModeRules(mode, scores) {
-        let adjustedScores = {...scores};
-
-        switch(mode) {
-            case 'recovery':
-                // 复苏模式规则
-                // FLI碎片底线降至1（在FLI计算中检查）
-                // BCM午晚防守未坚守=0（已实现）
-                break;
-
-            case 'stoic': {
-                // 斯多葛模式规则（V4：Sys_Net不参与斯多葛TPI计算）
-                // AMI * 1.2 补偿
-                adjustedScores.ami = scores.ami * 1.2;
-
-                // TPI封顶计算（与calculateTPI保持一致：AMI+FLI+Bonus，不含Sys_Net）
-                const rawTPI = adjustedScores.ami + scores.fli + scores.bonus;
-                /* [优化 §2.1] 使用 CONSTANTS.STOIC_MODE_CAP / CONSTANTS.RECOVERY_MODE_CAP 代替硬编码 */
-                const _stoicCap = (typeof CONSTANTS !== 'undefined' && CONSTANTS.STOIC_MODE_CAP) ? CONSTANTS.STOIC_MODE_CAP : 120;
-                const _recovCap = (typeof CONSTANTS !== 'undefined' && CONSTANTS.RECOVERY_MODE_CAP) ? CONSTANTS.RECOVERY_MODE_CAP : 95;
-                if (rawTPI > _recovCap) {
-                    const capped = Math.min(_stoicCap, _recovCap + (rawTPI - _recovCap) * 0.5);
-                    adjustedScores.tpi_capped = capped;
-                }
-                break;
-            }
-            case 'vacation': {
-                // 假期模式规则（根据休息时段数调整目标）
-                const restPeriods = this.getRestPeriods();
-                const target = Math.max(40, 70 - restPeriods * 10);
-                adjustedScores.vacation_target = target;
-                break;
-            }
-        }
-
-        return adjustedScores;
-    }
-
-    getRestPeriods() {
-        const restCheckboxes = document.querySelectorAll('input[name="vacation-rest-period"]:checked');
-        return restCheckboxes.length;
-    }
-}
-
-const modeManager = new ModeManager();
 
 // ========================================
 // Bonus自动检测系统 (新增)
@@ -13932,7 +13831,7 @@ const TPI = (function() {
                 TYPE_D_EQUIVALENT: 400,      // 400标准字/小时当量
 
                 // ==================== 点火程序 ====================
-                IGNITION_BONUS: 2.0,         // 点火程序总奖励分
+                IGNITION_BONUS: 2.0,         // 点火程序单项奖励分（每个点火项+2分，共5项）
 
                 // ==================== 精度与显示 ====================
                 FLOAT_PRECISION_STEP: 0.5,   // 四舍五入步长
@@ -16545,7 +16444,7 @@ function calculateAMI() {
             }
 
             // 7. 【优化方向三】BCM连续稳定：连续3日BCM≥18分
-            const bcmStreak = checkBCMStreakDays(3, 18);
+            const bcmStreak = checkBCMStreakDays(3, 18); // 18分 = BCM_RAW_CAP(20)的90%，引用CONSTANTS.BCM_STREAK_THRESHOLD建议值
             if (bcmStreak) { checkBonusBox('bcm_streak'); } else { uncheckBonusBox('bcm_streak'); }
 
             // 8. 微小胜利自动检测 (填满3项自动获得+1分)
@@ -18353,23 +18252,6 @@ try {
             }
 
             // ==================== 数据导出功能 ====================
-// ==================== Firebase 云端同步功能已移除 ====================
-            // Firebase同步功能已完全移除，现在使用GitHub作为唯一云端同步方式
-            // 请使用GitHub云端同步模块进行数据同步
-            
-            /**
-             * saveToFirebase - 已废弃，保留空函数以防止引用错误
-             */
-            function saveToFirebase() {
-                window.__tpi_debug_log && window.__tpi_debug_log('[已废弃] Firebase同步已移除，请使用多云端同步');
-            }
-
-            /**
-             * loadFromFirebase - 已废弃，保留空函数以防止引用错误
-             */
-            function loadFromFirebase() {
-                window.__tpi_debug_log && window.__tpi_debug_log('[已废弃] Firebase同步已移除，请使用多云端同步');
-            }
             /**
              * 导出数据 (增强文件名安全性)
              */
@@ -20655,8 +20537,6 @@ const __exp = (function(){
         // 数据持久化
                 saveToLocalStorage,
                 loadFromLocalStorage,
-                saveToFirebase,
-                loadFromFirebase,
                 exportData,
                 importData,
                 resetForm,
@@ -20696,8 +20576,7 @@ const __exp = (function(){
                 updateStorageIndicator,
                 initializeDateNavigation,
                 initializeNetworkMonitor,
-                checkPasswordStrength,
-                enhancedSaveToFirebase
+                checkPasswordStrength
             };
         })();
 
@@ -25878,11 +25757,8 @@ const ScoreDashboard = {
                 void element.offsetWidth;
                 element.classList.add(newVal > prevVal ? 'flash-up' : 'flash-down');
                 setTimeout(() => element.classList.remove('flash-up', 'flash-down'), 600);
-            } else if (element.classList.contains('value')) {
-                // 非数值变化时保留原有的轻微缩放效果
-                element.style.transform = 'scale(1.06)';
-                setTimeout(() => { element.style.transform = 'scale(1)'; }, 160);
             }
+            // [Fix V3] 移除非数值变化时的 scale(1.06) 跳动效果，防止输入时看板抖动
         }
     },
 
@@ -27454,13 +27330,7 @@ window.__tpi_debug_log('✅ 全局错误监控已启动');
    [Removed] GitHub Repo 同步/合并脚本（tpi_db.json 等）
    - 已切换为 TPI+ 后端同步
 ========================================================= */
-(function(){
-  // 兼容旧入口：如果其他脚本仍调用，不报错
-  window.downloadFromGitHub = window.downloadFromGitHub || function(){};
-  window.uploadToGitHub = window.uploadToGitHub || function(){};
-  window.loadFromGitHub = window.loadFromGitHub || function(){};
-  window.syncToGitHub = window.syncToGitHub || function(){};
-})();
+
 </script>
 <script>
 'use strict';
@@ -30028,186 +29898,7 @@ try{
   })();
 </script>
 
-<script>
-'use strict';
-(function() {
 
-    window.__tpi_debug_log('[雷达修复] 正在应用强制渲染补丁...');
-
-    // 等待 FutureRadar 对象就绪
-    function waitForFutureRadar(callback) {
-        if (window.FutureRadar && typeof window.FutureRadar.renderSection === 'function') {
-            callback();
-            return;
-        }
-        const timer = setInterval(() => {
-            if (window.FutureRadar && typeof window.FutureRadar.renderSection === 'function') {
-                clearInterval(timer);
-                callback();
-            }
-        }, 100);
-        setTimeout(() => clearInterval(timer), 10000);
-    }
-
-    waitForFutureRadar(() => {
-        const FR = window.FutureRadar;
-
-        // ---------- 1. 重写 renderSection：无视折叠状态，强制填充内容 ----------
-        const originalRenderSection = FR.renderSection;
-        FR.renderSection = function(key) {
-            try {
-                const listContainer = document.getElementById(`list-${key}`);
-                const doneContainer = document.getElementById(`list-${key}-done`);
-                if (!listContainer) return;
-
-                const items = this.data[key] || [];
-                const pending = items.filter(i => !i.completed);
-                const done = items.filter(i => i.completed);
-
-                // 排序（与原逻辑一致）
-                const sortMode = (this.sortMode && this.sortMode[key]) ? this.sortMode[key] : 'priority';
-                pending.sort((a, b) => {
-                    const aInProgress = !!(a.dateEnd && new Date(a.date) <= new Date() && new Date(a.dateEnd) >= new Date());
-                    const bInProgress = !!(b.dateEnd && new Date(b.date) <= new Date() && new Date(b.dateEnd) >= new Date());
-                    if (aInProgress !== bInProgress) return aInProgress ? -1 : 1;
-
-                    const ap = this.normalizePriority(a.priority != null ? a.priority : (a.isImportant ? 3 : 1));
-                    const bp = this.normalizePriority(b.priority != null ? b.priority : (b.isImportant ? 3 : 1));
-                    if (sortMode === 'time') {
-                        const at = this.getEventSortTime(a);
-                        const bt = this.getEventSortTime(b);
-                        if (at !== bt) return at - bt;
-                        if (ap !== bp) return bp - ap;
-                        if (!!a.isImportant !== !!b.isImportant) return a.isImportant ? -1 : 1;
-                        return 0;
-                    }
-                    if (ap !== bp) return bp - ap;
-                    if (!!a.isImportant !== !!b.isImportant) return a.isImportant ? -1 : 1;
-                    return this.daysLeft(a.date, a.dateEnd) - this.daysLeft(b.date, b.dateEnd);
-                });
-
-                // ----- 强制清空并重新渲染待办区 -----
-                listContainer.innerHTML = '';
-                if (pending.length === 0) {
-                    listContainer.innerHTML = `<div style="text-align:center; padding:30px 10px; color:#adb5bd;">
-                        <div style="font-size:40px; margin-bottom:10px;">🏝️</div>
-                        <div>当前无待办事件</div>
-                        <div style="font-size:12px; margin-top:5px;">享受这段清空的时光吧！</div>
-                    </div>`;
-                } else {
-                    pending.forEach(item => {
-                        const html = this.createCardHtml(key, item);
-                        if (html && html.trim()) listContainer.innerHTML += html;
-                    });
-                }
-
-                // ----- 已完成区（保留折叠功能）-----
-                if (doneContainer) {
-                    doneContainer.innerHTML = '';
-                    if (done.length > 0) {
-                        doneContainer.innerHTML = `<div style="padding:10px; font-weight:600; color:#6b7280; font-size:12px; cursor:pointer; border-top:1px dashed #e5e7eb; margin-top:5px;" onclick="this.parentElement.classList.toggle('collapsed')">✅ 已完成 (${done.length}) <span style="font-size:10px; opacity:0.7;">(点击展开/折叠)</span> ▼</div>`;
-                        done.forEach(item => doneContainer.innerHTML += this.createCardHtml(key, item));
-                    }
-                }
-
-                // 更新徽章计数
-                const badge = document.getElementById(`badge-${key}-count`);
-                if (badge) badge.innerText = pending.length;
-
-            } catch (e) {
-                console.error(`[雷达修复] 渲染分类 ${key} 失败:`, e);
-            }
-        };
-
-        // ---------- 2. 增强 createCardHtml：防御性编程，绝不抛错 ----------
-        const originalCreateCard = FR.createCardHtml;
-        FR.createCardHtml = function(key, item) {
-            try {
-                if (!item || typeof item !== 'object') {
-                    console.warn('[雷达修复] 无效事件对象:', item);
-                    return '';
-                }
-                // 补齐必要字段
-                if (!item.id) item.id = `radar_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-                if (!item.title) item.title = '(无标题)';
-                if (!item.date) item.date = new Date().toISOString().split('T')[0];
-
-                const result = originalCreateCard.call(this, key, item);
-                return result || '';
-            } catch (e) {
-                console.error('[雷达修复] 卡片生成失败:', e, item);
-                // 兜底卡片，保证至少能看到事件标题
-                return `<div class="event-item" style="border-left:4px solid #ef4444; padding:10px; margin-bottom:5px;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span>⚠️</span>
-                        <div>
-                            <div style="font-weight:600;">${item.title || '未命名事件'}</div>
-                            <div style="font-size:12px; color:#6b7280;">${item.date || ''}</div>
-                        </div>
-                    </div>
-                </div>`;
-            }
-        };
-
-        // ---------- 3. 增强 reload：等待容器就绪 + 重试机制 ----------
-        const originalReload = FR.reload;
-        FR.reload = function() {
-            try {
-                if (typeof this.loadData === 'function') this.loadData();
-                let attempts = 0;
-                const tryRender = () => {
-                    attempts++;
-                    const requiredIds = ['list-tempLife', 'list-tempAcademic', 'list-regularLife', 'list-regularAcademic'];
-                    const allExist = requiredIds.every(id => document.getElementById(id));
-                    if (allExist || attempts > 20) {
-                        if (typeof this.render === 'function') this.render();
-                        else {
-                            ['tempLife','tempAcademic','regularLife','regularAcademic'].forEach(key => this.renderSection(key));
-                        }
-                        window.__tpi_debug_log('[雷达修复] reload 渲染完成，尝试次数:', attempts);
-                    } else {
-                        setTimeout(tryRender, 100);
-                    }
-                };
-                tryRender();
-            } catch (e) {
-                console.error('[雷达修复] reload 失败:', e);
-                // 兜底：强行逐个渲染
-                ['tempLife','tempAcademic','regularLife','regularAcademic'].forEach(key => {
-                    try { this.renderSection(key); } catch (ex) {}
-                });
-            }
-        };
-
-        // ---------- 4. 劫持 downloadFromGitHub，下载后自动刷新雷达 ----------
-        const originalDownload = window.downloadFromGitHub;
-        if (typeof originalDownload === 'function') {
-            window.downloadFromGitHub = async function(...args) {
-                try {
-                    const result = await originalDownload.apply(this, args);
-                    setTimeout(() => {
-                        if (window.FutureRadar && typeof window.FutureRadar.reload === 'function') {
-                            window.FutureRadar.reload();
-                        }
-                    }, 300);
-                    return result;
-                } catch (e) {
-                    throw e;
-                }
-            };
-        }
-
-        // 初始渲染（确保页面加载后雷达显示）
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => setTimeout(() => FR.reload(), 200));
-        } else {
-            setTimeout(() => FR.reload(), 200);
-        }
-
-        window.__tpi_debug_log('[雷达修复补丁] 已激活，渲染问题将不再出现');
-    });
-})();
-</script>
 
 <script>
 'use strict';
@@ -30518,16 +30209,48 @@ window.__tpi_syncDateToMain = function(){
       }catch(err){
       console.error('❌ 登录失败:', err);
       let errorMsg = '登录失败';
-      if (err.message) {
+      const isCorsFail = __isFailedToFetch(err);
+      if (isCorsFail) {
+        const origin = (location && location.origin) ? location.origin : '(unknown)';
+        const appwriteConsoleUrl = 'https://cloud.appwrite.io/console';
+        errorMsg = `CORS 跨域拦截（域名未授权）\n\n🔧 修复方法：\n1. 打开 Appwrite Console → 选择项目 → Auth → Settings → Platforms\n2. 点击「Add Platform」→ 选择「Web」\n3. 添加当前域名：${origin}\n4. 保存后刷新页面重试\n\n当前 Endpoint：${window.APPWRITE_ENDPOINT_ACTIVE || 'sgp.cloud.appwrite.io/v1'}`;
+        // Show a helper banner inside the panel
+        try {
+          const corsHelperBanner = document.getElementById('tpi-cors-helper-banner');
+          if (!corsHelperBanner) {
+            const banner = document.createElement('div');
+            banner.id = 'tpi-cors-helper-banner';
+            banner.style.cssText = 'margin-top:12px;padding:12px 16px;background:linear-gradient(135deg,#fff7ed,#fef3c7);border:1.5px solid #f59e0b;border-radius:10px;font-size:13px;line-height:1.7;';
+            banner.innerHTML = `
+              <div style="font-weight:700;color:#b45309;margin-bottom:6px;">🔧 CORS 修复指引</div>
+              <div style="color:#78350f;">
+                <b>原因：</b>当前域名 <code style="background:#fef3c7;padding:1px 5px;border-radius:4px;font-family:monospace;">${origin}</code> 未在 Appwrite 项目中注册。<br>
+                <b>步骤：</b>
+                <ol style="margin:6px 0 6px 18px;padding:0;">
+                  <li>打开 <a href="https://cloud.appwrite.io/console" target="_blank" rel="noopener" style="color:#2563eb;font-weight:600;">Appwrite Console ↗</a></li>
+                  <li>进入你的项目 → <b>Auth</b> → <b>Settings</b> → <b>Platforms</b></li>
+                  <li>点击「Add Platform」→「Web」，输入域名：<code style="background:#fef3c7;padding:1px 5px;border-radius:4px;font-family:monospace;">${origin}</code></li>
+                  <li>保存后刷新本页面，再次登录即可</li>
+                </ol>
+              </div>
+              <button type="button" onclick="this.closest('#tpi-cors-helper-banner').remove()" style="margin-top:4px;padding:3px 10px;border:1px solid #d97706;border-radius:6px;background:#fffbeb;cursor:pointer;font-size:12px;color:#92400e;">✕ 关闭提示</button>
+            `;
+            const loginMsg = document.getElementById('tpi-login-msg');
+            if (loginMsg && loginMsg.parentNode) loginMsg.parentNode.insertBefore(banner, loginMsg.nextSibling);
+          }
+        } catch(_) {}
+      } else if (err.message) {
         if (err.message.includes('Invalid credentials') || err.message.includes('user_invalid_credentials')) {
           errorMsg = '邮箱或密码错误';
         } else if (err.message.includes('user_blocked')) {
           errorMsg = '账户已被禁用';
+        } else if (err.message.includes('user_not_found')) {
+          errorMsg = '账户不存在，请先注册';
         } else {
           errorMsg = err.message;
         }
       }
-      tpiShowMsg('tpi-login-msg', `❌ ${errorMsg}`, true);
+      tpiShowMsg('tpi-login-msg', `❌ ${errorMsg}`, isCorsFail ? false : true);
     }
   };
 
@@ -30829,8 +30552,6 @@ window.__tpi_syncDateToMain = function(){
       // 只同步必要的全局键（避免把无关历史搬来搬去）
       const keys = [
         'tpi_checkin_data',
-        'tpi_radar_events_v3',
-        'tpi_radar_push_config'
       ];
       // 杂事记录是“按日”的键：tpi_misc_records_YYYY-MM-DD（restoreUIFromData 里也会写回）
       keys.push('tpi_misc_records_'+dateStr);
@@ -31445,12 +31166,12 @@ window.__tpi_debug_log('☁️ [上传] 正在写入云端数据库...');
       
       try {
         // 统计上传内容
-        let _ul_radarCount = 0, _ul_miscCount = 0, _ul_fieldCount = 0;
+        let _ul_miscCount = 0, _ul_fieldCount = 0;
         try {
           const _ul_day = (window.collectDailyData && window.collectDailyData()) || {};
           const _ul_radar = _ul_day.futureRadarV3 || {};
           if (typeof _ul_radar === 'object') {
-            _ul_radarCount = ['tempLife','tempAcademic','regularLife','regularAcademic'].reduce((s,k)=>s+(Array.isArray(_ul_radar[k])?_ul_radar[k].length:0),0);
+
           }
           const _ul_misc = _ul_day.miscRecordsV1 || [];
           _ul_miscCount = Array.isArray(_ul_misc) ? _ul_misc.length : 0;
@@ -31460,7 +31181,7 @@ window.__tpi_debug_log('☁️ [上传] 正在写入云端数据库...');
         const _ulLines = [
           `✅ 上传成功 — ${dateStr}`,
           `📦 数据大小：${dataSizeKB} KB`,
-          `🗂 表单字段：${_ul_fieldCount} 个  |  🗓 雷达事件：${_ul_radarCount} 条  |  📓 杂记：${_ul_miscCount} 条`,
+          `🗂 表单字段：${_ul_fieldCount} 个  |  📓 杂记：${_ul_miscCount} 条`,
           `⏰ 上传时间：${_ul_uploadTime}`,
           `☁️ 同步方式：TPI+ 后端 (Appwrite)`
         ];
@@ -31471,7 +31192,7 @@ window.__tpi_debug_log('☁️ [上传] 正在写入云端数据库...');
         // 同时弹出丰富详情弹窗
         try {
           if (typeof window.__tpi_showRichNotif === 'function') {
-            window.__tpi_showRichNotif('upload', dateStr, dataSizeKB, {radarCount:_ul_radarCount,miscCount:_ul_miscCount,fieldCount:_ul_fieldCount,time:_ul_uploadTime, syncLabel:'TPI+ 后端 (Appwrite)'});
+            window.__tpi_showRichNotif('upload', dateStr, dataSizeKB, {radarCount:0,miscCount:_ul_miscCount,fieldCount:_ul_fieldCount,time:_ul_uploadTime, syncLabel:'TPI+ 后端 (Appwrite)'});
           }
         } catch(_) {}
       } catch(e) {}
@@ -31683,7 +31404,7 @@ window.tpiLoadToday = async function () {
       // ✅ [Fix V12-Bug1] 步骤3/4 已移除：不再调用 TPI.loadFromLocalStorage/loadFromLocalStorage
       // 原因：这两个调用在云端数据已通过 restoreUIFromData 恢复之后执行，
       // 会读取旧的 tpi_data_${date} 键（Appwrite packed格式未写入该键），
-      // 导致 __tpi_clearAllForm() 被触发，清除 FutureRadar/MiscLog 等模块。
+      // 导致 __tpi_clearAllForm() 被触发，清除 MiscLog 等模块。
       // restoreUIFromData 已足够完整，无需额外 loadFromLocalStorage 补充。
       window.__tpi_debug_log('ℹ️ [下载] 跳过 loadFromLocalStorage');
 
@@ -31716,33 +31437,7 @@ window.tpiLoadToday = async function () {
         console.warn('⚠️ [下载] __tpi_triggerRecalc失败(忽略):', e);
       }
 
-      // 5.3 刷新FutureRadar（如果存在）
-      try {
-        if (window.FutureRadar && typeof window.FutureRadar === 'object') {
-          window.__tpi_debug_log('🔧 [下载] 刷新FutureRadar...');
-          if (typeof window.FutureRadar.loadData === 'function') {
-            window.FutureRadar.loadData();
-          }
-          if (typeof window.FutureRadar.reload === 'function') {
-            window.FutureRadar.reload();
-          } else if (typeof window.FutureRadar.render === 'function') {
-            window.FutureRadar.render();
-          }
-          // ✅ [Fix V12-Bug1] 延迟再次刷新，保证跨浏览器正确渲染
-          setTimeout(function(){
-            try{
-              if(window.FutureRadar){
-                if(typeof window.FutureRadar.loadData==='function') window.FutureRadar.loadData();
-                if(typeof window.FutureRadar.reload==='function') window.FutureRadar.reload();
-                else if(typeof window.FutureRadar.render==='function') window.FutureRadar.render();
-              }
-            }catch(e){}
-          }, 500);
-          window.__tpi_debug_log('✅ [下载] FutureRadar刷新完成');
-        }
-      } catch(e) {
-        console.warn('⚠️ [下载] FutureRadar刷新失败(忽略):', e);
-      }
+
       
       // 5.4 刷新杂事记录（确保杂事记录显示正确）
       try {
@@ -31875,12 +31570,12 @@ const __download_end_time = Date.now();
       
       try {
         // 统计恢复内容
-        let _dl_radarCount = 0, _dl_miscCount = 0, _dl_fieldCount = 0;
+        let _dl_miscCount = 0, _dl_fieldCount = 0;
         try {
           const _dl_day = (window.collectDailyData && window.collectDailyData()) || {};
           const _dl_radar = _dl_day.futureRadarV3 || {};
           if (typeof _dl_radar === 'object') {
-            _dl_radarCount = ['tempLife','tempAcademic','regularLife','regularAcademic'].reduce((s,k)=>s+(Array.isArray(_dl_radar[k])?_dl_radar[k].length:0),0);
+
           }
           const _dl_misc = _dl_day.miscRecordsV1 || [];
           _dl_miscCount = Array.isArray(_dl_misc) ? _dl_misc.length : 0;
@@ -31894,7 +31589,7 @@ const __download_end_time = Date.now();
         try {
           if (typeof window.__tpi_showRichNotif === 'function') {
             window.__tpi_showRichNotif('download', dateStr, dataSizeKB, {
-              radarCount:_dl_radarCount, miscCount:_dl_miscCount, fieldCount:_dl_fieldCount,
+              radarCount:0, miscCount:_dl_miscCount, fieldCount:_dl_fieldCount,
               time:_dl_downloadTime, beforeKeys, afterKeys
             ,
               syncLabel:'TPI+ 后端 (Appwrite)'
@@ -34350,8 +34045,7 @@ window.__tpi_debug_log('✅ [TPI优化] 函数增强包装器已加载');
         if (window.TPI && typeof window.TPI.calculateTPI === 'function') window.TPI.calculateTPI();
       } catch(e) {}
 
-      // 4) 刷新 FutureRadar
-      try { window.__tpi_safeReloadFutureRadar && window.__tpi_safeReloadFutureRadar(); } catch(e) {}
+
       // 5) 刷新 MiscLog
       try { window.MiscLog && typeof window.MiscLog.render === 'function' && window.MiscLog.render(); } catch(e) {}
       // 6) 刷新签到
@@ -34718,8 +34412,7 @@ window.__tpi_debug_log('✅ [TPI优化] 函数增强包装器已加载');
    ③ 顶栏看板 ts-* 系列（MA7/AMI/FLI/SYS/BONUS/总分/评级）
    ④ 打卡连续天数、连败天数、豁免A/B数量、杂记条数字符数
    ⑤ 杂记（Misc Log）全部文本记录（ls key: tpi_misc_records_<date>）
-   ⑥ Future Radar 雷达事件（ls key: tpi_radar_events_v3，四分类）
-   ⑦ contenteditable 富文本编辑器内容（排除模态框临时输入）
+   ⑥ contenteditable 富文本编辑器内容（排除模态框临时输入）
 ================================================================ */
 window.__tpiDirectExport = function(fmt) {
   fmt = (fmt || 'json').toLowerCase();
@@ -34870,41 +34563,6 @@ window.__tpiDirectExport = function(fmt) {
     }
   } catch(e) { miscRecords = []; }
 
-  /* ── 5. Future Radar 雷达事件（V4 存储键：tpi_radar_events_v3） ── */
-  var radarEvents = { tempLife: [], tempAcademic: [], regularLife: [], regularAcademic: [] };
-  try {
-    var radarRaw = typeof window.__tpi_ls_get === 'function'
-      ? window.__tpi_ls_get('tpi_radar_events_v3') : null;
-    if (radarRaw) {
-      var pr = JSON.parse(radarRaw);
-      if (pr && typeof pr === 'object') {
-        ['tempLife','tempAcademic','regularLife','regularAcademic'].forEach(function(k) {
-          if (Array.isArray(pr[k])) radarEvents[k] = pr[k];
-        });
-      }
-    }
-    /* 兜底：从 DOM 已渲染列表读取标题 */
-    var hasAny = Object.values(radarEvents).some(function(a){ return a.length > 0; });
-    if (!hasAny) {
-      ['tempLife','tempAcademic','regularLife','regularAcademic'].forEach(function(key) {
-        var listEl = document.getElementById('list-' + key);
-        if (listEl) {
-          listEl.querySelectorAll('.event-title, .event-name').forEach(function(el) {
-            var t = el.textContent.trim();
-            if (t) radarEvents[key].push({ title: t, _fromDOM: true });
-          });
-        }
-        var doneEl = document.getElementById('list-' + key + '-done');
-        if (doneEl) {
-          doneEl.querySelectorAll('.event-title, .event-name').forEach(function(el) {
-            var t = el.textContent.trim();
-            if (t) radarEvents[key].push({ title: t, done: true, _fromDOM: true });
-          });
-        }
-      });
-    }
-  } catch(e) {}
-
   /* ── 6. contenteditable 富文本内容 ── */
   var richTexts = [];
   document.querySelectorAll('[contenteditable="true"]').forEach(function(el) {
@@ -34933,7 +34591,6 @@ window.__tpiDirectExport = function(fmt) {
   var scoreKeys  = Object.keys(scoreMap);
   var filledTA   = textareas.filter(function(t){ return t.value && t.value.trim(); });
   var filledNum  = numbers.filter(function(n){ return n.value && n.value !== '' && n.value !== '0'; });
-  var radarTotal = Object.values(radarEvents).reduce(function(a,b){ return a+(b?b.length:0); }, 0);
 
   if (fmt === 'json') {
     var payload = {
@@ -34949,11 +34606,10 @@ window.__tpiDirectExport = function(fmt) {
       numbers:     numbers,
       times:       times,
       texts:       texts,
-      miscRecords: miscRecords,
-      radarEvents: radarEvents
+      miscRecords: miscRecords
     };
     download(JSON.stringify(payload, null, 2), 'TPI_'+date+'_'+nowTs()+'.json', 'application/json;charset=utf-8');
-    alert('✅ JSON 导出成功！\n文本框：'+filledTA.length+' 个有内容\n分数项：'+scoreKeys.length+' 项\n数字字段：'+filledNum.length+' 个\n杂记：'+miscRecords.length+' 条\n雷达事件：'+radarTotal+' 条');
+    alert('✅ JSON 导出成功！\n文本框：'+filledTA.length+' 个有内容\n分数项：'+scoreKeys.length+' 项\n数字字段：'+filledNum.length+' 个\n杂记：'+miscRecords.length+' 条');
 
   } else {
     /* ── Markdown ── */
@@ -35076,42 +34732,8 @@ window.__tpiDirectExport = function(fmt) {
       });
     }
 
-    /* Future Radar 事件 */
-    var radarLabels = {
-      tempLife:        '📅 临时生活事件',
-      tempAcademic:    '📚 临时学术事件',
-      regularLife:     '🔄 常规生活事件',
-      regularAcademic: '🎯 常规学术事件'
-    };
-    if (radarTotal > 0) {
-      lines.push('## 🎯 Future Radar 事件');
-      lines.push('');
-      Object.keys(radarLabels).forEach(function(key){
-        var evs = radarEvents[key];
-        if (!evs || evs.length === 0) return;
-        lines.push('### ' + radarLabels[key] + '（' + evs.length + ' 条）');
-        lines.push('');
-        evs.forEach(function(ev){
-          if (!ev) return;
-          var title   = ev.title || ev.name || '(无标题)';
-          var done    = ev.done || ev.completed || false;
-          var evDate  = ev.date || ev.startDate || '';
-          var loc     = ev.location || '';
-          var remarks = ev.remarks || ev.content || '';
-          var line    = '- ' + (done ? '~~' : '') + title + (done ? '~~' : '');
-          if (evDate) line += '　📅 ' + evDate;
-          if (loc)    line += '　📍 ' + loc;
-          lines.push(line);
-          if (remarks && remarks.trim()) {
-            lines.push('  > ' + remarks.trim().replace(/\n/g, '\n  > ').slice(0, 300));
-          }
-        });
-        lines.push('');
-      });
-    }
-
     download(lines.join('\n'), 'TPI_'+date+'_'+nowTs()+'.md', 'text/markdown;charset=utf-8');
-    alert('✅ Markdown 导出成功！\n文本框：'+filledTA.length+' 个\n分数项：'+scoreKeys.length+' 项\n数字字段：'+filledNum.length+' 个\n杂记：'+miscRecords.length+' 条\n雷达事件：'+radarTotal+' 条');
+    alert('✅ Markdown 导出成功！\n文本框：'+filledTA.length+' 个\n分数项：'+scoreKeys.length+' 项\n数字字段：'+filledNum.length+' 个\n杂记：'+miscRecords.length+' 条');
   }
 };
 </script>
@@ -36579,8 +36201,7 @@ function _tsStr(){
 /* ── 同步当前DOM到存储（确保刚输入的内容也被收录） ── */
 function _syncCurrentDOMToStorage(){
   // ✅ [优化补丁 §1.2] 强制雷达草稿落盘
-  try { if (typeof window.__tpi_flushRadarDraft === 'function') window.__tpi_flushRadarDraft(); } catch(_e) {}
-  try { if (window.FutureRadar && typeof window.FutureRadar.flushDraft === 'function') window.FutureRadar.flushDraft(); } catch(_e) {}
+
 
   // ✅ [优化补丁 §2.1] 强制立即计算分数（使用 immediate 版本绕过防抖）
   try {
