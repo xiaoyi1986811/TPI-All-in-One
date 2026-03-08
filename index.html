@@ -2,61 +2,17 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"/>
-<!-- 性能优化: DNS预解析和预连接 -->
 <link crossorigin="" href="https://cdn.jsdelivr.net" rel="preconnect"/>
 <link href="https://cdn.jsdelivr.net" rel="dns-prefetch"/>
-<!-- 性能优化 -->
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<!-- 安全增强元标签 -->
 <meta content="nosniff" http-equiv="X-Content-Type-Options"/>
-<!-- X-Frame-Options should be set via HTTP header, not meta tag -->
 <meta content="1; mode=block" http-equiv="X-XSS-Protection"/>
-<!-- [OPT-V15-#16] CSP安全策略：已移除 unsafe-eval，添加 manifest-src blob:（PWA manifest用），移除不支持的 frame-ancestors（需通过HTTP响应头设置） -->
-<!-- 注意：frame-ancestors 指令在 meta 标签中无效（浏览器会忽略并报警告），需通过服务器端 HTTP 响应头 X-Frame-Options 或 CSP 响应头实现。 -->
-<!-- 注意：完整的 nonce 机制需要服务器端支持，单 HTML 文件暂用 strict-dynamic 替代方案 -->
+
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.github.com https://cloud.appwrite.io https://sgp.cloud.appwrite.io https://unpkg.com blob:; worker-src blob:; manifest-src blob:; object-src 'none'; base-uri 'self'; form-action 'self';"/>
 <meta content="strict-origin-when-cross-origin" http-equiv="Referrer-Policy"/>
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=()"/>
-<!-- TPI 硬编码配置抽离：将 Gist ID、Appwrite 项目 ID 等移至 meta 标签，方便统一管理 -->
 <meta name="tpi-config" content='{"gistId":"cab132a91b77c44ff7a66286a54c213d","appwriteProject":"698d998e003c903490e1","appwriteEndpoint":"https://sgp.cloud.appwrite.io/v1"}'/>
-
-<!-- [优化 §1.6/§3.5] 调试日志早期存根：在所有模块初始化前提供 __tpi_debug_log，
-     避免早期脚本中的 debug 调用因 __tpi_debug_log 未定义而报错。
-     存储模块初始化后会覆盖此存根为完整实现（含 localStorage 开关检测）。 -->
-<script>
-/* eslint-env browser, es2020 */
-/* eslint-disable no-console */
-/*
- * ESLint配置建议（适用于本文件提取为模块后）：
- *   eslint:recommended + browser env + promise plugin
- *   已启用规则：no-unused-vars, no-undef, eqeqeq, no-eval
- *   已忽略：no-console (调试模式下需要), prefer-const (兼容旧环境)
- *
- * 单元测试建议（Jest + jsdom）：
- *   核心测试用例：calculateAMI(), calculateTPI(), tpiSaveToday(), tpiLoadToday()
- *   边界条件：零输入、极大值（>9999）、NaN、空字符串
- *
- * [OPT-V15-#9] 构建优化说明：
- *   若需压缩本文件，建议步骤：
- *   1. 先完成 OPT-V15-#1（内联事件迁移至 data-action 事件委托）
- *   2. 使用 Terser 压缩 JS：terser --keep-fnames --keep-classnames（保留函数名）
- *   3. 使用 CleanCSS 压缩 CSS：cleancss -O2
- *   4. 确保所有 onclick="xxx()" 内联事件的函数名被 keep_fnames 保护
- *   5. 压缩后完整回归测试：分数计算、保存/加载、云端同步、导入导出
- *
- * [OPT-V15-#11] 核心功能手动测试清单：
- *   □ 分数实时同步（输入分数后 tpi-total 自动更新）
- *   □ 保存功能（tpiSaveToday -> localStorage 写入）
- *   □ 加载功能（tpiLoadToday -> 界面还原）
- *   □ 数据导出（JSON/Markdown 下载）
- *   □ 数据导入（JSON 恢复）
- *   □ 多云端同步（GitHub Gist / Appwrite）
- *   □ 模块折叠（点击 card-header 折叠/展开）
- *   □ 全文搜索（关键词搜索历史记录）
- *   □ 离线队列（断网操作后恢复联网自动同步）
- */
-</script>
 
 <script>
 (function(){
@@ -72,7 +28,6 @@
   }
 })();
 </script>
-<!-- CDN加载失败降级：监听脚本加载错误，自动切换至备用CDN -->
 <script>
 (function(){
   'use strict';
@@ -89,7 +44,6 @@
         newScript.src = src.replace('cdn.jsdelivr.net/npm', 'unpkg.com');
         newScript.onerror = function() {
           console.error('[TPI CDN降级] unpkg 也不可用:', newScript.src);
-          // [OPT-V3-§36] 两个CDN均失败时，向用户显示友好提示
           try {
             var libName = newScript.src.split('/').slice(-2, -1)[0] || newScript.src;
             var showErr = function() {
@@ -189,15 +143,13 @@
   };
 })();
 </script>
-
-<!-- 社交媒体优化 (Open Graph) -->
-<meta content="全维效能管理系统（TPI，V1.12）" property="og:title"/>
+<meta content="全维效能管理系统（TPI，V1.17）" property="og:title"/>
 <meta content="全维效能管理系统（TPI）| 全面追踪 · 科学管理 · 高效提升" property="og:description"/>
 <meta content="website" property="og:type"/>
 <meta content="https://mytpi.netlify.app/" property="og:url"/>
 <meta content="zh_CN" property="og:locale"/>
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="全维效能管理系统（TPI，V1.12）"/>
+<meta name="twitter:title" content="全维效能管理系统（TPI，V1.17）"/>
 <meta name="twitter:description" content="全维效能管理系统（TPI）"/>
 <meta content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" name="viewport"/>
 <meta content="全维效能管理系统（TPI）- 跨设备同步 | 支持电脑/手机/平板访问" name="description"/>
@@ -205,14 +157,11 @@
 <meta content="TPI System" name="author"/><!-- 移动端优化 -->
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
-<meta content="全维效能管理系统（TPI，V1.12）" name="apple-mobile-web-app-title"/>
+<meta content="全维效能管理系统（TPI，V1.17）" name="apple-mobile-web-app-title"/>
 <meta content="yes" name="mobile-web-app-capable"/>
 <meta content="telephone=no, email=no, address=no" name="format-detection"/>
 <meta content="#0d9488" name="theme-color"/>
-<!-- PWA Manifest支持 -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>"/>
-<!-- [Fix §6] PWA manifest 暂不配置，已移除空 href 的 manifest 标签以消除控制台警告 -->
-
 <script>
 'use strict';
 /* =========================================================
@@ -332,7 +281,6 @@
     if (id === 'date-input') return;
     window._hasUnsavedChanges = true;
   }, { passive: true, capture: true });
-  // [V1.07] beforeunload 主逻辑已迁移至页面末尾的独立 IIFE（含自定义同步弹窗 + 原生对话框）
   // 此处仅保留注释，实际提醒逻辑见 "[V1.07] 退出提醒" 代码块
   // 在 DOMContentLoaded 后 Hook tpiSaveToday，成功保存后重置标志
   document.addEventListener('DOMContentLoaded', function() {
@@ -362,7 +310,6 @@
 'use strict';
 /* TPI: 防止登录后控制台报错 + 降噪 */
 (function(){
-
 
   // 1) JSON.parse 防御：空字符串/仅空白/BOM => 返回 null（避免 "Unexpected end of input"）
   try{
@@ -420,7 +367,6 @@
 
       console.log = function(...args){ if (shouldAllow()) orig.log(...args); };
       console.info = function(...args){ if (shouldAllow()) orig.info(...args); };
-      // [Fix §7] debug 不纳入主配额限流：debug 本身优先级最低，不应因主配额耗尽而被抑制
       try { console.debug = function(...args){ orig.debug(...args); }; } catch(_) {}
       // warn 和 error 不受限速，确保重要信息不丢失
       console.warn = function(...args){ orig.warn(...args); };
@@ -480,7 +426,6 @@
    版本：全维效能管理系统（TPI）
 ========================================================= */
 (function(){
-
 
   /* ── localStorage 白名单：仅这些轻量配置键同时写 localStorage ──
      包含双云端同步所需的 Gist 配置键和 GitHub 配置键，
@@ -1258,9 +1203,6 @@ if (typeof window.__tpi_debug_log === 'function') window.__tpi_debug_log('[Stora
   };
 })();
 </script>
-
-<!-- [Removed] 云端为主(localStorage最小化策略)脚本：已切换为后端同步 -->
-
 <script>
 'use strict';
 // ✅ 强制浅色模式（已取消深色模式）：不影响任何业务逻辑/同步/导出
@@ -1442,8 +1384,6 @@ window.__tpi_clearAllForm = function() {
 })();
 window.__tpi_debug_log('✅ 日期初始化脚本已加载');
 </script>
-
-<!-- ⭐ Appwrite SDK 引入 -->
 <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
@@ -1456,8 +1396,6 @@ window.__tpi_debug_log('✅ 日期初始化脚本已加载');
    勿删除：存根确保旧调用不报 undefined 错误，neutralizeLegacyFunctions 会将其重定向到最新实现。
    验证：在控制台运行 window.__TPI_LEGACY_BRIDGE_VERIFIED__ 可确认桥接状态。
 ========================================================= */
-
-
 
 /* =========================================================
    ✅ 导出/备份：100% 捕获“当前输入/勾选 + 当前页面规则生成内容”
@@ -1514,7 +1452,6 @@ window.__tpi_debug_log('✅ 日期初始化脚本已加载');
     _removeBackupBannerIfAny();
 
     // 1) 尽量把“内存里的草稿/弹窗未保存内容”刷回数据源
-
 
     // 2) 触发一次规则计算（确保“页面当前显示内容”是最新）
     try{ if (typeof window.__tpi_triggerRecalc === 'function') window.__tpi_triggerRecalc(); }catch(e){}
@@ -1794,7 +1731,6 @@ window.__tpi_debug_log('✅ 日期初始化脚本已加载');
     return lines.join('\n');
   }
   // ✅ 对外暴露：用于按钮/菜单调用
-  // [OPT-V15-#10] 导出内存优化：改用 Blob 分块写入，降低大数据导出时的内存峰值
   window.exportCurrentSnapshot = function(format){
     try{
       const exp = _buildExportObject();
@@ -2261,7 +2197,6 @@ window.collectDailyData = function() {
 
   // ✅ [草稿55 Patch-A] 打包模式选择（div.selected 不是表单控件，_formState 无法捕获）
   try {
-    // [Fix §3] 模式状态必填字段：始终写入 selectedMode，缺失时回退 'normal'
     const _modeRaw = __tpi_ls_get('selectedMode') ||
         (document.querySelector('.mode-card.selected') ? document.querySelector('.mode-card.selected').id.replace('mode-','') : null) ||
         (window.TPI && window.TPI.state && window.TPI.state.selectedMode) || 'normal';
@@ -2408,7 +2343,6 @@ window.restoreUIFromData = function(data) {
   }
 
   // ✅ [草稿55 Patch-B] 恢复模式选择（调 TPI.selectMode 同时修复 UI + state + localStorage）
-  // [Fix §3] 模式强制恢复：加载时以日记录中的 selectedMode 为准
   if (data["selectedMode"] && typeof data["selectedMode"] === 'string') {
     try {
       if (window.TPI && typeof window.TPI.selectMode === 'function') {
@@ -2620,7 +2554,6 @@ window.getTpiDayDataAsync = async function(dateStr) {
 /* 稳定性增强：统一Toast/导出/同步 */
 (function () {
 
-
   // ---------- 1) 统一 Toast：避免 tpiToast 未定义导致备份报错 ----------
   if (typeof window.tpiToast !== 'function') {
     window.tpiToast = function (msg, kind) {
@@ -2659,7 +2592,6 @@ window.getTpiDayDataAsync = async function(dateStr) {
   }
 
   // ---------- 2) TPI.calculateSystem 已移至 TPI 对象挂载后定义，避免被覆盖 ----------
-  // [OPT-V2-§9] tpiConfirm：用页面内模态框替代原生 confirm()
   if (typeof window.tpiConfirm !== 'function') {
     window.tpiConfirm = function(title, message) {
       return new Promise(function(resolve) {
@@ -2739,7 +2671,7 @@ window.getTpiDayDataAsync = async function(dateStr) {
         const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
         const manifestURL = URL.createObjectURL(manifestBlob);
         var _pwaEl = document.getElementById('pwa-manifest'); if (_pwaEl) _pwaEl.setAttribute('href', manifestURL); // [Fix §6] 空安全：manifest 元素可能不存在
-  </script><title>全维效能管理系统（TPI，V1.12）</title>
+  </script><title>全维效能管理系统（TPI，V1.17）</title>
 <script>
    'use strict';
 // 获取当前日期
@@ -2752,10 +2684,9 @@ window.getTpiDayDataAsync = async function(dateStr) {
         };
         
         // 系统版本号
-        window.TPI_VERSION = '全维效能管理系统（TPI，V1.12）';
+        window.TPI_VERSION = '全维效能管理系统（TPI，V1.17）';
         window.TPI_APP_VERSION = '1.09'; // 数字可比较的应用版本号
 
-// [OPT-V15-#12] TPI.Utils：公共工具函数命名空间（避免重复代码）
 window.TPI = window.TPI || {};
 window.TPI.Utils = window.TPI.Utils || {
   /** 获取当前本地日期字符串 YYYY-MM-DD */
@@ -2859,7 +2790,7 @@ window.TPI.DOM = window.TPI.DOM || {
                             : '三十';
             const lunarStr = `农历${lunarMonth}${lunarDay}${lunar.isLeap ? '(闰)' : ''}`;
             
-            document.title = `全维效能管理系统（TPI，V1.12）（${window.TPI_BUILD_DATE} ${weekday} ${lunarStr}）`;
+            document.title = `全维效能管理系统（TPI，V1.17）（${window.TPI_BUILD_DATE} ${weekday} ${lunarStr}）`;
             
             // 同时更新页面中的日期显示元素（如果存在）
             const dateDisplay = document.getElementById('current-date-display');
@@ -2902,8 +2833,6 @@ window.TPI.DOM = window.TPI.DOM || {
             }
         });
 
-
-        // ═══════════════════════════════════════════════════════════════════
         // 确保TPI对象存在
         window.TPI = window.TPI || {};
 
@@ -2922,7 +2851,6 @@ window.TPI.DOM = window.TPI.DOM || {
             }
         };
 
-        // [OPT-V2-§11] 页面加载时恢复卡片展开/折叠状态
         (function restoreCardCollapseState() {
             try {
                 const saved = __tpi_ls_get('tpi_collapsed_state');
@@ -2957,7 +2885,6 @@ window.TPI.DOM = window.TPI.DOM || {
         };
   </script>
 <link href="https://cdn.jsdelivr.net/npm/heatmap-calendar@1.0.0/dist/heatmap-calendar.css" rel="stylesheet"/>
-<!-- 引入MathJax用于数学公式渲染 -->
 <script>
 window.MathJax = {
             tex: {
@@ -2976,11 +2903,8 @@ window.MathJax = {
     const LunarCalendar=(function(){'use strict';const L=[0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,0x06ca0,0x0b550,0x15355,0x04da0,0x0a5b0,0x14573,0x052b0,0x0a9a8,0x0e950,0x06aa0,0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b6a0,0x195a6,0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x055c0,0x0ab60,0x096d5,0x092e0,0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,0x05aa0,0x076a3,0x096d0,0x04afb,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0,0x14b63,0x09370,0x049f8,0x04970,0x064b0,0x168a6,0x0ea50,0x06b20,0x1a6c4,0x0aae0,0x0a2e0,0x0d2e3,0x0c960,0x0d557,0x0d4a0,0x0da50,0x05d55,0x056a0,0x0a6d0,0x055d4,0x052d0,0x0a9b8,0x0a950,0x0b4a0,0x0b6a6,0x0ad50,0x055a0,0x0aba4,0x0a5b0,0x052b0,0x0b273,0x06930,0x07337,0x06aa0,0x0ad50,0x14b55,0x04b60,0x0a570,0x054e4,0x0d160,0x0e968,0x0d520,0x0daa0,0x16aa6,0x056d0,0x04ae0,0x0a9d4,0x0a2d0,0x0d150,0x0f252,0x0d520,0x0dda0];function g(y){return(L[y-1900]>>13)&0x0f}function m(y,mo){return(L[y-1900]&(0x10000>>mo))?30:29}function y(yr){let s=348;for(let i=0x8000;i>0x8;i>>=1)s+=(L[yr-1900]&i)?1:0;const lm=g(yr);if(lm>0)s+=(L[yr-1900]&0x10000)?30:29;return s}function s2l(d){const b=new Date(1900,0,31);let o=Math.floor((d-b)/86400000),ly,lm,ld,il=false;for(ly=1900;ly<2101;ly++){const yd=y(ly);if(o<yd)break;o-=yd}const lpm=g(ly);for(lm=1;lm<13;lm++){let md;if(lpm>0&&lm===lpm+1){if(!il){--lm;il=true;md=(L[ly-1900]&0x10000)?30:29}else{il=false;md=m(ly,lm)}}else md=m(ly,lm);if(o<md)break;o-=md}return{year:ly,month:lm,day:o+1,isLeap:il}}function l2s(yr,mo,da,il=false){const b=new Date(1900,0,31);let o=0;for(let y=1900;y<yr;y++)o+=y(y);const lm=g(yr);for(let m=1;m<mo;m++)o+=m(yr,m);if(lm>0&&mo>lm)o+=(L[yr-1900]&0x10000)?30:29;if(il)o+=m(yr,mo);o+=da-1;return new Date(b.getTime()+o*86400000)}return{solarToLunar:s2l,lunarToSolar:l2s,getLeapMonth:g}})();
     const RealtimeCalculator=(function(){'use strict';function sp(v,d=0){const p=parseFloat(v);return isNaN(p)||!isFinite(p)?d:p}function cl(v,mn,mx){return Math.max(mn,Math.min(mx,v))}function st(e,t){if(e)e.textContent=String(t)}function cds(id){const ins=document.querySelectorAll(`#${id} input[type="number"]:not([readonly])`);let t=0;ins.forEach(i=>{const v=sp(i.value,0),mn=sp(i.min,-Infinity),mx=sp(i.max,Infinity);t+=cl(v,mn,mx)});return Math.max(0,t)}function uds(id,sid){const sc=cds(id),el=document.getElementById(sid);if(el){if(el.tagName==='INPUT')el.value=sc.toFixed(2);else st(el,sc.toFixed(2))}return sc}function ctt(){const ds=['academic-score','personal-score','life-score','logistics-score'];let t=0;ds.forEach(d=>{const el=document.getElementById(d);if(el){const v=el.tagName==='INPUT'?el.value:el.textContent;t+=sp(v,0)}});return Math.max(0,t)}function utr(ts){const re=document.getElementById('tpi-rating');if(!re)return;let r='poor';if(ts>=210)r='overload';else if(ts>=156)r='excellent';else if(ts>=121)r='good';else if(ts>=95)r='normal';re.value=r;}function init(){document.addEventListener('input',function(e){if(e.target.type==='number'&&!e.target.readOnly){clearTimeout(e.target._ct);e.target._ct=setTimeout(()=>rec(),100)}},true);document.addEventListener('blur',function(e){if(e.target.type==='number'){const v=sp(e.target.value),mn=sp(e.target.min,-Infinity),mx=sp(e.target.max,Infinity);if(v<mn)e.target.value=mn;else if(v>mx)e.target.value=mx;rec()}},true);window.__tpi_debug_log('✅ 实时计算系统已初始化')}function rec(){try{uds('academic-dimension','academic-score');uds('personal-dimension','personal-score');uds('life-dimension','life-score');uds('logistics-dimension','logistics-score');/* [V1.07] tpi-total-score is now a mirror of tpi-total (managed by calculateTPI→updateDisplay). RealtimeCalculator still updates dimension subtotals but yields tpi-total-score authority to calculateTPI. */const tt=ctt();utr(tt);/* Trigger calculateTPI to get authoritative total with mode/caps applied */if(window.TPI&&typeof window.TPI.calculateTPI==='function'){window.TPI.calculateTPI();}else if(typeof window.calculateTPI==='function'){window.calculateTPI();}}catch(e){console.error('❌ 计算错误:',e)}}return{init:init,recalculate:rec}})();
 
-    // ═══════════════════════════════════════════════════════════════════
     // 全局输入验证系统
-    // ═══════════════════════════════════════════════════════════════════
     const InputValidator = (function() {
-
 
         /**
          * 验证数字输入
@@ -3168,9 +3092,7 @@ window.MathJax = {
         };
     })();
 
-    // ═══════════════════════════════════════════════════════════════════
     // Checkbox成功提示系统
-    // ═══════════════════════════════════════════════════════════════════
     function initCheckboxSuccessNotifications() {
         // 为所有重要的checkbox添加change监听
         const checkboxes = document.querySelectorAll('input[type="checkbox"]');
@@ -3198,9 +3120,7 @@ window.MathJax = {
         });
     }
 
-    // ═══════════════════════════════════════════════════════════════════
     // Type S 验证系统
-    // ═══════════════════════════════════════════════════════════════════
     window.validateTypeS = function(period) {
         const scoreInput = document.getElementById(`type-s-score-${period}`);
         const contentTextarea = document.getElementById(`type-s-content-${period}`);
@@ -3231,7 +3151,6 @@ window.MathJax = {
             }
         }
 
-        // [OPT-V9-§60] 字数/质量联动提示
         try {
             const warnId = `type-s-quality-hint-${period}`;
             let warnEl = document.getElementById(warnId);
@@ -3300,7 +3219,6 @@ window.MathJax = {
         lockFocusFactorUntilEvening();
     }
 
-    // [OPT-V9-§59] Type S 结晶档案加载函数
     window.__tpiLoadTypeSArchive = function() {
         try {
             var container = document.getElementById('type-s-archive-content');
@@ -3955,6 +3873,64 @@ body.dark-mode .tpi-hover-label:hover {
     color: #0f766e;
     letter-spacing: 0.02em;
 }
+
+/* =====================================================
+   V1.13 PATCH: 分数字体清晰化 + 输入框中性边框
+   ===================================================== */
+
+/* 所有得分/实得分 显示元素强制使用清晰系统字体 */
+input[readonly].tpi-inline-04,
+input[readonly].tpi-inline-05,
+input[readonly].logistics-score,
+input[readonly][id$="-score"],
+#ami-total-score, #bcm-total-score, #hsm-total-score,
+#fli-total-score, #logistics-total-score, #bonus-total-score,
+#tpi-total, #tpi-total-score, #ma7-score,
+span[id$="-score"], span[id$="-total"],
+span#total-hours, span#total-pages, span#total-words {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif !important;
+  font-variant-numeric: tabular-nums !important;
+  font-feature-settings: "tnum" !important;
+}
+
+/* 输入框/下拉框/文本框 — 去除彩色边框，恢复中性灰色边框 */
+input[type="text"],
+input[type="number"],
+input[type="time"],
+input[type="date"],
+select,
+textarea {
+  border-color: #d1d5db !important;
+}
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="time"]:focus,
+input[type="date"]:focus,
+select:focus,
+textarea:focus {
+  border-color: #9ca3af !important;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.06) !important;
+}
+
+/* 只读分数输入框：保留淡绿背景以示区分，但边框改为中性色 */
+input[readonly],
+input[readonly].tpi-inline-04,
+input[readonly].tpi-inline-05,
+input[readonly].logistics-score,
+input[readonly][id$="-score"] {
+  border-color: #d1d5db !important;
+  background: #f9fafb !important;
+  color: #111827 !important;
+  font-weight: 700 !important;
+}
+
+/* AMI 单段得分输入框 (有 inline style border) — 覆盖 */
+#ami-table input[readonly] {
+  border: 1px solid #d1d5db !important;
+  background: #f9fafb !important;
+  color: #111827 !important;
+}
+
 </style>
 
 <!-- ===== TPI 数字美化着色系统 ===== -->
@@ -4054,8 +4030,6 @@ body.dark-mode .tpi-hover-label:hover {
 [data-theme="dark"] .tpi-num-coeff        { background: rgba(103,232,249,0.15); color: #67E8F9; }
 [data-theme="dark"] .tpi-num-duration     { background: rgba(196,181,253,0.15); color: #C4B5FD; }
 </style>
-
-
 
 <style>
     :root{--color-primary:#0d9488;--color-primary-light:#5eead4;--color-primary-dark:#0f766e;--color-secondary:#f59e0b;--color-accent:#ec4899;--color-success:#10b981;--color-warning:#f59e0b;--color-danger:#ef4444;--color-info:#0d9488;--color-tier1:#ef4444;--color-tier2:#f59e0b;--color-tier3:#6b7280;--color-legend:#a855f7;--color-excellent:#10b981;--color-good:#0d9488;--color-normal:#f59e0b;--color-poor:#6b7280;--color-bg-primary:#ffffff;--color-bg-secondary:#f9fafb;--color-bg-tertiary:#f3f4f6;--color-bg-hover:#f0f9ff;--color-text-primary:#111827;--color-text-secondary:#4b5563;--color-text-muted:#9ca3af;--color-border: #bbf7d0;--color-border-light:#f3f4f6;--color-shadow:rgba(0, 0, 0, 0.1);--font-display:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;--font-body:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;--font-mono:'SF Mono', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;--font-size-xs:0.75rem;--font-size-sm:0.875rem;--font-size-base:1rem;--font-size-lg:1.125rem;--font-size-xl:1.25rem;--font-size-2xl:1.5rem;--font-size-3xl:1.875rem;--font-size-4xl:2.25rem;--spacing-0:0;--spacing-1:0.25rem;--spacing-2:0.5rem;--spacing-3:0.75rem;--spacing-4:1rem;--spacing-5:1.25rem;--spacing-6:1.5rem;--spacing-8:2rem;--spacing-10:2.5rem;--spacing-12:3rem;--spacing-16:4rem;--radius-sm:0.375rem;--radius-md:0.5rem;--radius-lg:0.75rem;--radius-xl:1rem;--radius-full:9999px;--shadow-xs:0 1px 2px 0 rgba(0, 0, 0, 0.05);--shadow-sm:0 1px 3px 0 rgba(0, 0, 0, 0.1);--shadow-md:0 4px 6px -1px rgba(0, 0, 0, 0.1);--shadow-lg:0 10px 15px -3px rgba(0, 0, 0, 0.1);--shadow-xl:0 20px 25px -5px rgba(0, 0, 0, 0.1);--transition-fast:150ms cubic-bezier(0.4, 0, 0.2, 1);--transition-base:250ms cubic-bezier(0.4, 0, 0.2, 1);--transition-slow:350ms cubic-bezier(0.4, 0, 0.2, 1);--z-base:1;--z-dropdown:1000;--z-sticky:1020;--z-fixed:1030;--z-modal:1040;--z-tooltip:1050;}
@@ -4198,7 +4172,6 @@ body.dark-theme .heatmap-cell.hm-empty{background:#374151;color:#6b7280;}
      .quick-nav-container-v19{position:fixed;top:calc(var(--tpi-top-scoreboard-height, 40px) + 10px + env(safe-area-inset-top, 0px));left:0;right:0;z-index:9999;display:flex;justify-content:center;pointer-events:none;padding:0 10px;}.quick-nav-v19{background:rgba(255, 255, 255, 0.98);border-radius:20px;padding:10px 15px;box-shadow:0 10px 40px rgba(0,0,0,0.15);display:flex;gap:8px;flex-wrap:wrap;max-width:95vw;border: 2px solid #d1fae5;backdrop-filter:blur(20px) saturate(180%);pointer-events:auto;transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);justify-content:center;align-items:center;}body.dark-mode .quick-nav-v19{background:rgba(30, 41, 59, 0.98);border-color: #0d9488;}.quick-nav-v19.hidden{transform:translateY(-150%);opacity:0;}.quick-nav-btn-v19{padding:10px 16px;background:linear-gradient(135deg, #0d9488, #0f766e);color:white;border:none;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s ease;white-space:nowrap;box-shadow:0 2px 8px rgba(13, 148, 136, 0.25);position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:6px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;}.quick-nav-btn-v19::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);transition:left 0.5s;}.quick-nav-btn-v19:hover::before{left:100%;}.quick-nav-btn-v19:hover{transform:translateX(-5px);box-shadow:2px 2px 8px rgba(0,0,0,0.2);}.quick-nav-btn-v19.active-section{background:#ffffff !important;color:#0d9488 !important;border: 2px solid #0d9488 !important;box-shadow:0 0 15px rgba(13, 148, 136, 0.4);transform:scale(1.1);font-weight:800;}.quick-nav-btn-v19:active{transform:translateY(-1px) scale(0.98);}.quick-nav-btn-v19.btn-success{background:linear-gradient(135deg, #10b981, #059669);box-shadow:0 2px 8px rgba(16, 185, 129, 0.25);}.quick-nav-btn-v19.btn-success:hover{box-shadow:0 6px 16px rgba(16, 185, 129, 0.4);}.quick-nav-btn-v19.btn-warning{background:linear-gradient(135deg, #f59e0b, #d97706);box-shadow:0 2px 8px rgba(13,148,136,0.25);}.quick-nav-btn-v19.btn-info{background:linear-gradient(135deg, #06b6d4, #0891b2);box-shadow:0 2px 8px rgba(6, 182, 212, 0.25);}.quick-nav-btn-v19.btn-secondary{background:linear-gradient(135deg, #64748b, #475569);box-shadow:0 2px 8px rgba(13,148,136,0.25);}.quick-nav-btn-v19.important::after{content:'⭐';position:absolute;top:-8px;right:-8px;font-size:16px;animation:starPulse 2s ease-in-out infinite;}@keyframes starPulse{0%, 100%{transform:scale(1);opacity:1;}50%{transform:scale(1.2);opacity:0.8;}}.quick-nav-toggle-第18版{position:fixed;top:calc(10px + env(safe-area-inset-top, 0px));right:calc(10px + env(safe-area-inset-right, 0px));width:56px;height:56px;background:linear-gradient(135deg, #0d9488, #0f766e);color:white;border:none;border-radius:50%;font-size:24px;cursor:pointer;z-index:2147483647;box-shadow:0 10px 40px rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;transition:all 0.3s ease;-webkit-tap-highlight-color:transparent;}.quick-nav-toggle-第18版:hover{transform:scale(1.1) rotate(90deg);box-shadow:0 10px 40px rgba(13, 148, 136, 0.4);}@media (max-width:768px){.quick-nav-container-v19{top:auto;bottom:calc(10px + env(safe-area-inset-bottom, 0px));}.quick-nav-v19{padding:12px 10px;gap:6px;border-radius:24px;max-height:50vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}.quick-nav-btn-v19{font-size:11px;padding:10px 12px;border-radius:10px;}.quick-nav-btn-v19.important::after{font-size:12px;top:-6px;right:-6px;}.quick-nav-toggle-第18版{top:auto;bottom:calc(10px + env(safe-area-inset-bottom, 0px));right:calc(10px + env(safe-area-inset-right, 0px));width:48px;height:48px;font-size:20px;}}@media (display-mode:standalone){.pwa-indicator-v19{position:fixed;top:calc(5px + env(safe-area-inset-top, 0px));left:calc(5px + env(safe-area-inset-left, 0px));padding:6px 12px;background:linear-gradient(135deg, #10b981, #059669);color:white;border-radius:10px;font-size:11px;font-weight:700;z-index:9998;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:flex;align-items:center;gap:6px;}}@media print{.quick-nav-container-v19, .quick-nav-toggle-第18版, .back-to-top-v19, .pwa-indicator-v19{display:none !important;}}
   </style>
 <!-- ========== 增强导航系统样式结束 ========== -->
-<!-- 必需的第三方库 CDN -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer>
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer>
@@ -4211,10 +4184,8 @@ body.dark-theme .heatmap-cell.hm-empty{background:#374151;color:#6b7280;}
 </script>
 <script>
 'use strict';
-   // ═══════════════════════════════════════════════════════════════════
 // 【关键】早期初始化：导出和云端加载函数
 // 必须在HTML body加载前定义，以避免按钮onclick时函数未定义的错误
-// ═══════════════════════════════════════════════════════════════════
 
 window.__tpi_debug_log('🚀 [早期初始化] 开始定义关键函数...');
 
@@ -4347,7 +4318,7 @@ window.exportReportComplete = function(format) {
                 <html>
                 <head>
                     <meta charset="UTF-8">
-                    <title>全维效能管理系统（TPI）</title>
+                    <title>全维效能管理系统（TPI，V1.17）</title>
                     <style>
     /* 补全模态框基础样式 */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; align-items: center; justify-content: center; }
@@ -4428,7 +4399,6 @@ window.exportReportComplete = function(format) {
                 <body>
                     ${reportContent.innerHTML}
                 
-
 `);
             printWindow.document.close();
             
@@ -4591,7 +4561,6 @@ window.restoreBackup = async function(backupKey) {
     window.__tpi_debug_log('📥 [restoreBackup] 执行时间:', new Date().toLocaleString());
     
     try {
-        // [OPT-V2-§9] 用内联模态确认替代 confirm()
         const _confirmRestore = await new Promise(resolve => {
             if (window.tpiConfirm) {
                 window.tpiConfirm('确认恢复备份？', '当前所有数据将被此备份覆盖，此操作不可撤销。').then(resolve);
@@ -5122,16 +5091,10 @@ window.__tpi_debug_log('✅ window.showModal:', typeof window.showModal);
 window.__tpi_debug_log('✅ window.safeShowToast:', typeof window.safeShowToast);
 window.__tpi_debug_log('✅ window.InputValidator.showToast:', typeof window.InputValidator.showToast);
 
-// ═══════════════════════════════════════════════════════════════════
 // 全局错误处理和移动端崩溃修复
-// ═══════════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════════
 
-// ═══════════════════════════════════════════════════════════════════
 // 【关键】为操作历史功能创建早期占位函数
-// ═══════════════════════════════════════════════════════════════════
 (function() {
-
 
     // 防止未捕获的错误导致页面崩溃
     window.addEventListener('error', function(event) {
@@ -5396,12 +5359,9 @@ body.dark-mode #tpi-top-scoreboard .pill[onclick]:hover {
   box-shadow: 0 4px 12px rgba(13,148,136,0.3);
 }
 </style>
-
-<!-- 全局防抖 + 懒加载 -->
 <script>
 'use strict';
 (function() {
-
 
   // ── 1. 通用防抖工厂（含 cancel / immediate 支持）────────────
   window.__tpiDebounce = function debounce(fn, delay) {
@@ -5663,11 +5623,11 @@ input#tpi-total {
 
 /* ── 连胜/连败文字着色 ── */
 #streak-days {
-  border-color: #10b981 !important;
+  border-color: #d1d5db !important;
   color: #059669 !important;
 }
 #losing-streak-days {
-  border-color: #0d9488 !important;
+  border-color: #d1d5db !important;
   color: #dc2626 !important;
 }
 
@@ -5946,9 +5906,9 @@ body.dark-theme .tpi-badge-purple { background: rgba(139,92,246,0.2); color: #c4
   text-align: center;
 }
 input[readonly].tpi-inline-04 {
-  background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
-  border-color: #a7f3d0;
-  color: #0f766e;
+  background: #f9fafb;
+  border-color: #d1d5db;
+  color: #111827;
 }
 
 /* === 卡片标题色彩增强 === */
@@ -6078,7 +6038,6 @@ tr.summary-row td {
 #ami-sub-evening2 .rules-header { background: linear-gradient(90deg, #ede9fe, #f5f3ff) !important; }
 #ami-sub-flexible .rules-header { background: linear-gradient(90deg, #d1fae5, #ecfdf5) !important; }
 
-
 /* === AMI 响应式卡片布局 === */
 .ami-responsive-section {
   margin: 0;
@@ -6149,7 +6108,6 @@ hr {
 
 <style>
 
-
 /* ===== SIZE EQUALIZER Issues 4,5,7 ===== */
 .logistics-status,.logistics-time.tpi-inline-05{width:120px!important;min-width:120px!important;height:36px!important;box-sizing:border-box;}
 #fli .status-select.tpi-inline-01{width:90px!important;min-width:90px!important;height:36px!important;}
@@ -6158,7 +6116,6 @@ hr {
 #hsm .tpi-inline-04{width:90px!important;min-width:90px!important;height:36px!important;}
 #bcm .status-select.tpi-inline-01,#bcm input.tpi-inline-01[type="time"]{width:110px!important;min-width:110px!important;height:36px!important;min-height:36px!important;box-sizing:border-box;}
 /* ===== END SIZE EQUALIZER ===== */
-
 
 /* 待办杂事 consistent input sizing */
 #submod-log-1 select, #submod-log-1 input[type="number"],
@@ -6171,7 +6128,6 @@ hr {
   box-sizing: border-box;
   font-size: 12px !important;
 }
-
 
 /* AMI Writing table full width no overflow */
 #ami-table .ami-responsive-section { overflow-x: auto; }
@@ -6331,25 +6287,25 @@ select.status-select {
 /* 评分显示 */
 input[readonly].tpi-inline-04,
 input[readonly].tpi-inline-05 {
-  background: linear-gradient(135deg, #f0fdf4, #dcfce7) !important;
-  color: #166534 !important;
+  background: #f9fafb !important;
+  color: #111827 !important;
   font-weight: 700 !important;
-  border-color: #86efac !important;
+  border-color: #d1d5db !important;
   border-radius: 6px;
 }
 
-/* 所有实得分/得分输入框统一淡绿色背景 */
+/* 所有实得分/得分输入框统一中性背景 */
 input[readonly][id$="-score"],
 input[readonly].logistics-score,
 td.score-result-td {
-  background: linear-gradient(135deg, #f0fdf4, #dcfce7) !important;
-  color: #166534 !important;
+  background: #f9fafb !important;
+  color: #111827 !important;
   font-weight: 700 !important;
-  border-color: #86efac !important;
+  border-color: #d1d5db !important;
 }
 td:has(> input[readonly][id$="-score"]),
 td:has(> input[readonly].logistics-score) {
-  background-color: #f0fdf4 !important;
+  background-color: transparent !important;
 }
 
 /* 警告提示框美化 */
@@ -6418,8 +6374,6 @@ tr.summary-row td {
   border-radius: 12px !important;
   border: 1.5px solid var(--color-border) !important;
 }
-
-
 
 </style>
 
@@ -6624,8 +6578,8 @@ body.dark-theme .header-title h1 {
   --u-bg-hover:  #f0f9ff;
 
   /* 边框 */
-  --u-border: #bbf7d0;
-  --u-border-md:  #6ee7b7;
+  --u-border: #e5e7eb;
+  --u-border-md:  #d1d5db;
 
   /* 圆角 */
   --u-r-sm: 6px;
@@ -6880,14 +6834,14 @@ textarea:focus {
   box-shadow: 0 0 0 2.5px rgba(13,148,136,0.18) !important;
 }
 
-/* 只读分数输入框（绿色调，显眼但不刺眼）*/
+/* 只读分数输入框（中性色，不刺眼）*/
 input[readonly],
 input[readonly].tpi-inline-04,
 input[readonly].tpi-inline-05 {
-  background: linear-gradient(135deg, #f0fdf4, #dcfce7) !important;
-  color: #065f46 !important;
+  background: #f9fafb !important;
+  color: #111827 !important;
   font-weight: 700 !important;
-  border-color: #6ee7b7 !important;
+  border-color: #d1d5db !important;
   cursor: default;
 }
 
@@ -6896,11 +6850,11 @@ input[readonly].tpi-inline-05 {
 input#tpi-total {
   font-size: 1.5em !important;
   font-weight: 900 !important;
-  color: #1e3a8a !important;
-  background: linear-gradient(135deg, #dbeafe, #eff6ff) !important;
-  border: 2px solid #6ee7b7 !important;
+  color: #111827 !important;
+  background: #f9fafb !important;
+  border: 2px solid #d1d5db !important;
   text-align: center !important;
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.12) !important;
+  box-shadow: none !important;
 }
 
 /* 各模块总分（次醒目）*/
@@ -6914,9 +6868,9 @@ input[id$="-total-score"],
 input[id="ma7-score"] {
   font-size: 1.15em !important;
   font-weight: 800 !important;
-  color: #1a4d8a !important;
-  background: linear-gradient(135deg, #e0f0ff, #f0f9ff) !important;
-  border-color: #6ee7b7 !important;
+  color: #111827 !important;
+  background: #f9fafb !important;
+  border-color: #d1d5db !important;
 }
 
 /* ───────────────────────────────────────────────
@@ -7218,7 +7172,7 @@ body.dark-theme input[readonly] {
 </style>
 
 <style id="tpi-v111-green-border-center-override">
-/* V1.12: Unified Green Border & Center Alignment Override */
+/* V1.13: Unified Green Border & Center Alignment Override */
 
 /* -- Green Border Variables Override -- */
 :root {
@@ -7468,7 +7422,7 @@ hr { border-color: #bbf7d0 !important; }
 <div class="header-content">
 <div class="header-title">
 <h1 style="font-size:clamp(1.5rem, 3vw, 2.5rem);font-weight:800;background:linear-gradient(135deg,#0f766e 0%,#0d9488 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.02em;">
-        全维效能管理系统（TPI，V1.12）
+        全维效能管理系统（TPI，V1.17）
        </h1>
 
 <div style="display:inline-flex;align-items:center;gap:6px;flex-shrink:0;">
@@ -7855,7 +7809,6 @@ hr { border-color: #bbf7d0 !important; }
         暂无记录。点击「➕ 新增记录」开始。
        </div>
 
-       
        <div id="misc-log-weekly-section" style="margin-top:16px;">
          <div onclick="window.__tpiToggleMiscWeekly()" style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 12px;background:var(--color-bg-tertiary);border-radius:8px;border:1px solid var(--color-border);user-select:none;">
            <span id="misc-log-weekly-icon">▶</span>
@@ -10539,9 +10492,7 @@ hr { border-color: #bbf7d0 !important; }
 <div class="text-center">
 <h3>
          🏆 韧性加分总分:
-         <span id="bonus-total-score">
-          0
-         </span>
+         <span id="bonus-total-score" style="font-size:1.3em;font-weight:800;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',Arial,sans-serif;font-variant-numeric:tabular-nums;">0</span>
          分
         </h3>
 <p class="text-muted">
@@ -10575,7 +10526,6 @@ hr { border-color: #bbf7d0 !important; }
 </div>
 </div>
 <div class="card-content">
-
 
 <div class="tpi-submodule" id="submod-ami-ignition" style="border-color: #a7f3d0;margin-bottom:16px;">
   <div class="tpi-submodule-header" onclick="tpiToggleSubmodule('submod-ami-ignition')" role="button" tabindex="0" aria-expanded="true" aria-controls="submod-ami-ignition-body" title="展开/折叠 点火程序与启动仪式" style="background:linear-gradient(135deg,#fffbeb,#fffdf5);border-bottom-color: #a7f3d0;">
@@ -10849,9 +10799,6 @@ hr { border-color: #bbf7d0 !important; }
            </li>
 
 </ul>
-
-
-
 
 <div style="margin-top:16px;padding-top:12px;border-top: 1px dashed #bbf7d0;">
 <h4 style="margin-bottom:8px;">🔥 阅读认知负荷分级 (Level I-III)</h4>
@@ -11473,7 +11420,7 @@ hr { border-color: #bbf7d0 !important; }
 <option value="1.3">1.3</option></select>
 </td>
 <td style="padding:5px;text-align:center;vertical-align:top;border-right: 1px solid #f0fdf4;">
-<input aria-label="上午得分" class="tpi-inline-04" readonly type="number" style="width:100%;font-size:13px;text-align:center;background:#fef9c3;font-weight:700;border: 1px solid #a7f3d0;border-radius:4px;padding:4px;"/>
+<input aria-label="上午得分" class="tpi-inline-04" readonly type="number" style="width:100%;font-size:14px;text-align:center;font-weight:700;border-radius:4px;padding:4px;font-family:inherit;"/>
 </td>
 <td style="padding:5px;vertical-align:top;">
 <textarea aria-label="上午备注" class="tpi-inline-02" placeholder="备注... (选择'其他'状态需在此说明)" rows="3" style="width:100%;resize:vertical;min-height:70px;padding:6px;font-family:inherit;font-size:11px;box-sizing:border-box;"></textarea>
@@ -11621,7 +11568,7 @@ hr { border-color: #bbf7d0 !important; }
 <option value="1.3">1.3</option></select>
 </td>
 <td style="padding:5px;text-align:center;vertical-align:top;border-right: 1px solid #f0fdf4;">
-<input aria-label="下午得分" class="tpi-inline-04" readonly type="number" style="width:100%;font-size:13px;text-align:center;background:#fef9c3;font-weight:700;border: 1px solid #a7f3d0;border-radius:4px;padding:4px;"/>
+<input aria-label="下午得分" class="tpi-inline-04" readonly type="number" style="width:100%;font-size:14px;text-align:center;font-weight:700;border-radius:4px;padding:4px;font-family:inherit;"/>
 </td>
 <td style="padding:5px;vertical-align:top;">
 <textarea aria-label="下午备注" class="tpi-inline-02" placeholder="备注... (选择'其他'状态需在此说明)" rows="3" style="width:100%;resize:vertical;min-height:70px;padding:6px;font-family:inherit;font-size:11px;box-sizing:border-box;"></textarea>
@@ -11769,7 +11716,7 @@ hr { border-color: #bbf7d0 !important; }
 <option value="1.3">1.3</option></select>
 </td>
 <td style="padding:5px;text-align:center;vertical-align:top;border-right: 1px solid #f0fdf4;">
-<input aria-label="晚上1得分" class="tpi-inline-04" readonly type="number" style="width:100%;font-size:13px;text-align:center;background:#fef9c3;font-weight:700;border: 1px solid #a7f3d0;border-radius:4px;padding:4px;"/>
+<input aria-label="晚上1得分" class="tpi-inline-04" readonly type="number" style="width:100%;font-size:14px;text-align:center;font-weight:700;border-radius:4px;padding:4px;font-family:inherit;"/>
 </td>
 <td style="padding:5px;vertical-align:top;">
 <textarea aria-label="晚上1备注" class="tpi-inline-02" placeholder="备注... (选择'其他'状态需在此说明)" rows="3" style="width:100%;resize:vertical;min-height:70px;padding:6px;font-family:inherit;font-size:11px;box-sizing:border-box;"></textarea>
@@ -11917,7 +11864,7 @@ hr { border-color: #bbf7d0 !important; }
 <option value="1.3">1.3</option></select>
 </td>
 <td style="padding:5px;text-align:center;vertical-align:top;border-right: 1px solid #f0fdf4;">
-<input aria-label="晚上2得分" class="tpi-inline-04" readonly type="number" style="width:100%;font-size:13px;text-align:center;background:#fef9c3;font-weight:700;border: 1px solid #a7f3d0;border-radius:4px;padding:4px;"/>
+<input aria-label="晚上2得分" class="tpi-inline-04" readonly type="number" style="width:100%;font-size:14px;text-align:center;font-weight:700;border-radius:4px;padding:4px;font-family:inherit;"/>
 </td>
 <td style="padding:5px;vertical-align:top;">
 <textarea aria-label="晚上2备注" class="tpi-inline-02" placeholder="备注... (选择'其他'状态需在此说明)" rows="3" style="width:100%;resize:vertical;min-height:70px;padding:6px;font-family:inherit;font-size:11px;box-sizing:border-box;"></textarea>
@@ -12065,7 +12012,7 @@ hr { border-color: #bbf7d0 !important; }
 <option value="1.3">1.3</option></select>
 </td>
 <td style="padding:5px;text-align:center;vertical-align:top;border-right: 1px solid #f0fdf4;">
-<input aria-label="机动得分" class="tpi-inline-04" readonly type="number" style="width:100%;font-size:13px;text-align:center;background:#fef9c3;font-weight:700;border: 1px solid #a7f3d0;border-radius:4px;padding:4px;"/>
+<input aria-label="机动得分" class="tpi-inline-04" readonly type="number" style="width:100%;font-size:14px;text-align:center;font-weight:700;border-radius:4px;padding:4px;font-family:inherit;"/>
 </td>
 <td style="padding:5px;vertical-align:top;">
 <textarea aria-label="机动备注" class="tpi-inline-02" placeholder="备注... (选择'其他'状态需在此说明)" rows="3" style="width:100%;resize:vertical;min-height:70px;padding:6px;font-family:inherit;font-size:11px;box-sizing:border-box;"></textarea>
@@ -12082,9 +12029,8 @@ hr { border-color: #bbf7d0 !important; }
 </div>
 </div>
 
-
 <div class="text-center" style="margin-top:16px;padding:14px;background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:12px;border: 1.5px solid #6ee7b7;">
-  <h3 style="color:#0f766e;margin:0;">⚔️ AMI 学术战力总分：<span id="ami-total-score" style="font-size:1.4em;font-weight:800;">0</span> 分</h3>
+  <h3 style="color:#0f766e;margin:0;">⚔️ AMI 学术战力总分：<span id="ami-total-score" style="font-size:1.5em;font-weight:800;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',Arial,sans-serif;font-variant-numeric:tabular-nums;">0</span> 分</h3>
   <p style="margin:4px 0 0 0;font-size:12px;color:#64748b;">T = <span id="total-hours">0.0</span>h &nbsp;|&nbsp; P = <span id="total-pages">0</span>p &nbsp;|&nbsp; W = <span id="total-words">0</span>w</p>
 </div>
 </div>
@@ -12302,20 +12248,20 @@ hr { border-color: #bbf7d0 !important; }
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
     <span style="font-size:16px;">📐</span>
     <strong style="color:#0f766e;font-size:14px;">BCM 晨间入馆 — 计分公式</strong>
-    <button type="button" onclick="(function(){window.showModal&&window.showModal({type:'info',title:'📐 BCM 晨间入馆计分公式',message:'<div style=\"font-size:14px;line-height:1.9;padding:4px 0;\"><b>计分梯次（含15分钟缓冲最终时间）：</b><br>👑 <b>传奇</b>（&lt; 08:45）：+5分<br>🥇 <b>攀登</b>（08:45—09:15 且比昨日早）：+3.5分<br>🥈 <b>滞后</b>（08:45—09:15 且比昨日晚）：+2.5分<br>🐢 <b>缓冲</b>（09:15—09:45）：+1.0分<br>⭕ <b>失效</b>（&gt; 09:45）：0分<br><br><b>说明：</b>攀登分和滞后分以昨日入馆时间为基准，需在"昨日参考"栏填入昨日时间。</div>',confirmText:'了解',showCancel:false,showConfirm:true})})();" style="padding:4px 12px;background:#0d9488;color:white;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600;">🔍 查看计分公式</button>
+
   </div>
   <table style="width:100%;font-size:13px;border-collapse:collapse;">
     <thead><tr style="background:#ccfbf1;">
-      <th style="padding:6px 10px;text-align:left;border-bottom: 1px solid #6ee7b7;">等级</th>
-      <th style="padding:6px 10px;text-align:left;border-bottom: 1px solid #6ee7b7;">条件</th>
+      <th style="padding:6px 10px;text-align:center;border-bottom: 1px solid #6ee7b7;">等级</th>
+      <th style="padding:6px 10px;text-align:center;border-bottom: 1px solid #6ee7b7;">条件</th>
       <th style="padding:6px 10px;text-align:center;border-bottom: 1px solid #6ee7b7;">得分</th>
     </tr></thead>
     <tbody>
-      <tr><td style="padding:5px 10px;">👑 传奇</td><td style="padding:5px 10px;">入馆时间 &lt; 08:45</td><td style="padding:5px 10px;text-align:center;font-weight:700;color:#0f766e;">+5分</td></tr>
-      <tr style="background:#f8faff;"><td style="padding:5px 10px;">🥇 攀登</td><td style="padding:5px 10px;">08:45—09:15，且比昨日早</td><td style="padding:5px 10px;text-align:center;font-weight:700;color:#059669;">+3.5分</td></tr>
-      <tr><td style="padding:5px 10px;">🥈 滞后</td><td style="padding:5px 10px;">08:45—09:15，且比昨日晚</td><td style="padding:5px 10px;text-align:center;font-weight:700;color:#d97706;">+2.5分</td></tr>
-      <tr style="background:#f8faff;"><td style="padding:5px 10px;">🐢 缓冲</td><td style="padding:5px 10px;">09:15—09:45</td><td style="padding:5px 10px;text-align:center;font-weight:700;color:#9333ea;">+1.0分</td></tr>
-      <tr><td style="padding:5px 10px;">⭕ 失效</td><td style="padding:5px 10px;">入馆时间 &gt; 09:45</td><td style="padding:5px 10px;text-align:center;font-weight:700;color:#dc2626;">0分</td></tr>
+      <tr><td style="padding:5px 10px;text-align:center;">👑 传奇</td><td style="padding:5px 10px;text-align:center;">入馆时间 &lt; 08:45</td><td style="padding:5px 10px;text-align:center;font-weight:700;color:#0f766e;">+5分</td></tr>
+      <tr style="background:#f8faff;"><td style="padding:5px 10px;text-align:center;">🥇 攀登</td><td style="padding:5px 10px;text-align:center;">08:45—09:15，且比昨日早</td><td style="padding:5px 10px;text-align:center;font-weight:700;color:#059669;">+3.5分</td></tr>
+      <tr><td style="padding:5px 10px;text-align:center;">🥈 滞后</td><td style="padding:5px 10px;text-align:center;">08:45—09:15，且比昨日晚</td><td style="padding:5px 10px;text-align:center;font-weight:700;color:#d97706;">+2.5分</td></tr>
+      <tr style="background:#f8faff;"><td style="padding:5px 10px;text-align:center;">🐢 缓冲</td><td style="padding:5px 10px;text-align:center;">09:15—09:45</td><td style="padding:5px 10px;text-align:center;font-weight:700;color:#9333ea;">+1.0分</td></tr>
+      <tr><td style="padding:5px 10px;text-align:center;">⭕ 失效</td><td style="padding:5px 10px;text-align:center;">入馆时间 &gt; 09:45</td><td style="padding:5px 10px;text-align:center;font-weight:700;color:#dc2626;">0分</td></tr>
     </tbody>
   </table>
   <p style="font-size:12px;color:#64748b;margin:8px 0 0 0;">💡 攀登/滞后档依赖昨日时间对比，请在 BCM 行为记录表的"昨日参考"栏准确填写昨日入馆时间。</p>
@@ -12948,12 +12894,8 @@ hr { border-color: #bbf7d0 !important; }
              </option>
 </select>
 </td>
-<td class="center">
-            --
-           </td>
-<td class="center">
-            --
-           </td>
+<td class="center"></td>
+<td class="center"></td>
 <td class="center">
 <input aria-label="数字气隙得分" class="tpi-inline-04" id="bcm-digital-score" readonly="" title="数字气隙得分：完成规定的数字隔离时间（断网/静音时段）→得分。未完成→0分。" style="cursor:help;" type="number"/>
 </td>
@@ -12995,12 +12937,8 @@ hr { border-color: #bbf7d0 !important; }
              </option>
 </select>
 </td>
-<td class="center">
-            --
-           </td>
-<td class="center">
-            --
-           </td>
+<td class="center"></td>
+<td class="center"></td>
 <td class="center">
 <input aria-label="下午奖励得分" class="tpi-inline-04" id="bcm-afternoon-score" readonly="" title="下午奖励得分：完成下午时段学习目标获得的奖励加分。" style="cursor:help;" type="number"/>
 </td>
@@ -13017,9 +12955,7 @@ hr { border-color: #bbf7d0 !important; }
 </td>
 <td class="center" style="text-align:center!important;">
 <strong>
-<span id="bcm-total-score">
-              0
-             </span>
+<span id="bcm-total-score" style="font-size:1.3em;font-weight:800;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',Arial,sans-serif;font-variant-numeric:tabular-nums;">0</span>
 </strong>
 </td>
 <td class="text-center" style="text-align:center!important;">
@@ -13417,9 +13353,7 @@ hr { border-color: #bbf7d0 !important; }
 </td>
 <td class="center">
 <strong>
-<span id="hsm-total-score">
-              0
-             </span>
+<span id="hsm-total-score" style="font-size:1.3em;font-weight:800;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',Arial,sans-serif;font-variant-numeric:tabular-nums;">0</span>
 </strong>
 </td>
 <td>
@@ -13643,7 +13577,7 @@ hr { border-color: #bbf7d0 !important; }
 <!-- 总计 -->
 <tr class="summary-row">
 <td class="text-right" colspan="3"><strong>总计 (在此处填入板块总分)</strong></td>
-<td class="center"><strong><span id="fli-total-score">0</span></strong></td>
+<td class="center"><strong><span id="fli-total-score" style="font-size:1.3em;font-weight:800;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',Arial,sans-serif;font-variant-numeric:tabular-nums;">0</span></strong></td>
 <td></td>
 </tr>
 </tbody>
@@ -13782,8 +13716,7 @@ hr { border-color: #bbf7d0 !important; }
   </div>
 </div>
 
-
-<div class="tpi-submodule" id="submod-log-1" style="border-color: #99f6e4;margin-bottom:16px;">
+<div id="logistics-table"><div class="tpi-submodule" id="submod-log-1" style="border-color: #99f6e4;margin-bottom:16px;">
   <div class="tpi-submodule-header" onclick="tpiToggleSubmodule('submod-log-1')" role="button" tabindex="0" aria-expanded="true" aria-controls="submod-log-1-body" title="展开/折叠 待办杂事 A 组 (第1-5项)" style="background:linear-gradient(135deg,#f0fdfa,#f8fffd);border-bottom-color: #99f6e4;">
     <div style="display:flex;align-items:center;gap:8px;">
       <span style="font-size:18px;">📦</span>
@@ -14230,9 +14163,10 @@ hr { border-color: #bbf7d0 !important; }
 
   </div>
 </div>
+</div>
 
 <div style="margin-top:8px;text-align:center;padding:8px 12px;background:var(--color-bg-secondary);border-radius:6px;border:1px solid var(--color-border);">
-<strong>统计结果：<span id="logistics-total-score">0</span></strong>
+<strong>统计结果：<span id="logistics-total-score" style="font-size:1.2em;font-weight:800;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',Arial,sans-serif;font-variant-numeric:tabular-nums;">0</span></strong>
 <strong style="margin-left:12px;color:var(--color-text-secondary);">(填入上方 Sys)</strong>
 </div>
 </section>
@@ -14622,7 +14556,6 @@ hr { border-color: #bbf7d0 !important; }
         </div>
       </div>
 
-      
       <div style="margin-bottom:16px;padding:12px;background:#f0f9ff;border: 1px solid #a7f3d0;border-radius:8px;">
         <div style="font-weight:700;color:#0369a1;font-size:13px;margin-bottom:8px;">🔍 跨日文本全文搜索</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
@@ -14725,10 +14658,7 @@ hr { border-color: #bbf7d0 !important; }
             // 5. 性能: 实现事件委托和防抖
             // ==================== End ====================
 
-
-// ========================================
 // 历史数据管理器 (新增)
-// ========================================
 class HistoricalDataManager {
     constructor() {
         this.cache = {};
@@ -14815,7 +14745,6 @@ class HistoricalDataManager {
 const historicalDataManager = new HistoricalDataManager();
 
 const TPI = (function() {
-
 
             // ==================== 常量定义 ====================
         const CONSTANTS = {
@@ -16500,7 +16429,7 @@ function calculateAMI() {
                 let outputScoreTypeD = 0;  // 单独追踪Type D的产出分
 
                 // 获取所有相关控件
-                const rows = document.querySelectorAll('#ami-table tbody tr:not(.summary-row):not(.constant-task-row):not(.ami-detail-row)');
+                const rows = document.querySelectorAll('#ami-table tbody tr.ami-main-row');
 
                 let totalHours = 0;
                 let totalPages = 0;
@@ -16764,7 +16693,6 @@ function calculateAMI() {
                 return window.TPI.Utils.toNightMinutes(timeStr);
             }
 
-            
             /**
              * 计算FLI总分（优化：碎片磨耳线性化，消除1个→0.5分、2个→10分的激励断层）
              */
@@ -17810,7 +17738,6 @@ function calculateMA7() {
 ========================================================= */
 window.MixedModeCalculator = (function() {
 
-
     const PERIOD_ORDER = ['morning', 'afternoon', 'evening1', 'evening2'];
     // 防抖计时器（150ms，模式切换时快速更新看板）
     let _calcDebounceTimer = null;
@@ -18019,7 +17946,6 @@ window.MixedModeCalculator = (function() {
    混合模式 UI 控制函数（挂载到 window，供 inline 事件调用）
 ========================================================= */
 (function() {
-
 
     /** 时段模式变更（防抖 150ms） */
     window.__mixedPeriodChange = function(period, mode) {
@@ -18401,7 +18327,6 @@ let calculateTPI_debounceTimer = null;
                 function updateDisplay(val) {
                     const el = document.getElementById('tpi-total');
                     if (el) el.value = val;
-                    // [V1.07] Mirror tpi-total to tpi-total-score (single source of truth)
                     const scoreEl = document.getElementById('tpi-total-score');
                     if (scoreEl) scoreEl.textContent = val;
                 }
@@ -19150,7 +19075,6 @@ try {
                     // 非打扰式成功提示：使用轻量 toast 而非弹窗
                     const tpiScore = document.getElementById('tpi-total-score')?.textContent || '0';
                     const rating = document.getElementById('tpi-rating')?.value || '-';
-                    // [OPT-V12-§85] 填写耗时追踪
                     let _fillTimeStr = '';
                     try {
                         if (window.__tpi_session_start && !window.__tpi_fill_time_recorded) {
@@ -20794,7 +20718,6 @@ ${reflection}
                     const currentVersion = window.TPI_DATA_VERSION || '1.0';
                     const dataVersion = data.version || '1.0';
 
-                    // [V1.07] 版本兼容：新版本始终可以读取旧版本数据
                     const storedAppVer = tpiGetDataAppVersion(data);
                     if (!tpiIsVersionCompatible(storedAppVer)) {
                         console.warn('[TPI版本兼容] 存储数据版本(' + storedAppVer + ')比当前版本(' + (window.TPI_APP_VERSION||'1.07') + ')更新，请升级应用版本。');
@@ -20811,7 +20734,6 @@ ${reflection}
                     return data;
                 }
             }
-            // [V1.07] 暴露版本兼容函数到全局（供 Gist 下载等模块使用）
             window.migrateDataIfNeeded = migrateDataIfNeeded;
             window.tpiParseAppVersion = tpiParseAppVersion;
             window.tpiIsVersionCompatible = tpiIsVersionCompatible;
@@ -20921,7 +20843,6 @@ ${reflection}
                 if (prevBtn) prevBtn.addEventListener('click', () => changeDate(-1));
                 if (nextBtn) nextBtn.addEventListener('click', () => changeDate(1));
 
-                // [OPT-V3-§15] 键盘快捷键：Ctrl+← 前一天，Ctrl+→ 后一天
                 if (!window.__tpi_dateKeyboard_installed) {
                     window.__tpi_dateKeyboard_installed = true;
                     document.addEventListener('keydown', function(e) {
@@ -20952,7 +20873,6 @@ ${reflection}
                 dateInput.addEventListener('change', updateWeekday);
                 updateWeekday();
 
-                // [OPT-V3-§42] 历史日期模式视觉标识：当查看非今日数据时，顶部显示黄色横幅
                 (function initHistoryBanner() {
                     try {
                         var banner = document.createElement('div');
@@ -21683,7 +21603,6 @@ const __exp = (function(){
             }, { once: true });
         })();
 
-        // [OPT-V14-#1] 将 CONSTANTS 暴露至 window.TPI.CONST（单一真相来源 SSOT）
         // 所有外部脚本可通过 window.TPI.CONST.XXX 访问常量，无需重复硬编码
         try {
             if (!window.TPI.CONST) {
@@ -21691,7 +21610,6 @@ const __exp = (function(){
             }
         } catch(_) {}
 
-        // [OPT-V14-#3] 全局命名空间收敛 —— 将子模块别名挂载至 window.TPI
         // 延迟绑定避免循环依赖（子模块在后续 script 块中初始化）
         (function() {
             var _nsTimer = setInterval(function() {
@@ -22498,7 +22416,6 @@ const __exp = (function(){
 
 /* ===== [OPT-V15-#16] 移动端触控优化：防止双击缩放，扩大热区 ===== */
 
-
 /* 横向滚动表格美化 */
 .table-container::-webkit-scrollbar { height: 6px; }
 .table-container::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 3px; }
@@ -22563,7 +22480,6 @@ label {
 </script>
 <script>
    'use strict';
-// [OPT-V14-#2] Firebase 配置已清除（已移除）
 
 // ==================== 问题2: localStorage容量管理 ====================
 // 检查存储空间使用情况
@@ -22868,9 +22784,6 @@ function enhanceSuccessNotifications() {
   }
 }
 
-            
-        
-
 // ==================== 初始化 ====================
 window.addEventListener('DOMContentLoaded', function() {
     window.__tpi_debug_log('🚀 系统初始化...');
@@ -22906,16 +22819,12 @@ window.addEventListener('resize', function() {
   </script>
 <script>
    'use strict';
-// ═══════════════════════════════════════════════════════════════════
 // 核心功能函数的安全Fallback实现
-// ═══════════════════════════════════════════════════════════════════
 
 (function() {
 
-
     // 初始化TPI命名空间 <span style="color:red;">(原因：清理冗余初始化代码，统一在上方处理)</span>
     
-
     // 错误处理包装器
     function safeCall(fn, fallbackMsg) {
         return function(...args) {
@@ -23502,19 +23411,17 @@ window.addEventListener('resize', function() {
                     </div>
                 `;
 
-                // [OPT-V9-§57] 各模块最低得分日
                 const wMinAMI = weekData.reduce((mn,d) => ((d.ami||d['ami-score']||0)<(mn.val) ? {val:(d.ami||d['ami-score']||0),date:d.date} : mn), {val:Infinity,date:''});
                 const wMinFLI = weekData.reduce((mn,d) => ((d.fli||d['fli-score']||0)<(mn.val) ? {val:(d.fli||d['fli-score']||0),date:d.date} : mn), {val:Infinity,date:''});
                 const wMinSYS = weekData.reduce((mn,d) => ((d.sys||d['sys-score']||0)<(mn.val) ? {val:(d.sys||d['sys-score']||0),date:d.date} : mn), {val:Infinity,date:''});
                 const wModMinHtml = `<div style="background:white;border: 1px solid #bbf7d0;border-radius:8px;padding:14px;margin-bottom:12px;">
                     <h3 style="font-size:14px;margin:0 0 8px;">📊 各模块本周最低得分日</h3>
                     <table style="width:100%;font-size:13px;border-collapse:collapse;">
-                    <tr style="background:#f3f4f6;"><th style="padding:4px 8px;text-align:left;">模块</th><th style="padding:4px 8px;text-align:center;">最低分</th><th style="padding:4px 8px;text-align:center;">日期</th></tr>
-                    <tr><td style="padding:4px 8px;">AMI</td><td style="padding:4px 8px;text-align:center;color:#dc2626;font-weight:700;">${wMinAMI.val.toFixed?wMinAMI.val.toFixed(1):wMinAMI.val}</td><td style="padding:4px 8px;text-align:center;">${wMinAMI.date}</td></tr>
-                    <tr><td style="padding:4px 8px;">FLI</td><td style="padding:4px 8px;text-align:center;color:#dc2626;font-weight:700;">${wMinFLI.val.toFixed?wMinFLI.val.toFixed(1):wMinFLI.val}</td><td style="padding:4px 8px;text-align:center;">${wMinFLI.date}</td></tr>
-                    <tr><td style="padding:4px 8px;">SYS</td><td style="padding:4px 8px;text-align:center;color:#dc2626;font-weight:700;">${wMinSYS.val.toFixed?wMinSYS.val.toFixed(1):wMinSYS.val}</td><td style="padding:4px 8px;text-align:center;">${wMinSYS.date}</td></tr>
+                    <tr style="background:#f3f4f6;"><th style="padding:4px 8px;text-align:center;">模块</th><th style="padding:4px 8px;text-align:center;">最低分</th><th style="padding:4px 8px;text-align:center;">日期</th></tr>
+                    <tr><td style="padding:4px 8px;text-align:center;">AMI</td><td style="padding:4px 8px;text-align:center;color:#dc2626;font-weight:700;">${wMinAMI.val.toFixed?wMinAMI.val.toFixed(1):wMinAMI.val}</td><td style="padding:4px 8px;text-align:center;">${wMinAMI.date}</td></tr>
+                    <tr><td style="padding:4px 8px;text-align:center;">FLI</td><td style="padding:4px 8px;text-align:center;color:#dc2626;font-weight:700;">${wMinFLI.val.toFixed?wMinFLI.val.toFixed(1):wMinFLI.val}</td><td style="padding:4px 8px;text-align:center;">${wMinFLI.date}</td></tr>
+                    <tr><td style="padding:4px 8px;text-align:center;">SYS</td><td style="padding:4px 8px;text-align:center;color:#dc2626;font-weight:700;">${wMinSYS.val.toFixed?wMinSYS.val.toFixed(1):wMinSYS.val}</td><td style="padding:4px 8px;text-align:center;">${wMinSYS.date}</td></tr>
                     </table></div>`;
-                // [OPT-V9-§58] 文字记录汇总
                 const wTextFields = [['daily-reflection','今日反思'],['daily-summary','今日总结'],['cliffhanger','悬念引导'],['first-action','第一行动']];
                 const wTextHtml = weekData.filter(d => wTextFields.some(([k])=>d[k])).map(d => {
                     const rows = wTextFields.filter(([k])=>d[k]).map(([k,l])=>`<p style="margin:2px 0;font-size:12px;"><span style="color:#6b7280;font-weight:600;">${l}：</span>${String(d[k]).substring(0,120)}${String(d[k]).length>120?'…':''}</p>`).join('');
@@ -23633,12 +23540,10 @@ window.addEventListener('resize', function() {
                         </div>
                     `;
 
-                    // [OPT-V9-§57] 各模块最低得分日（月报）
                     const mMinAMI = monthData.reduce((mn,d) => ((d.ami||d['ami-score']||0)<mn.val ? {val:(d.ami||d['ami-score']||0),date:d.date} : mn), {val:Infinity,date:''});
                     const mMinFLI = monthData.reduce((mn,d) => ((d.fli||d['fli-score']||0)<mn.val ? {val:(d.fli||d['fli-score']||0),date:d.date} : mn), {val:Infinity,date:''});
                     const mMinSYS = monthData.reduce((mn,d) => ((d.sys||d['sys-score']||0)<mn.val ? {val:(d.sys||d['sys-score']||0),date:d.date} : mn), {val:Infinity,date:''});
-                    const mModMinHtml = `<div style="background:white;border: 1px solid #bbf7d0;border-radius:8px;padding:14px;margin-bottom:12px;"><h3 style="font-size:14px;margin:0 0 8px;">📊 各模块本月最低得分日</h3><table style="width:100%;font-size:13px;border-collapse:collapse;"><tr style="background:#f3f4f6;"><th style="padding:4px 8px;text-align:left;">模块</th><th style="padding:4px 8px;text-align:center;">最低分</th><th style="padding:4px 8px;text-align:center;">日期</th></tr><tr><td style="padding:4px 8px;">AMI</td><td style="padding:4px 8px;text-align:center;color:#dc2626;font-weight:700;">${Number(mMinAMI.val).toFixed(1)}</td><td style="padding:4px 8px;text-align:center;">${mMinAMI.date}</td></tr><tr><td style="padding:4px 8px;">FLI</td><td style="padding:4px 8px;text-align:center;color:#dc2626;font-weight:700;">${Number(mMinFLI.val).toFixed(1)}</td><td style="padding:4px 8px;text-align:center;">${mMinFLI.date}</td></tr><tr><td style="padding:4px 8px;">SYS</td><td style="padding:4px 8px;text-align:center;color:#dc2626;font-weight:700;">${Number(mMinSYS.val).toFixed(1)}</td><td style="padding:4px 8px;text-align:center;">${mMinSYS.date}</td></tr></table></div>`;
-                    // [OPT-V9-§58] 文字记录汇总（月报）
+                    const mModMinHtml = `<div style="background:white;border: 1px solid #bbf7d0;border-radius:8px;padding:14px;margin-bottom:12px;"><h3 style="font-size:14px;margin:0 0 8px;">📊 各模块本月最低得分日</h3><table style="width:100%;font-size:13px;border-collapse:collapse;"><tr style="background:#f3f4f6;"><th style="padding:4px 8px;text-align:center;">模块</th><th style="padding:4px 8px;text-align:center;">最低分</th><th style="padding:4px 8px;text-align:center;">日期</th></tr><tr><td style="padding:4px 8px;text-align:center;">AMI</td><td style="padding:4px 8px;text-align:center;color:#dc2626;font-weight:700;">${Number(mMinAMI.val).toFixed(1)}</td><td style="padding:4px 8px;text-align:center;">${mMinAMI.date}</td></tr><tr><td style="padding:4px 8px;text-align:center;">FLI</td><td style="padding:4px 8px;text-align:center;color:#dc2626;font-weight:700;">${Number(mMinFLI.val).toFixed(1)}</td><td style="padding:4px 8px;text-align:center;">${mMinFLI.date}</td></tr><tr><td style="padding:4px 8px;text-align:center;">SYS</td><td style="padding:4px 8px;text-align:center;color:#dc2626;font-weight:700;">${Number(mMinSYS.val).toFixed(1)}</td><td style="padding:4px 8px;text-align:center;">${mMinSYS.date}</td></tr></table></div>`;
                     const mTextFields = [['daily-reflection','今日反思'],['daily-summary','今日总结'],['cliffhanger','悬念引导'],['first-action','第一行动']];
                     const mTextHtml = monthData.filter(d => mTextFields.some(([k])=>d[k])).map(d => {
                         const rows = mTextFields.filter(([k])=>d[k]).map(([k,l])=>`<p style="margin:2px 0;font-size:12px;"><span style="color:#6b7280;font-weight:600;">${l}：</span>${String(d[k]).substring(0,120)}${String(d[k]).length>120?'…':''}</p>`).join('');
@@ -23655,7 +23560,6 @@ window.addEventListener('resize', function() {
                 }
             },
 
-            // [OPT-V9-§56+57+58] 自定义区间报告（含各模块最低得分日 + 文字记录汇总）
             generateCustomRangeReport: function() {
                 const CONSTANTS = window.CONSTANTS || {};
                 try {
@@ -23686,7 +23590,7 @@ window.addEventListener('resize', function() {
                     function moduleMin(fn, label) {
                         var minV = Math.min.apply(null, rangeData.map(fn));
                         var minD = rangeData.find(function(d){return fn(d)===minV;}) || {};
-                        return '<tr><td style="padding:4px 8px;">' + label + '</td><td style="padding:4px 8px;text-align:center;color:#dc2626;font-weight:700;">' + minV.toFixed(1) + '</td><td style="padding:4px 8px;text-align:center;color:#6b7280;">' + (minD.date||'-') + '</td></tr>';
+                        return '<tr><td style="padding:4px 8px;text-align:center;">' + label + '</td><td style="padding:4px 8px;text-align:center;color:#dc2626;font-weight:700;">' + minV.toFixed(1) + '</td><td style="padding:4px 8px;text-align:center;color:#6b7280;">' + (minD.date||'-') + '</td></tr>';
                     }
                     var moduleMinHtml = moduleMin(getTPI,'总分TPI') + moduleMin(getAMI,'AMI') + moduleMin(getFLI,'FLI') + moduleMin(getSYS,'SYS');
                     // §58 文字记录汇总
@@ -23708,7 +23612,7 @@ window.addEventListener('resize', function() {
                         '<div style="background:white;border: 1px solid #bbf7d0;border-radius:8px;padding:14px;margin-bottom:12px;">' +
                         '<h3 style="font-size:14px;margin:0 0 8px;">📊 各模块最低得分日（§57）</h3>' +
                         '<table style="width:100%;font-size:13px;border-collapse:collapse;">' +
-                        '<tr style="background:#f3f4f6;"><th style="padding:4px 8px;text-align:left;">模块</th><th style="padding:4px 8px;text-align:center;">最低分</th><th style="padding:4px 8px;text-align:center;">日期</th></tr>' +
+                        '<tr style="background:#f3f4f6;"><th style="padding:4px 8px;text-align:center;">模块</th><th style="padding:4px 8px;text-align:center;">最低分</th><th style="padding:4px 8px;text-align:center;">日期</th></tr>' +
                         moduleMinHtml + '</table></div>' +
                         '<div style="background:white;border: 1px solid #bbf7d0;border-radius:8px;padding:14px;margin-bottom:12px;">' +
                         '<h3 style="font-size:14px;margin:0 0 8px;">📝 文字记录汇总（§58）</h3>' + textHtml + '</div>' +
@@ -23856,7 +23760,7 @@ window.addEventListener('resize', function() {
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#f8fafc;border-bottom: 1px solid #d1fae5;flex-shrink:0;">
                             <h3 style="margin:0;font-size:18px;color:#1e293b;">👁️ 报告预览</h3>
                             <div style="display:flex;gap:10px;">
-                                <button type="button" onclick="(function(){var p=document.getElementById('tpi-preview-body');if(p){var w=window.open('','_blank');if(w){w.document.write('<html><head><meta charset=UTF-8><title>全维效能管理系统（TPI）</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:20px;}h2{color:#0d9488;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border: 1px solid #bbf7d0;}th{background:#f3f4f6;}.btn{padding:10px 20px;margin:10px 5px;cursor:pointer;border: 1px solid #86efac;border-radius:6px;background:#fff;}</style><\/head><body>'+p.innerHTML+'<div style=text-align:center;margin-top:30px><button type="button" class=btn onclick=window.print()>🖨️ 打印</button><button type="button" class=btn onclick=window.close()>关闭</button></div><\/body></html>');w.document.close();}}})()" style="padding:6px 14px;border: 1px solid #6ee7b7;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:#334155;transition:all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">🌐 新窗口打开</button>
+                                <button type="button" onclick="(function(){var p=document.getElementById('tpi-preview-body');if(p){var w=window.open('','_blank');if(w){w.document.write('<html><head><meta charset=UTF-8><title>全维效能管理系统（TPI，V1.17）</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:20px;}h2{color:#0d9488;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border: 1px solid #bbf7d0;}th{background:#f3f4f6;}.btn{padding:10px 20px;margin:10px 5px;cursor:pointer;border: 1px solid #86efac;border-radius:6px;background:#fff;}</style><\/head><body>'+p.innerHTML+'<div style=text-align:center;margin-top:30px><button type="button" class=btn onclick=window.print()>🖨️ 打印</button><button type="button" class=btn onclick=window.close()>关闭</button></div><\/body></html>');w.document.close();}}})()" style="padding:6px 14px;border: 1px solid #6ee7b7;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:#334155;transition:all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">🌐 新窗口打开</button>
                                 <button class="tpi-preview-close-btn" type="button" onclick="document.getElementById('tpi-preview-modal').remove()" style="padding:6px 14px;border: 1px solid #86efac;border-radius:6px;background:#f9fafb;color:#374151;cursor:pointer;font-size:13px;font-weight:600;transition:background 0.15s;">✕ 关闭</button>
                             </div>
                         </div>
@@ -24484,14 +24388,11 @@ window.addEventListener('resize', function() {
   </script>
 <script>
    'use strict';
-// ═══════════════════════════════════════════════════════════════════
 // 数据工坊功能增强
-// ═══════════════════════════════════════════════════════════════════
 
 // ⚠️ 注意：exportDataComplete函数已在HEAD中定义，这里不再重复定义
 
 (function() {
-
 
     // 复制前一天数据
     window.copyPreviousDayData = function() {
@@ -24523,18 +24424,14 @@ window.addEventListener('resize', function() {
         }
     };
 
-    // ═══════════════════════════════════════════════════════════════════
     // 创建smartFillEnhancer对象 - 修复问题5：复制前一天数据
-    // ═══════════════════════════════════════════════════════════════════
     window.smartFillEnhancer = {
         copyPreviousDay: function() {
             return window.copyPreviousDayData();
         }
     };
 
-    // ═══════════════════════════════════════════════════════════════════
     // 修复问题2和3: 创建exportReportComplete函数
-    // ═══════════════════════════════════════════════════════════════════
     window.exportReportComplete = function(format) {
         try {
 
@@ -24561,7 +24458,7 @@ window.addEventListener('resize', function() {
                     <html>
                     <head>
                         <meta charset="UTF-8">
-                        <title>全维效能管理系统（TPI）</title>
+                        <title>全维效能管理系统（TPI，V1.17）</title>
                         <style>
     /* 补全模态框基础样式 */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; align-items: center; justify-content: center; }
@@ -24677,9 +24574,7 @@ window.addEventListener('resize', function() {
         }
     };
 
-    // ═══════════════════════════════════════════════════════════════════
     // 修复问题5: 创建copyPreviousDayDataComplete函数 - 立即执行确保可用
-    // ═══════════════════════════════════════════════════════════════════
     window.copyPreviousDayDataComplete = function() {
         window.__tpi_debug_log('📋 [copyPreviousDayDataComplete] 被调用');
         
@@ -24760,9 +24655,7 @@ window.addEventListener('resize', function() {
         console.error('❌ copyPreviousDayDataComplete函数创建失败');
     }
 
-    // ═══════════════════════════════════════════════════════════════════
     // 注意：exportDataComplete函数已在全局作用域定义，这里不再重复定义
-    // ═══════════════════════════════════════════════════════════════════
 
     window.importDataComplete = function() {
         try {
@@ -24908,7 +24801,7 @@ window.addEventListener('resize', function() {
                 filename = 'TPI_数据导出_' + new Date().toISOString().split('T')[0] + '.csv';
                 mimeType = 'text/csv';
             } else if (format === 'html') {
-                let html = `<html><head><meta charset="UTF-8"><title>全维效能管理系统（TPI）</title><\/head><body>
+                let html = `<html><head><meta charset="UTF-8"><title>全维效能管理系统（TPI，V1.17）</title><\/head><body>
 
         <div id="score-dashboard" style="background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%); padding: 8px 16px; border-radius: 0; margin: 0; color: #1e293b; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
             <div style="max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: nowrap;">
@@ -24995,12 +24888,9 @@ window.addEventListener('resize', function() {
   </script>
 <script>
    'use strict';
-// ═══════════════════════════════════════════════════════════════════
 // 主题设置和其他UI功能
-// ═══════════════════════════════════════════════════════════════════
 
 (function() {
-
 
     // 主题切换
     window.toggleTheme = function() {
@@ -25386,16 +25276,12 @@ window.addEventListener('resize', function() {
   </script>
 <script>
    'use strict';
-// [OPT-V14-#2] Firebase 云端同步增强已移除（所有功能已废弃，请使用 GitHub/Appwrite 云端同步）
   </script>
 <script>
    'use strict';
-// ═══════════════════════════════════════════════════════════════════
 // 移动端专用修复和优化
-// ═══════════════════════════════════════════════════════════════════
 
 (function() {
-
 
     // 检测是否为移动设备
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -25577,12 +25463,9 @@ window.addEventListener('resize', function() {
   </script>
 <script>
    'use strict';
-// ═══════════════════════════════════════════════════════════════════
 // 补充缺失的Complete函数
-// ═══════════════════════════════════════════════════════════════════
 
 (function() {
-
 
     // 1. 从云端加载函数 - 已在前面定义(第2549行),此处删除重复定义
 
@@ -25946,7 +25829,6 @@ window.__tpi_debug_log('✅ 全局函数已定义: copyPreviousDayDataComplete, 
 
 (function() {
 
-
     // 确保所有库都已加载后再初始化功能
     function waitForLibraries(callback) {
         let checkCount = 0;
@@ -25982,9 +25864,7 @@ window.__tpi_debug_log('✅ 全局函数已定义: copyPreviousDayDataComplete, 
 
     function applyFixes() {
 
-        // ═══════════════════════════════════════════════════════════════════
         // 问题 1: 趋势分析
-        // ═══════════════════════════════════════════════════════════════════
         if (!window.trendChartEnhancer || !window.trendChartEnhancer.showChartUI) {
             window.trendChartEnhancer = {
                 showChartUI: function() {
@@ -25994,16 +25874,12 @@ window.__tpi_debug_log('✅ 全局函数已定义: copyPreviousDayDataComplete, 
             };
         }
 
-        // ═══════════════════════════════════════════════════════════════════
         // 问题 2-4: 导出功能 (PDF, Excel, HTML) 和预览报告
-        // ═══════════════════════════════════════════════════════════════════
         // 这些函数已存在，但我们确保它们能正确工作
         if (typeof window.exportReportComplete === 'function') {
         }
 
-        // ═══════════════════════════════════════════════════════════════════
         // 问题 5: 复制前一天数据
-        // ═══════════════════════════════════════════════════════════════════
         if (!window.copyPreviousDayDataComplete) {
             window.copyPreviousDayDataComplete = function() {
                 try {
@@ -26052,13 +25928,9 @@ window.__tpi_debug_log('✅ 全局函数已定义: copyPreviousDayDataComplete, 
             };
         }
 
-        // ═══════════════════════════════════════════════════════════════════
         // 问题 6: 从云端加载 - 已在前面定义(第2549行),此处不再重复
-        // ═══════════════════════════════════════════════════════════════════
 
-        // ═══════════════════════════════════════════════════════════════════
         // 问题 7: 仅存本地、撤销、重做
-        // ═══════════════════════════════════════════════════════════════════
         if (!window.saveLocalOnlyComplete) {
             window.saveLocalOnlyComplete = function() {
                 try {
@@ -26082,9 +25954,7 @@ window.__tpi_debug_log('✅ 全局函数已定义: copyPreviousDayDataComplete, 
             };
         }
 
-        // ═══════════════════════════════════════════════════════════════════
         // 问题 8: 数据导出的4个格式
-        // ═══════════════════════════════════════════════════════════════════
         if (!window.exportAllDataComplete) {
             window.exportAllDataComplete = function(format) {
                 try {
@@ -26147,7 +26017,7 @@ window.__tpi_debug_log('✅ 全局函数已定义: copyPreviousDayDataComplete, 
                         alert('✅ Excel导出成功！');
                     }
                     else if (format === 'html') {
-                        let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>全维效能管理系统（TPI）</title>';
+                        let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>全维效能管理系统（TPI，V1.17）</title>';
                         html += `<style>
     /* 补全模态框基础样式 */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; align-items: center; justify-content: center; }
@@ -26221,9 +26091,7 @@ html += `<\/head><body>
             };
         }
 
-        // ═══════════════════════════════════════════════════════════════════
         // 问题 9: 数据导入
-        // ═══════════════════════════════════════════════════════════════════
         if (!window.importDataComplete) {
             window.importDataComplete = function() {
                 const input = document.createElement('input');
@@ -26340,9 +26208,7 @@ html += `<\/head><body>
             };
         }
 
-        // ═══════════════════════════════════════════════════════════════════
         // 问题 10: 归档旧数据
-        // ═══════════════════════════════════════════════════════════════════
         if (!window.archiveOldDataComplete) {
             window.archiveOldDataComplete = function() {
                 try {
@@ -26411,9 +26277,7 @@ html += `<\/head><body>
             };
         }
 
-        // ═══════════════════════════════════════════════════════════════════
         // 问题 11: 数据健康检查
-        // ═══════════════════════════════════════════════════════════════════
         if (!window.checkDataHealthComplete) {
             window.checkDataHealthComplete = function() {
                 try {
@@ -26470,9 +26334,7 @@ html += `<\/head><body>
             };
         }
 
-        // ═══════════════════════════════════════════════════════════════════
         // 问题 12: 打开备份管理
-        // ═══════════════════════════════════════════════════════════════════
         if (!window.openBackupManagerComplete) {
             // openBackupManagerComplete removed (deprecated)
         }
@@ -26759,9 +26621,7 @@ window.LoadingIndicator = {
     }
 };
 
-// ═══════════════════════════════════════════════════════════════════
 // 分数看板实时更新系统
-// ═══════════════════════════════════════════════════════════════════
 
 const ScoreDashboard = {
     // 更新看板显示（顶部置顶看板 + 兼容旧看板）
@@ -26787,7 +26647,6 @@ const ScoreDashboard = {
             this.updateElement('ts-bonus', bonusScore.toFixed(1));
             this.updateElement('ts-total', total.toFixed(1));
 
-            // [OPT-V9-§55] 熔断阈值接近预警
             try {
               var fuseThreshold = (window.CONSTANTS && window.CONSTANTS.TPI_OVERLOAD_THRESHOLD) || 210;
               var fuseWarnEl = document.getElementById('tpi-fuse-warning-badge');
@@ -26844,9 +26703,8 @@ const ScoreDashboard = {
     updateElement: function(elementId, value) {
         const element = document.getElementById(elementId);
         if (element) {
-            // [V1.12-Fix] 值未变化时跳过DOM更新，防止无意义的渲染和闪烁
+            // [V1.13-Fix] 值未变化时跳过DOM更新，防止无意义的渲染和闪烁
             if (element.textContent.trim() === String(value)) return;
-            // [OPT-V2-§73] 分数变化闪光动画
             const prevText = element.textContent.trim();
             const prevVal = parseFloat(prevText);
             const newVal = parseFloat(value);
@@ -26877,7 +26735,6 @@ const ScoreDashboard = {
         let bg = 'rgba(148, 163, 184, 0.30)';
         let border = 'rgba(13,148,136,0.35)';
 
-        // [OPT-V14-#1] 使用 window.TPI.CONST 替代硬编码阈值（单一真相来源）
         var _C = (window.TPI && window.TPI.CONST) || {};
         var _THR_OL  = _C.TPI_OVERLOAD_THRESHOLD  || 210;
         var _THR_HP  = _C.TPI_HIGH_PERFORMANCE     || 156;
@@ -26903,7 +26760,7 @@ const ScoreDashboard = {
             text = `< ${_THR_BL} 维护 (Maintenance)`;
         }
 
-        // [V1.12-Fix] 评级未变化时跳过DOM更新，防止看板内容抖动
+        // [V1.13-Fix] 评级未变化时跳过DOM更新，防止看板内容抖动
         if (ratingEl.textContent === text && ratingEl.style.background === bg) return;
         ratingEl.textContent = text;
 
@@ -26930,7 +26787,7 @@ const ScoreDashboard = {
         // 监听输入变化：保持实时刷新
         document.addEventListener('input', (e) => {
             clearTimeout(this.updateTimer);
-            // [V1.12-Fix] 防抖400ms：进一步减少快速输入时看板高频刷新导致的视觉跳动，不影响实时联动
+            // [V1.13-Fix] 防抖400ms：进一步减少快速输入时看板高频刷新导致的视觉跳动，不影响实时联动
             this.updateTimer = setTimeout(() => this.update(), 400);
         });
 
@@ -26962,9 +26819,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 3000);
 });
 
-// ═══════════════════════════════════════════════════════════════════
 // 修复缺失的功能 - 批次17
-// ═══════════════════════════════════════════════════════════════════
 
 // 修复1: TPI.updateTrendChart 添加控制台日志
 if (window.TPI && window.TPI.updateTrendChart) {
@@ -28216,9 +28071,7 @@ window.__tpi_debug_log('✅ - TPIAdvanced: 已定义完整对象');
 window.__tpi_debug_log('✅ - TemplateSyncManager: 已定义完整对象');
 window.__tpi_debug_log('✅ ═══════════════════════════════════════════════════════');
 
-// ═══════════════════════════════════════════════════════════════════
 // 批次18修复 - 导出导入功能控制台日志增强
-// ═══════════════════════════════════════════════════════════════════
 
 // 确保TPI对象包含导入导出函数
 if (typeof window.TPI !== 'undefined') {
@@ -28242,17 +28095,13 @@ if (typeof window.TPI !== 'undefined') {
     window.__tpi_debug_log('✅ ═══════════════════════════════════════════════════════');
 }
 
-   // [OPT-V14-#2] Firebase 云端同步模块已完全移除（批次19历史存根已合并）
 // 原 Firebase 12项功能均已废弃，请使用 GitHub/Appwrite 云端同步
 
 (function() {
 
-    
     window.__tpi_debug_log && window.__tpi_debug_log('[V14] 批次数据模块初始化');
 
-// ═══════════════════════════════════════════════════════════════════
 // 【第5批次新增】数据完整性检查 - 启动时自动验证localStorage数据
-// ═══════════════════════════════════════════════════════════════════
 (function initDataIntegrityCheck() {
     
     window.__tpi_debug_log && window.__tpi_debug_log('[V14] 数据完整性检查启动:', new Date().toLocaleString());
@@ -28346,7 +28195,6 @@ if (typeof window.TPI !== 'undefined') {
         window.__tpi_debug_log('✅ 数据完整性检查完成');
         window.__tpi_debug_log('🔍 ═══════════════════════════════════════════════════════');
         
-        
         // 如果有数据，提供快速统计
         if (validCount > 0) {
             window.__tpi_debug_log('📈 快速统计（最近数据）:');
@@ -28387,7 +28235,6 @@ if (typeof window.TPI !== 'undefined') {
                 window.__tpi_debug_log('  平均TPI分数:', avgRecent.toFixed(1), '分');
             }
             
-            
         }
         
     } catch (error) {
@@ -28396,9 +28243,7 @@ if (typeof window.TPI !== 'undefined') {
     }
 })();
 
-// ═══════════════════════════════════════════════════════════════════
 // 【第5批次新增】全局错误监控 - 捕获所有未处理的错误
-// ═══════════════════════════════════════════════════════════════════
 window.addEventListener('error', function(event) {
     console.error('');
     console.error('❌ ═══════════════════════════════════════════════════════');
@@ -28445,7 +28290,6 @@ window.__tpi_debug_log('✅ 全局错误监控已启动');
 'use strict';
 /* 稳定性/导航/导出/弹窗增强 */
 (function TPI_V9_STABILITY_PATCH(){
-
 
   // ---------- 0) 轻量 Toast（不阻塞、不弹窗卡死） ----------
   function tpiToast(msg, type){
@@ -28545,7 +28389,6 @@ window.__tpi_debug_log('✅ 全局错误监控已启动');
     const nav = document.getElementById('quickNavV17');
     if(!nav) return;
 
-    
     // ✅ 如果导航栏标记为静态，则不自动生成（避免覆盖手工维护的导航）
     if(nav.getAttribute('data-static') === '1') return;
 // 清空旧按钮（全部动态生成）
@@ -28623,8 +28466,6 @@ window.__tpi_debug_log('✅ 全局错误监控已启动');
     }
 }
 
-  
-
 /* 模块快捷导航绑定 */
 (function(){
   function setVisible(visible){
@@ -28676,7 +28517,6 @@ window.__tpi_debug_log('✅ 全局错误监控已启动');
   }
 })();
 // ---------- 3) 按时间范围导出（优先 XLSX；JSON/MD 可选兜底） ----------
-  // [OPT-V2-§10] IntersectionObserver：高亮导航栏中当前可见的模块
   (function initNavHighlight() {
     function setupObserver() {
       try {
@@ -28997,7 +28837,7 @@ window.__tpi_debug_log('✅ 全局错误监控已启动');
 
   // 备份：导出“全量可恢复包”（含所有 tpi_* 以及必要缓存；排除 token/password）
   function backupAllDataNow(){
-    const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.12）'), appVersion: (window.TPI_APP_VERSION||'1.09'), exportedAt: new Date().toISOString() }, localStorage: {} };
+    const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.17）'), appVersion: (window.TPI_APP_VERSION||'1.09'), exportedAt: new Date().toISOString() }, localStorage: {} };
     for(let i=0;i<__tpi_ls_length();i++){
       const k = __tpi_ls_key(i);
       if(!k) continue;
@@ -29194,7 +29034,7 @@ try{
       }
       window.__tpi_backup_lock = true;
 
-      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.12）'), appVersion: (window.TPI_APP_VERSION||'1.09'), exportedAt: new Date().toISOString() }, localStorage: {} };
+      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.17）'), appVersion: (window.TPI_APP_VERSION||'1.09'), exportedAt: new Date().toISOString() }, localStorage: {} };
 
       for(let i=0;i<__tpi_ls_length();i++){
         const k = __tpi_ls_key(i);
@@ -29708,7 +29548,6 @@ try{
 'use strict';
 (function(){
 
-
   // ========== 1) 修复 safeShowToast 递归（safeShowToast -> InputValidator.showToast(占位) -> safeShowToast ...） ==========
   // 说明：早期占位 InputValidator.showToast 不应再回调 safeShowToast；safeShowToast 也需要重入保护。
   try{
@@ -29870,7 +29709,7 @@ try{
       }
       window.__tpi_backup_lock = true;
 
-      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.12）'), appVersion: (window.TPI_APP_VERSION||'1.09'), exportedAt: new Date().toISOString() }, localStorage: {} };
+      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.17）'), appVersion: (window.TPI_APP_VERSION||'1.09'), exportedAt: new Date().toISOString() }, localStorage: {} };
 
       for(let i=0;i<__tpi_ls_length();i++){
         const k = __tpi_ls_key(i);
@@ -29931,7 +29770,6 @@ try{
 ========================================================= */
 
 (function() {
-
 
   // 获取今天的日期字符串 (YYYY-MM-DD)
   function getTodayDateString() {
@@ -30243,7 +30081,6 @@ try{
 
 (function() {
 
-
   // 设置日期输入框为今天的日期
   function setTodayDate() {
     try {
@@ -30385,7 +30222,6 @@ try{
    - 数据进入隐藏 textarea（#misc-records-json），确保被 collectDailyData/_formState 捕获并随云端同步
 ========================================================= */
 (function(){
-
 
   const LS_PREFIX = 'tpi_misc_records_';
   const els = {
@@ -30688,7 +30524,6 @@ try{
     render
   };
 
-  // [OPT-V15-#15] 虚拟滚动：当杂事记录超过阈值时启用虚拟渲染
   var VIRTUAL_SCROLL_THRESHOLD = 80; // 超过此条数启用虚拟滚动
   var _virtualScrollState = {
     enabled: false, itemHeight: 100, visibleCount: 0,
@@ -30927,7 +30762,6 @@ try{
   ========================================================= */
   (function(){
 
-
     function safeUpdate(){
       try{
         if (window.ScoreDashboard && typeof window.ScoreDashboard.update === 'function'){
@@ -31006,8 +30840,6 @@ try{
     window.CardDashboardSync = { update: safeUpdate };
   })();
 </script>
-
-
 
 <script>
 'use strict';
@@ -31166,7 +30998,6 @@ var databases = window.__appwriteDatabases || (window.__appwriteDatabases = new 
     tpiShowMsg('tpi-sync-msg', '');
   }
 
-  
   // --------- Sync date UI bridge (支持历史日期同步) ----------
   function getSyncDateInput(){
     return document.getElementById('tpi-sync-date');
@@ -31431,7 +31262,6 @@ window.__tpi_syncDateToMain = function(){
     }
   };
 
-  
   // ---------- 2) 保存/加载今日（按 userId + date 唯一文档） ----------
   function __tpi_normDate(raw){
     if(!raw) return '';
@@ -31460,7 +31290,6 @@ window.__tpi_syncDateToMain = function(){
     return `${safeUser}_${safeDate}`;
   }
 
-  
   /* 同步策略增强：增量/压缩/离线队列/冲突检测/重试 */
 
   (function(){
@@ -32062,7 +31891,6 @@ window.tpiSaveToday = async function () {
         try{ saveToLocalStorage(); }catch(e){ console.warn('[云同步] saveToLocalStorage 调用失败(忽略):', e); }
       }
 
-      
 // 2) 仅打包“所选日期快照 + 必要全局数据”（不再全量 localStorage）
       window.__tpi_debug_log('📦 [上传] 正在打包快照...');
       // 生成 packed（string），内部包含：meta/day/globals + 压缩 + checksum
@@ -32077,8 +31905,6 @@ window.tpiSaveToday = async function () {
       const docId = __tpi_makeDocId(userId, dateStr);
       window.__tpi_debug_log(`🆔 [下载] 用户ID: ${userId}`);
       window.__tpi_debug_log(`📝 [下载] 文档ID: ${docId}`);
-
-      
 
       // 先尝试更新，不存在再创建
       
@@ -32294,7 +32120,6 @@ window.__tpi_debug_log('☁️ [上传] 正在写入云端数据库...');
       window.__tpi_debug_log(`⏰ 上传时间: ${uploadTime}`);
       window.__tpi_debug_log('✅ ═════════════════════════════════════════════════════');
 
-      
       try{ window.__tpi_logSync && window.__tpi_logSync({id: (crypto?.randomUUID?crypto.randomUUID():('log_'+Date.now())), ts: Date.now(), type:'upload', date: dateStr, ok:true, sizeChars: dataStr.length, checksum: (__packed.checksum||__packed.meta?.checksum||''), deviceId: (__packed.meta?.deviceId||''), lastModified: (__packed.meta?.lastModified||''), schema: (__packed.meta?.schema||'')}); }catch(e){}
       
       try {
@@ -32402,7 +32227,6 @@ window.tpiLoadToday = async function () {
         return await window.tpiLoadToday();
       };
 
-      
       const user = await __tpi_getAuth();
       const userId = user.$id;
       const docId = __tpi_makeDocId(userId, dateStr);
@@ -32413,7 +32237,6 @@ window.tpiLoadToday = async function () {
       const dataStr = doc.data || ''; // ✅ 修复: 定义dataStr供后续快照使用
       const beforeKeys = typeof window.__tpi_ls_length === 'function' ? window.__tpi_ls_length() : 0; // ✅ 修复: 定义beforeKeys
 
-      
 // 解析云端 data（按日/压缩/带校验）
       window.__tpi_debug_log(`📦 [下载] 文档数据大小: ${doc.data ? doc.data.length : 0} 字节`);
       const __unpacked = (window.__tpi_unpackCloudPacked ? window.__tpi_unpackCloudPacked(doc.data || '') : null);
@@ -32589,8 +32412,6 @@ window.tpiLoadToday = async function () {
         console.warn('⚠️ [下载] __tpi_triggerRecalc失败(忽略):', e);
       }
 
-
-      
       // 5.4 刷新杂事记录（确保杂事记录显示正确）
       try {
         if (window.MiscLog && typeof window.MiscLog.render === 'function') {
@@ -32717,7 +32538,6 @@ const __download_end_time = Date.now();
       window.__tpi_debug_log(`⏰ 下载时间: ${downloadTime}`);
       window.__tpi_debug_log('📥 ═════════════════════════════════════════════════════');
 
-      
       try{ window.__tpi_logSync && window.__tpi_logSync({id:(crypto?.randomUUID?crypto.randomUUID():('log_'+Date.now())), ts:Date.now(), type:'download', date: dateStr, ok:true, sizeChars: (dataStr?dataStr.length:0), checksum: (__unpacked?.outer?.checksum||__unpacked?.obj?.meta?.checksum||''), deviceId: (__unpacked?.obj?.meta?.deviceId||''), lastModified: (__unpacked?.obj?.meta?.lastModified||'')}); }catch(e){}
       
       try {
@@ -33143,10 +32963,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }, { passive: true });
 }, { once: true });
 
-
-// ================================================================
-// [V1.07] 退出提醒 — 精确检测"真正关闭页面"
-// ================================================================
 // 技术原理：beforeunload 是浏览器唯一可靠的"真正离开"信号。
 //   - 切换标签页：NOT triggered ✅
 //   - 鼠标移动到工具栏：NOT triggered ✅
@@ -33158,7 +32974,6 @@ document.addEventListener('DOMContentLoaded', function() {
 //   2. 同时设置 e.returnValue → 浏览器显示原生"离开网站？"对话框
 //   3. 用户点击"离开" → 页面关闭（弹窗无关紧要）
 //   4. 用户点击"留在此页" → 浏览器对话框消失，自定义弹窗已在 DOM 中，立刻可见
-// ================================================================
 (function() {
   'use strict';
 
@@ -33318,7 +33133,6 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 })();
 
-
 // ─── OPT-2: 轻量草稿自动保存 ───
 (function() {
 
@@ -33440,7 +33254,6 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 
 // 🔥 保障7：页面加载时检查未保存数据
-
 
 // ─── OPT-6: 拖拽导入 ───
 (function() {
@@ -33885,12 +33698,9 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
 
 (function() {
 
-  
   window.__tpi_debug_log('🚀 [TPI优化] 开始加载深度优化模块...');
 
-  // ===========================
   // 1. localStorage 数据压缩模块
-  // ===========================
   window.TPIDataCompression = {
     // 简单的压缩函数 (使用 LZ-String 思想的简化版)
     compress: function(data) {
@@ -33926,9 +33736,7 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
     }
   };
 
-  // ===========================
   // 2. 增量同步机制
-  // ===========================
   window.TPIIncrementalSync = {
     // 计算数据差异
     calculateDiff: function(oldData, newData) {
@@ -33972,9 +33780,7 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
     }
   };
 
-  // ===========================
   // 3. 自动保存指示器（已禁用悬浮标志，避免常驻干扰）
-  // ===========================
   window.TPISaveIndicatorEnhancer = {
     init: function() {
       // 移除可能已存在的旧指示器
@@ -33997,9 +33803,7 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
     updateIndicator: function() { /* 已禁用 */ }
   };
 
-  // ===========================
   // 4. 离线检测与队列同步
-  // ===========================
   window.TPINetworkManager = {
     isOnline: navigator.onLine,
     indicator: null,
@@ -34141,9 +33945,7 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
     }
   };
 
-  // ===========================
   // 5. 数据冲突检测与解决
-  // ===========================
   window.TPIConflictResolver = {
     // 检测冲突
     detectConflict: function(localData, cloudData) {
@@ -34195,9 +33997,7 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
     }
   };
 
-  // ===========================
   // 6. 错误处理增强
-  // ===========================
   window.TPIErrorHandler = {
     errorLog: [],
     maxLogSize: 50,
@@ -34284,9 +34084,7 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
     }
   };
 
-  // ===========================
   // 7. 性能监控
-  // ===========================
   window.TPIPerformanceMonitor = {
     metrics: {},
     
@@ -34317,9 +34115,7 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
     }
   };
 
-  // ===========================
   // 8. 初始化所有模块
-  // ===========================
   function initializeOptimizations() {
     window.__tpi_debug_log('🚀 [TPI优化] 开始初始化所有优化模块...');
     
@@ -34360,9 +34156,7 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   // 立即初始化
   initializeOptimizations();
   
-  // ===========================
   // 9. 增强现有函数 (包装而不是覆盖)
-  // ===========================
   
   // 延迟执行,确保saveTodaysData函数已定义
   setTimeout(() => {
@@ -34523,7 +34317,6 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
     },
     
     getColor: function(type) {
-      // [V1.08] 统一使用绿色边框，与整体风格保持一致
       return '#10B981';
     },
     
@@ -34720,7 +34513,6 @@ window.__tpi_debug_log('✅ [TPI优化] 函数增强包装器已加载');
    4. 支持离线队列
 ========================================================= */
 (function(){
-
 
   const IDB_NAME = 'TPI_Storage';
   const IDB_VERSION = 1;
@@ -35012,7 +34804,6 @@ window.__tpi_debug_log('✅ [TPI优化] 函数增强包装器已加载');
    3. 可选的每日自动备份（23:00）
 ========================================================= */
 (function(){
-
 
   // ========== 工具函数 ==========
   const $ = (id) => document.getElementById(id);
@@ -35396,7 +35187,6 @@ window.__tpi_debug_log('✅ [TPI优化] 函数增强包装器已加载');
 
       // 恢复数据到页面（含版本兼容迁移）
       let dateData = backupData[date].data; // dayData (已在备份时正确提取)
-      // [V1.07] 版本兼容：如果数据有版本信息，执行迁移
       try {
         if (typeof window.migrateDataIfNeeded === 'function') {
           dateData = window.migrateDataIfNeeded(dateData) || dateData;
@@ -35428,7 +35218,6 @@ window.__tpi_debug_log('✅ [TPI优化] 函数增强包装器已加载');
         if (typeof window.__tpi_triggerRecalc === 'function') window.__tpi_triggerRecalc();
         if (window.TPI && typeof window.TPI.calculateTPI === 'function') window.TPI.calculateTPI();
       } catch(e) {}
-
 
       // 5) 刷新 MiscLog
       try { window.MiscLog && typeof window.MiscLog.render === 'function' && window.MiscLog.render(); } catch(e) {}
@@ -35535,7 +35324,6 @@ window.__tpi_debug_log('✅ [TPI优化] 函数增强包装器已加载');
   };
 
   // ========== 离线队列处理器 ==========
-  // [OPT-V15-#8] 离线队列指数退避重试
   var _MAX_RETRY_COUNT = 10;
   function _calcRetryDelay(retryCount) {
     // 指数退避：2^n * 1000ms，最大1小时
@@ -35552,7 +35340,6 @@ window.__tpi_debug_log('✅ [TPI优化] 函数增强包装器已加载');
       window.__tpi_debug_log(`🔄 [离线队列] 发现 ${queue.length} 个待同步的 Gist 任务`);
 
       for (const item of queue) {
-        // [OPT-V15-#8] 检查退避时间
         const retryCount = item.retryCount || 0;
         const lastAttempt = item.lastAttempt || 0;
         if (retryCount > 0 && lastAttempt > 0) {
@@ -35617,7 +35404,6 @@ window.__tpi_debug_log('✅ [TPI优化] 函数增强包装器已加载');
 
         } catch (error) {
           console.error(`❌ [离线队列] 同步失败: ${item.date}`, error);
-          // [OPT-V15-#8] 更新重试计数和最后尝试时间
           try {
             if (window.TPIIndexedDB && typeof window.TPIIndexedDB.updateQueueItem === 'function') {
               await window.TPIIndexedDB.updateQueueItem(item.id, {
@@ -35795,8 +35581,6 @@ window.__tpi_debug_log('✅ [TPI优化] 函数增强包装器已加载');
 })();
 
 </script>
-
-
 
 <script>
 'use strict';
@@ -36140,7 +35924,6 @@ window.__tpiDirectExport = function(fmt) {
 /* Modal/Notif 强制可关闭 */
 (function(){
 
-
   // 0) 一键清理（供调试/兜底）
   window.__tpi_forceCloseAllOverlays = function(){
     try{ var rn=document.getElementById('__tpi-rich-notif'); if(rn) rn.remove(); }catch(_){}
@@ -36304,7 +36087,6 @@ window.__tpiDirectExport = function(fmt) {
 /* 综合优化：逻辑自洽/数据流/健壮性/安全性/性能/UX */
 (function () {
 
-
   /* ────────────────────────────────────────────────────────────
      §1  TPILogger — 统一日志系统
      根据 __tpi_debug__ 开关控制 debug 输出
@@ -36412,7 +36194,6 @@ window.__tpiDirectExport = function(fmt) {
     };
   }
 
-  // [OPT-V14-#13] getLocalDateSafe: 安全的本地日期字符串，优先使用 getLocalDate，
   // 降级至 toISOString().split('T')[0]，消除散布全文的内联 new Date() 模式
   if (typeof window.getLocalDateSafe !== 'function') {
     window.getLocalDateSafe = function(d) {
@@ -36894,7 +36675,6 @@ window.__tpiDirectExport = function(fmt) {
     };
     // 注意：此混淆仅防止一眼读取，不是真正的安全存储
     // ⚠️ 请勿在公共/共享电脑上使用云端同步功能！
-    // [OPT-V14-#14] 新增 clear 方法：退出时清除所有已知 token
     window.TPITokenStore.clear = window.TPITokenStore.clear || function() {
       var tokenKeys = [
         'tpi_github_token', 'tpi_gist_id',
@@ -37180,7 +36960,6 @@ window.__tpiDirectExport = function(fmt) {
   /* ────────────────────────────────────────────────────────────
      §25  最终确认日志
   ──────────────────────────────────────────────────────────── */
-  // [OPT-V14-#5] 错误处理桥接：将 TPI.ErrorHandler 指向 TPIErrorHandler
   try {
     if (window.TPI && !window.TPI.ErrorHandler && window.TPIErrorHandler) {
       window.TPI.ErrorHandler = window.TPIErrorHandler;
@@ -37205,7 +36984,6 @@ window.__tpiDirectExport = function(fmt) {
   L.info('  § 3  TPIErrorMessages       已注册');
   L.info('  § 4  getLocalDate/getLocalDateSafe 已注册');
   L.info('  § 5  __tpiDebounce          已确认');
-  // [OPT-V14-#8] 防抖工厂一致性验证：确认所有入口均使用 __tpiDebounce
   // calculateDefenseScore 和 TPI.calculateTPI 均已通过 __tpiDebounce 包装
   // 注意：TPI.Calculator.schedule 使用 setTimeout(200ms) 适用于 input 事件
   //       TPI.calculateTPI.__v5Debounced 使用 __tpiDebounce(150ms) 适用于直接调用
@@ -37237,7 +37015,6 @@ window.__tpiDirectExport = function(fmt) {
 'use strict';
 /* 补充优化：导航增强/串行锁/废弃函数清理 */
 (function () {
-
 
   var L = window.TPILogger || console;
 
@@ -37452,14 +37229,12 @@ window.__tpiDirectExport = function(fmt) {
         attributes: true,
         attributeFilter: ['class']
       });
-      // [OPT-V15-#7] 注册到观察者清理注册表
       if (window.__TPI_CLEANUP_REGISTRY__) {
         window.__TPI_CLEANUP_REGISTRY__.observers.push(_observer);
       }
     }
   }());
 
-  // [OPT-V15-#7] 内存泄漏修复：统一观察者/定时器清理注册表
   (function setupCleanupRegistry() {
     if (window.__TPI_CLEANUP_REGISTRY__) return;
     window.__TPI_CLEANUP_REGISTRY__ = {
@@ -37598,7 +37373,6 @@ function _tsStr(){
 /* ── 同步当前DOM到存储（确保刚输入的内容也被收录） ── */
 function _syncCurrentDOMToStorage(){
   // ✅ [优化补丁 §1.2] 强制雷达草稿落盘
-
 
   // ✅ [优化补丁 §2.1] 强制立即计算分数（使用 immediate 版本绕过防抖）
   try {
@@ -38187,7 +37961,6 @@ function _init(){
     scoreEl.addEventListener('change',_syncScoreboardRating);
     scoreEl.addEventListener('input',_syncScoreboardRating);
   }
-  // [V1.07] Also watch tpi-total input (primary source), mirror changes to tpi-total-score
   var totalInputEl=document.getElementById('tpi-total');
   if(totalInputEl){
     totalInputEl.addEventListener('input',function(){
@@ -38375,7 +38148,6 @@ window.addEventListener('load',function(){ setTimeout(_init,1500); },{once:true}
    提供文件夹读写功能，与云端同步、IndexedDB 共存
 ========================================================= */
 (function() {
-
 
   // 检测文件系统API支持
   const supportsFileSystem = 'showDirectoryPicker' in window;
@@ -38828,9 +38600,6 @@ window.addEventListener('load',function(){ setTimeout(_init,1500); },{once:true}
 (function() {
   'use strict';
 
-  // ─────────────────────────────────────────────
-  // [OPT-V3-§24] textarea 自动扩展高度
-  // ─────────────────────────────────────────────
   function autoResizeTextarea(ta) {
     if (!ta || ta.tagName !== 'TEXTAREA') return;
     // 跳过固定高度的特殊 textarea（如 json-import-area）
@@ -38868,9 +38637,6 @@ window.addEventListener('load',function(){ setTimeout(_init,1500); },{once:true}
     taObserver.observe(document.body, { childList: true, subtree: true });
   } catch(e) {}
 
-  // ─────────────────────────────────────────────
-  // [OPT-V3-§76] 最后自动保存时间显示
-  // ─────────────────────────────────────────────
   function initLastSaveIndicator() {
     try {
       // 在顶部看板右侧注入"最后保存"指示器
@@ -38936,9 +38702,6 @@ window.addEventListener('load',function(){ setTimeout(_init,1500); },{once:true}
     } catch(e) {}
   }
 
-  // ─────────────────────────────────────────────
-  // [OPT-V3-§59] BCM 保护机制触发时总分旁显示说明
-  // ─────────────────────────────────────────────
   function initBCMProtectionIndicator() {
     try {
       // 在 tpi-total 旁边注入 BCM保护徽章
@@ -38956,7 +38719,6 @@ window.addEventListener('load',function(){ setTimeout(_init,1500); },{once:true}
       ].join(';');
       bcmBadge.title = 'BCM基石保护机制已触发：BCM/SYS子系统得分不足，总分已被限制。请先提升行为纪律模块得分。';
       bcmBadge.textContent = '🛡 BCM限制';
-      // [OPT-V9-§54] 点击弹出详细说明弹窗
       bcmBadge.addEventListener('click', function() {
         try {
           var sysEl = document.getElementById('sys-score');
@@ -38971,9 +38733,9 @@ window.addEventListener('load',function(){ setTimeout(_init,1500); },{once:true}
           var details = '<strong>🛡 BCM基石保护机制已触发</strong><br><br>' +
             '总分受到限制，原因如下：<br><br>' +
             '<table style="width:100%;font-size:13px;border-collapse:collapse;">' +
-            '<tr style="border-bottom: 1px solid #d1fae5;"><td style="padding:4px 8px;">模块</td><td style="padding:4px 8px;text-align:center;">当前得分</td><td style="padding:4px 8px;text-align:center;">最低阈值</td><td style="padding:4px 8px;text-align:center;">状态</td></tr>' +
-            '<tr style="border-bottom: 1px solid #d1fae5;"><td style="padding:4px 8px;">SYS<sub>Net</sub></td><td style="padding:4px 8px;text-align:center;font-weight:700;">' + sysVal.toFixed(1) + '</td><td style="padding:4px 8px;text-align:center;">' + sysMin + '</td><td style="padding:4px 8px;text-align:center;">' + sysStatus + '</td></tr>' +
-            '<tr><td style="padding:4px 8px;">BCM</td><td style="padding:4px 8px;text-align:center;font-weight:700;">' + bcmVal.toFixed(1) + '</td><td style="padding:4px 8px;text-align:center;">' + bcmMin + '</td><td style="padding:4px 8px;text-align:center;">' + bcmStatus + '</td></tr>' +
+            '<tr style="border-bottom: 1px solid #d1fae5;"><td style="padding:4px 8px;text-align:center;">模块</td><td style="padding:4px 8px;text-align:center;">当前得分</td><td style="padding:4px 8px;text-align:center;">最低阈值</td><td style="padding:4px 8px;text-align:center;">状态</td></tr>' +
+            '<tr style="border-bottom: 1px solid #d1fae5;"><td style="padding:4px 8px;text-align:center;">SYS<sub>Net</sub></td><td style="padding:4px 8px;text-align:center;font-weight:700;">' + sysVal.toFixed(1) + '</td><td style="padding:4px 8px;text-align:center;">' + sysMin + '</td><td style="padding:4px 8px;text-align:center;">' + sysStatus + '</td></tr>' +
+            '<tr><td style="padding:4px 8px;text-align:center;">BCM</td><td style="padding:4px 8px;text-align:center;font-weight:700;">' + bcmVal.toFixed(1) + '</td><td style="padding:4px 8px;text-align:center;">' + bcmMin + '</td><td style="padding:4px 8px;text-align:center;">' + bcmStatus + '</td></tr>' +
             '</table><br>' +
             '<span style="color:#7f1d1d;font-size:12px;">💡 优先提升BCM晨间入馆与睡眠得分，可最快解除限制。</span>';
           if (window.tpiConfirm) {
@@ -39026,9 +38788,6 @@ window.addEventListener('load',function(){ setTimeout(_init,1500); },{once:true}
     } catch(e) {}
   }
 
-  // ─────────────────────────────────────────────
-  // [OPT-V3-§22] AMI 写作字数输入框范围校验
-  // ─────────────────────────────────────────────
   function initAMIInputValidation() {
     try {
       var MAX_WORDS = 30000;
@@ -39079,9 +38838,7 @@ window.addEventListener('load',function(){ setTimeout(_init,1500); },{once:true}
     } catch(e) {}
   }
 
-  // ─────────────────────────────────────────────
   // 初始化所有 OPT-V3 增强
-  // ─────────────────────────────────────────────
   function initAllV3Enhancements() {
     initAutoResizeTextareas();
     initLastSaveIndicator();
@@ -39098,7 +38855,6 @@ window.addEventListener('load',function(){ setTimeout(_init,1500); },{once:true}
 
 })();
 </script>
-
 
 <!-- ==================== V5 优化增强脚本 (优化项 8-20) ==================== -->
 <style id="tpi-v5-styles">
@@ -40525,7 +40281,6 @@ mark.tpi-search-highlight.current { background:#f97316; color:white; border-radi
       var label = cell.date.slice(5); // MM-DD
       div.textContent = label.slice(3); // DD only
 
-      // [OPT-V14-#1] 使用 window.TPI.CONST 阈值（单一真相来源）
       var _hC = (window.TPI && window.TPI.CONST) || {};
       var _hBL = _hC.TPI_BASELINE || 95;
       var _hST = _hC.TPI_STEADY || 121;
@@ -40973,7 +40728,6 @@ function tpiInitHistoryNote() {
   };
 
   // [V13-OPT-#34] 增强版批注加载：支持异步 IDB 读取，解决初始化时序问题
-  // [OPT-V15-#6] 历史批注：使用日期令牌防止竞态覆盖
   var _noteLoadToken = {};
   window.__tpiUpdateHistoryNote = function(dateStr) {
     var today = (function() {
@@ -41073,7 +40827,7 @@ function tpiInitModuleBreakdown() {
 
       var html = '<table style="width:100%;border-collapse:collapse;font-size:13px;">'
         + '<thead><tr style="background:#f0f9ff;">'
-        + '<th style="padding:8px 12px;text-align:left;border-bottom: 2px solid #a7f3d0;min-width:140px;">模块</th>'
+        + '<th style="padding:8px 12px;text-align:center;border-bottom: 2px solid #a7f3d0;min-width:140px;">模块</th>'
         + '<th style="padding:8px 12px;text-align:center;border-bottom: 2px solid #a7f3d0;">均值</th>'
         + '<th style="padding:8px 12px;text-align:center;border-bottom: 2px solid #a7f3d0;">最高</th>'
         + '<th style="padding:8px 12px;text-align:center;border-bottom: 2px solid #a7f3d0;">最低</th>'
@@ -41084,7 +40838,7 @@ function tpiInitModuleBreakdown() {
         var pct = (r.days > 0 && r.avg !== '—') ? Math.min(100, (parseFloat(r.avg) / r.maxScore * 100)).toFixed(0) : 0;
         var barColor = pct >= 80 ? '#10b981' : pct >= 60 ? '#0d9488' : pct >= 40 ? '#f59e0b' : '#94a3b8';
         html += '<tr style="border-bottom: 1px solid #f0fdf4;">'
-          + '<td style="padding:7px 12px;font-weight:600;color:#334155;">' + r.label + '</td>'
+          + '<td style="padding:7px 12px;text-align:center;font-weight:600;color:#334155;">' + r.label + '</td>'
           + '<td style="padding:7px 12px;text-align:center;font-family:monospace;">' + r.avg + '</td>'
           + '<td style="padding:7px 12px;text-align:center;color:#10b981;font-family:monospace;">' + r.max + '</td>'
           + '<td style="padding:7px 12px;text-align:center;color:#f59e0b;font-family:monospace;">' + r.min + '</td>'
@@ -41911,7 +41665,6 @@ function _v8RenderAMISlotChart() {
         if (!isNaN(v2) && v2 > 0) dur = v2;
       }
 
-      // [OPT-V15-#3] 通用回退：扫描所有字段名，匹配包含 duration/time/hours 关键词的数字字段
       if (dur === null) {
         var keywords = ['duration', 'time', 'hours', slot.key.toLowerCase()];
         Object.keys(data).forEach(function(fk) {
@@ -43400,7 +43153,7 @@ setTimeout(function() {
 
     var html = '<div style="overflow-x:auto;">';
     html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
-    html += '<thead><tr><th style="background:#f3f4f6;padding:8px 12px;border: 1px solid #bbf7d0;text-align:left;min-width:120px;">指标</th>';
+    html += '<thead><tr><th style="background:#f3f4f6;padding:8px 12px;border: 1px solid #bbf7d0;text-align:center;min-width:120px;">指标</th>';
     dataList.forEach(function(d) {
       html += '<th style="background:#eff6ff;padding:8px 12px;border: 1px solid #bbf7d0;text-align:center;min-width:100px;">' + d.date + '</th>';
     });
@@ -43411,7 +43164,7 @@ setTimeout(function() {
       var vals = dataList.map(function(d) {
         return m.isText ? (d.data[m.key] || '—') : parseFloat(d.data[m.key] || 0);
       });
-      html += '<tr><td style="padding:7px 12px;border: 1px solid #bbf7d0;font-weight:600;background:#f9fafb;">' + m.label + '</td>';
+      html += '<tr><td style="padding:7px 12px;border: 1px solid #bbf7d0;text-align:center;font-weight:600;background:#f9fafb;">' + m.label + '</td>';
       if (!m.isText) {
         var maxVal = Math.max.apply(null, vals);
         vals.forEach(function(v, i) {
@@ -43712,7 +43465,6 @@ setTimeout(function() {
 'use strict';
 (function() {
 
-
   /* -------- [§85] 会话开始时间记录 -------- */
   if (!window.__tpi_session_start) {
     window.__tpi_session_start = Date.now();
@@ -43828,7 +43580,6 @@ setTimeout(function() {
       } catch(e) { if(queueEl) queueEl.textContent = '🔵 队列：—'; }
     }
   }
-  // [OPT-V15-#4] 数据库就绪后立即更新，同时保留定时兜底（改为60秒）
   setTimeout(_updateSyncQueueStatus, 500);
   setInterval(_updateSyncQueueStatus, 60000);
   // 暴露供 TPIIndexedDB 就绪时主动调用
@@ -43843,7 +43594,6 @@ setTimeout(function() {
   });
 
   /* -------- [§84] 全文搜索 -------- */
-  // [OPT-V15-#5] 全文搜索：增量分批处理，防止 UI 主线程冻结
   window.tpiFullTextSearch = (function() {
     var _tpiFtsToken = 0;
     var BATCH_SZ = 30;
@@ -44842,7 +44592,6 @@ button[onclick*="tpiSaveToday"]::after {
   border: 1.5px solid rgba(220,225,240,0.9) !important;
 }
 
-
 /* ── 41. 数据安全提示增强 ── */
 .tpi-security-note {
   color: #b45309;
@@ -45463,7 +45212,6 @@ button, .btn, .quick-nav-btn-v19 {
   #tpi-top-scoreboard .pill.total { background: linear-gradient(135deg,#0f766e,#0d9488) !important; }
 }
 
-
 /* ── TPI Submodule Color Variants & Dark Mode Support ── */
 body.dark-theme .tpi-submodule .tpi-submodule-header[style*='background:linear-gradient'] {
   background: linear-gradient(135deg,#1e2d4a,#1e2d3d) !important;
@@ -45724,7 +45472,6 @@ td {
 
 </style>
 
-
 <script>
 /* ========================================================
    V14 全局事件处理函数安全兜底
@@ -45833,7 +45580,6 @@ td {
     try {
       var state = {};
       try { state = JSON.parse(localStorage.getItem('tpi_submod_state') || '{}'); } catch(_) {}
-      // [Fix §8] 子模块ID校验：跳过 DOM 中已不存在的 ID，防止重构后静默失败
       var _validSubmodIds = new Set(Array.from(document.querySelectorAll('.tpi-submodule[id]')).map(function(e){return e.id;}));
       Object.keys(state).forEach(function(submodId) {
         if (!_validSubmodIds.has(submodId)) {
@@ -45857,8 +45603,6 @@ td {
   }, { once: true });
 })();
 </script>
-
-
 
 <script>
 // ===== 分数看板终极同步补丁 =====
@@ -45925,10 +45669,6 @@ td {
 
 })();
 </script>
-
-
-
-
 
 <style id="tpi-enhanced-visual-v1">
 /* ===== TPI 增强视觉样式 ===== */
@@ -46011,25 +45751,25 @@ body.dark-mode #tpi-top-scoreboard .value {
   transform: rotate(-90deg) !important;
 }
 
-/* 3-5: 评分输入框增强 */
+/* 3-5: 评分输入框 */
 #tpi-total {
-  background: linear-gradient(135deg, #f0fdfa, #ccfbf1) !important;
-  border: 2px solid #5eead4 !important;
+  background: #f9fafb !important;
+  border: 2px solid #d1d5db !important;
   border-radius: 12px !important;
-  color: #0f766e !important;
+  color: #111827 !important;
   font-size: 2rem !important;
-  box-shadow: 0 2px 12px rgba(13,148,136,0.12) !important;
+  box-shadow: none !important;
   transition: all 0.2s !important;
 }
 #tpi-total:focus {
-  box-shadow: 0 0 0 4px rgba(13,148,136,0.18) !important;
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.08) !important;
 }
 
-/* 3-6: AMI/FLI/SYS/BONUS 分值输入框色彩 */
-#ami-score { border-left: 3px solid #0d9488 !important; background: #f0fdfa !important; }
-#fli-score { border-left: 3px solid #0d9488 !important; background: #f0f9ff !important; }
-#sys-score { border-left: 3px solid #0d9488 !important; background: #faf5ff !important; }
-#bonus-score { border-left: 3px solid #0d9488 !important; background: #fdf4ff !important; }
+/* 3-6: AMI/FLI/SYS/BONUS 分值输入框 */
+#ami-score { border-left: 3px solid #d1d5db !important; background: #f9fafb !important; }
+#fli-score { border-left: 3px solid #d1d5db !important; background: #f9fafb !important; }
+#sys-score { border-left: 3px solid #d1d5db !important; background: #f9fafb !important; }
+#bonus-score { border-left: 3px solid #d1d5db !important; background: #f9fafb !important; }
 
 /* 3-7: 维度表格增强 */
 .tpi-total-row td, tr.summary-row td {
@@ -46114,15 +45854,53 @@ td.row-header {
 
 /* 3-17: 深色模式 */
 body.dark-theme #tpi-total {
-  background: linear-gradient(135deg, #0f2722, #0f3335) !important;
-  border-color: #14b8a6 !important;
-  color: #5eead4 !important;
+  background: #2d2d2d !important;
+  border-color: #6b7280 !important;
+  color: #f5f5f5 !important;
 }
 body.dark-theme .tpi-submodule-header:hover {
   background: linear-gradient(135deg, #0f2722, #0f2e2e) !important;
 }
-</style>
 
+/* =====================================================================
+   V1.17 全局覆盖：所有输入框、下拉框、文本框强制中性边框
+   (最高优先级，放在所有样式最后)
+   ===================================================================== */
+input[type="text"],
+input[type="number"],
+input[type="time"],
+input[type="date"],
+input[type="email"],
+input[type="password"],
+input[type="datetime-local"],
+input[readonly],
+select,
+textarea {
+  border-color: #d1d5db !important;
+  background-color: #ffffff !important;
+}
+input[readonly] {
+  background-color: #f9fafb !important;
+  color: #111827 !important;
+}
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="time"]:focus,
+input[type="date"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="datetime-local"]:focus,
+select:focus,
+textarea:focus {
+  border-color: #9ca3af !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.07) !important;
+}
+/* 所有文本框确保有右下角拖拽调整把手 */
+textarea {
+  resize: vertical !important;
+}
+</style>
 
 <script>
 /* TPI 增强：评级展示框动态着色 */
@@ -46179,6 +45957,7 @@ body.dark-theme .tpi-submodule-header:hover {
   }, { once: true });
 })();
 </script>
+
 
 </body>
 </html>
