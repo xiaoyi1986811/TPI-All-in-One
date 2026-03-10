@@ -27861,8 +27861,12 @@ window.__tpi_syncDateToMain = function(){
 
     try { lsRemove(KEY_TOKEN); } catch(_) {}
 
+    // V1.52fix: 直接刷新页面是最可靠的退出方式
+    // 避免8秒计时器或其他异步代码重新显示同步面板
+    // 刷新后，由于 session 已删除，页面将显示登录界面
     try { setLoggedOutUI(); } catch(_) {}
-    try { tpiShowMsg('tpi-login-msg', '已退出登录', false); } catch(_) {}
+    try { tpiShowMsg('tpi-login-msg', '✅ 已退出登录，页面即将刷新…', false); } catch(_) {}
+    setTimeout(function(){ try { location.reload(); } catch(_) {} }, 800);
   };
 
   window.tpiResetPassword = async function(){
@@ -29069,13 +29073,14 @@ const __download_end_time = Date.now();
           document.getElementById('tpi-username').value = savedUser;
         }
 
-        // V1.52修复：如果用户已主动退出，不再自动恢复登录状态
+        // V1.52fix：如果用户已主动退出，不再自动恢复登录状态；
+        // 同时检查 user.email，确保是真实登录用户（非 Appwrite guest）
         if (window.__tpi_explicitly_logged_out) {
           setLoggedOutUI();
         } else {
           try {
             const user = await __awAccount().get();
-            if (user && user.$id) {
+            if (user && user.$id && user.email) {
               TPI_CURRENT_USER = user.$id;
               setLoggedInUI(user.email || savedUser);
             } else {
@@ -29920,20 +29925,36 @@ document.getElementById('save-to-cloud-btn').addEventListener('click', saveToday
   }
 })();
 
-// V1.52修复：页面加载时检查 Appwrite 会话，仅在真正登录时显示同步面板
+// V1.52fix：页面加载时检查 Appwrite 会话，根据真实登录状态显示对应界面
 (async () => {
+    // 直接操作 tpi-auth-panel / tpi-sync-panel 的显示/隐藏
+    function _showSyncPanel(userEmail) {
+        var ap = document.getElementById('tpi-auth-panel');
+        var sp = document.getElementById('tpi-sync-panel');
+        var cu = document.getElementById('tpi-current-user');
+        if (ap) ap.style.display = 'none';
+        if (sp) sp.style.display = '';
+        if (cu) cu.textContent = userEmail || '';
+    }
+    function _showAuthPanel() {
+        var ap = document.getElementById('tpi-auth-panel');
+        var sp = document.getElementById('tpi-sync-panel');
+        if (ap) ap.style.display = '';
+        if (sp) sp.style.display = 'none';
+    }
     try {
         const user = await __awAccount().get();
-        // 有效会话：显示登录界面（传入用户邮箱）
-        if (user && user.$id) {
-          if (typeof window.setLoggedInUI === 'function') {
-            const savedEmail = (typeof lsGet === 'function') ? lsGet('tpi_username','') : '';
-            window.setLoggedInUI(user.email || savedEmail);
-          } else {
-            loadMainInterface();
+        // account.get() 成功，且有 $id，说明是真实的已登录用户（非 guest）
+        if (user && user.$id && user.email) {
+          // 已登录：显示同步面板
+          _showSyncPanel(user.email);
+          // 同时通知 tpiLogin 闭包内的 TPI_CURRENT_USER
+          if (typeof window.__tpi_setCurrentUser === 'function') {
+            window.__tpi_setCurrentUser(user.$id);
           }
         } else {
-          if (typeof window.setLoggedOutUI === 'function') window.setLoggedOutUI();
+          // guest 或无效状态：显示登录面板
+          _showAuthPanel();
         }
 
         setTimeout(() => {
@@ -29948,8 +29969,8 @@ document.getElementById('save-to-cloud-btn').addEventListener('click', saveToday
         if (main) main.style.display = 'none';
 
         try{
-          if (typeof window.setLoggedOutUI === 'function') window.setLoggedOutUI();
-          else {
+          _showAuthPanel();
+          {
             const ap = document.getElementById('tpi-auth-panel');
             const sp = document.getElementById('tpi-sync-panel');
             if (ap) ap.style.display = '';
@@ -41387,18 +41408,36 @@ h3.card-title, h4.card-title,
 
       if (needRawFetch && fileObj.raw_url) {
         _progress('tpi-gist-bulk-sync-progress','内容较大，正在通过 raw_url 获取完整数据…');
+        // V1.52fix: raw_url 是 CDN 地址（gist.githubusercontent.com），
+        // 发送 Authorization 头会触发 CORS 预检并被 CDN 拒绝。
+        // raw_url 本身已包含访问凭证（public gist 无需认证，private gist 的 raw_url 含 token 参数），
+        // 直接 fetch 即可，无需额外 Authorization 头。
+        var rawFetchOk = false;
         try {
-          var rawResp = await fetch(fileObj.raw_url, {
-            headers: {
-              'Authorization': 'Bearer ' + token,
-              'Accept': 'application/vnd.github.v3.raw'
-            }
-          });
-          if (!rawResp.ok) throw new Error('raw_url 请求失败：HTTP ' + rawResp.status);
-          rawContent = await rawResp.text();
+          var rawResp = await fetch(fileObj.raw_url);
+          if (rawResp.ok) {
+            rawContent = await rawResp.text();
+            rawFetchOk = true;
+          } else {
+            console.warn('[Gist] raw_url 返回非 OK 状态:', rawResp.status);
+          }
         } catch(rawErr) {
           console.warn('[Gist] raw_url 获取失败:', rawErr);
-          // 继续使用截断的 content，解析时可能报错
+        }
+        // 如果直接 fetch 也失败，尝试通过 GitHub API 的 raw 接口（不同域，需 Authorization）
+        if (!rawFetchOk) {
+          try {
+            var apiRawUrl = 'https://api.github.com/gists/' + gistId + '/raw';
+            var rawResp2 = await fetch(apiRawUrl, {
+              headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (rawResp2.ok) {
+              rawContent = await rawResp2.text();
+              rawFetchOk = true;
+            }
+          } catch(e2) {
+            console.warn('[Gist] API raw 备用请求也失败:', e2);
+          }
         }
       }
 
