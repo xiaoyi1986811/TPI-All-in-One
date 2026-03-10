@@ -9,7 +9,7 @@
 <meta content="nosniff" http-equiv="X-Content-Type-Options"/>
 <meta content="1; mode=block" http-equiv="X-XSS-Protection"/>
 
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.github.com https://cloud.appwrite.io https://sgp.cloud.appwrite.io https://unpkg.com blob:; worker-src blob:; manifest-src blob:; object-src 'none'; base-uri 'self'; form-action 'self';"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.github.com https://gist.githubusercontent.com https://cloud.appwrite.io https://sgp.cloud.appwrite.io https://unpkg.com blob:; worker-src blob:; manifest-src blob:; object-src 'none'; base-uri 'self'; form-action 'self';"/>
 <meta content="strict-origin-when-cross-origin" http-equiv="Referrer-Policy"/>
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=()"/>
 <meta name="tpi-config" content='{"gistId":"cab132a91b77c44ff7a66286a54c213d","appwriteProject":"698d998e003c903490e1","appwriteEndpoint":"https://sgp.cloud.appwrite.io/v1"}'/>
@@ -2279,7 +2279,7 @@ window.getTpiDayDataAsync = async function(dateStr) {
   } catch (e) {}
 })();
 </script>
-<title>全维效能管理系统（TPI，V1.47）</title>
+<title>全维效能管理系统（TPI，V1.49）</title>
 <script>
    'use strict';
         const getCurrentDate = () => {
@@ -4101,6 +4101,16 @@ window.importDataComplete = async function() {
                 }
 
                 if (fileInput) fileInput.value = '';
+                // [V1.49 fix] 导入后记住目标日期，刷新后自动导航到正确日期
+                try {
+                    var _navDate = null;
+                    if (importMode === 'direct_export') { _navDate = data.date || today; }
+                    else if (importMode === 'full_backup' && data._todaySnapshot) { _navDate = Object.keys(data._todaySnapshot)[0] || null; }
+                    if (_navDate) {
+                        try { sessionStorage.setItem('tpi_post_import_date', _navDate); } catch(e2) {}
+                        try { localStorage.setItem('tpi_post_import_date', _navDate); } catch(e2) {}
+                    }
+                } catch(e) {}
                 setTimeout(() => { try { location.reload(); } catch(e){} }, 800);
 
             } catch (error) {
@@ -18017,7 +18027,14 @@ try {
             function initialize() {
 
                 try {
-                    const today = (typeof __tpi_getSelectedDate === 'function') ? __tpi_getSelectedDate() : (()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;})();
+                    // [V1.49 fix] 导入后自动跳转到正确日期
+                    let _postImportDate = null;
+                    try { _postImportDate = sessionStorage.getItem('tpi_post_import_date') || localStorage.getItem('tpi_post_import_date'); } catch(e) {}
+                    if (_postImportDate) {
+                        try { sessionStorage.removeItem('tpi_post_import_date'); } catch(e) {}
+                        try { localStorage.removeItem('tpi_post_import_date'); } catch(e) {}
+                    }
+                    const today = _postImportDate || ((typeof __tpi_getSelectedDate === 'function') ? __tpi_getSelectedDate() : (()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;})());
                     const dateInput = document.getElementById('date-input');
                     if (dateInput) dateInput.value = today;
 
@@ -20426,7 +20443,7 @@ window.addEventListener('DOMContentLoaded', function() {
     checkStorageUsage();
   }, 6000);
 
-  /
+  // [V1.49 fix] 修复悬空/引发的正则SyntaxError
   detectMobileAndOptimize();
 
   initializeInputValidation();
@@ -32593,6 +32610,7 @@ window.__tpiDirectExport = function(fmt) {
   L.info && L.info('  §D 废弃函数标注已完成');
   L.info && L.info('  §E dark-mode守卫已安装');
   L.info && L.info('[V1.42] 修复: ①正则\\x08→\\\\b词界修复 ②tpiInjectCSVButton守卫 ③全局错误处理器去重');
+  L.info && L.info('[V1.49] 修复: ①CSP添加gist.githubusercontent.com ②修复悬空/正则SyntaxError ③导入后自动导航到目标日期 ④_callGist增强401/404/raw_url处理');
 
 }());
 </script>
@@ -40702,11 +40720,28 @@ h3.card-title, h4.card-title,
       }
     };
     if(body) opts.body = JSON.stringify(body);
+    // [V1.49 fix] raw_url (gist.githubusercontent.com) 不需要认证头，避免CORS preflight失败
+    var isRawUrl = url.indexOf('gist.githubusercontent.com') !== -1;
+    if(isRawUrl){
+      opts.headers = {}; // raw URL无需认证
+      opts.method = 'GET';
+      delete opts.body;
+    }
     var resp = await fetch(url, opts);
     if(!resp.ok){
-      var txt = await resp.text();
+      var txt = '';
+      try{ txt = await resp.text(); }catch(e){}
+      if(resp.status === 401){
+        throw new Error('Token 已过期或无效（401）\n\n请到 GitHub → Settings → Developer Settings → Personal Access Tokens 重新生成Token，并在本页面重新填入。');
+      } else if(resp.status === 404){
+        throw new Error('Gist 未找到（404）\n\n请确认 Gist ID 是否正确，或该 Gist 是否已被删除。');
+      } else if(resp.status === 422){
+        throw new Error('请求格式错误（422）\n\n请检查 Gist ID 格式。详情：'+txt);
+      }
       throw new Error('GitHub API 错误 ('+resp.status+'): '+txt);
     }
+    // [V1.49 fix] raw_url 返回纯文本，不用json()
+    if(isRawUrl) return resp.text();
     return resp.json();
   }
   function _getGistId(){
