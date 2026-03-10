@@ -27617,6 +27617,8 @@ var databases = window.__appwriteDatabases || (window.__appwriteDatabases = new 
   }
 
   function setLoggedInUI(user){
+    // V1.52修复：用户已主动退出时，不允许任何异步检查重新显示同步面板
+    if (window.__tpi_explicitly_logged_out) return;
     const auth = document.getElementById('tpi-auth-panel');
     const sync = document.getElementById('tpi-sync-panel');
     const cu = document.getElementById('tpi-current-user');
@@ -29238,6 +29240,9 @@ function loadMainInterface() {
     const cd = document.getElementById('current-date');
     if (cd) cd.textContent = getTodayString();
 
+    // V1.52修复：已主动退出时不重新显示同步面板
+    if (window.__tpi_explicitly_logged_out) return;
+
     try{
       if (typeof window.setLoggedInUI === 'function') {
         const email = (document.getElementById('tpi-username') && document.getElementById('tpi-username').value) ? document.getElementById('tpi-username').value : '';
@@ -29925,7 +29930,8 @@ document.getElementById('save-to-cloud-btn').addEventListener('click', saveToday
     try {
         const user = await __awAccount().get();
         // 有效会话：显示登录界面（传入用户邮箱）
-        if (user && user.$id) {
+        // V1.52修复：若用户已主动点击退出，忽略此次自动检测，避免覆盖退出状态
+        if (user && user.$id && !window.__tpi_explicitly_logged_out) {
           if (typeof window.setLoggedInUI === 'function') {
             const savedEmail = (typeof lsGet === 'function') ? lsGet('tpi_username','') : '';
             window.setLoggedInUI(user.email || savedEmail);
@@ -41154,19 +41160,23 @@ h3.card-title, h4.card-title,
       _progress('tpi-bulk-sync-progress','',true); return;
     }
 
-    var allDocs=[], pageSize=100, offset=0;
+    // V1.52修复：改用游标分页（cursorAfter），替代不稳定的 offset 分页
+    // Appwrite 的 offset 在数据量较大时会跳过文档；游标分页更可靠
+    var allDocs=[], pageSize=100, lastDocId=null;
     try{
       while(true){
         _progress('tpi-bulk-sync-progress','正在拉取文档列表… 已获取 '+allDocs.length+' 条');
-        var resp = await db.listDocuments(DB, COL, [
+        var qArr = [
           window.Appwrite.Query.equal('userId', userId),
           window.Appwrite.Query.limit(pageSize),
-          window.Appwrite.Query.offset(offset)
-        ]);
+          window.Appwrite.Query.orderAsc('$id')
+        ];
+        if(lastDocId) qArr.push(window.Appwrite.Query.cursorAfter(lastDocId));
+        var resp = await db.listDocuments(DB, COL, qArr);
         var docs = (resp && resp.documents) ? resp.documents : [];
         allDocs = allDocs.concat(docs);
         if(docs.length < pageSize) break;
-        offset += pageSize;
+        lastDocId = docs[docs.length - 1].$id;
       }
     }catch(e){
       _toast('❌ 拉取文档列表失败：'+((e&&e.message)||String(e)),'error');
@@ -41397,8 +41407,22 @@ h3.card-title, h4.card-title,
           if (!rawResp.ok) throw new Error('raw_url 请求失败：HTTP ' + rawResp.status);
           rawContent = await rawResp.text();
         } catch(rawErr) {
+          var rawErrMsg = String((rawErr && rawErr.message) || rawErr);
+          var isCspErr = rawErrMsg.indexOf('Failed to fetch') !== -1 || rawErrMsg.indexOf('Content Security Policy') !== -1 || rawErrMsg.indexOf('Refused to connect') !== -1;
           console.warn('[Gist] raw_url 获取失败:', rawErr);
-          // 继续使用截断的 content，解析时可能报错
+          // V1.52修复：CSP 拦截时给出明确提示
+          if (isCspErr) {
+            throw new Error(
+              'Gist 备份文件超过 1 MB，需要从 gist.githubusercontent.com 获取完整数据，但当前部署环境的内容安全策略（CSP）阻止了该请求。\n\n' +
+              '✅ 解决方案：\n' +
+              '① 若您在本地直接打开此 HTML 文件，请通过浏览器「允许不安全内容」设置，或改用本地服务器打开（推荐：使用 VS Code Live Server 插件）。\n' +
+              '② 若您部署在 Cloudflare Pages，请在项目根目录创建 _headers 文件，添加如下内容：\n' +
+              '   /*\n' +
+              '     Content-Security-Policy: connect-src \'self\' https://api.github.com https://gist.githubusercontent.com https://cloud.appwrite.io https://sgp.cloud.appwrite.io https://unpkg.com blob:\n\n' +
+              '③ 备选方案：改用「Appwrite 全量下载」或「数据工坊 JSON 恢复」功能。'
+            );
+          }
+          // 非 CSP 错误：继续使用截断的 content（解析时可能报错，交由外层捕获）
         }
       }
 
@@ -41406,7 +41430,7 @@ h3.card-title, h4.card-title,
       allBackupData = JSON.parse(rawContent);
     }catch(e){
       _toast('❌ 拉取 Gist 失败：'+((e&&e.message)||String(e)),'error');
-      alert('❌ Gist 全量下载失败！\n\n错误：'+((e&&e.message)||String(e))+'\n\n请检查 Token 是否有效、Gist ID 是否正确。');
+      alert('❌ Gist 全量下载失败！\n\n错误：'+((e&&e.message)||String(e)));
       _setBtns(['btn-gist-bulk-upload','btn-gist-bulk-download'],false);
       _progress('tpi-gist-bulk-sync-progress','',true); return;
     }
