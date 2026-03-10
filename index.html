@@ -119,13 +119,13 @@
   };
 })();
 </script>
-<meta content="全维效能管理系统（TPI，V1.46）" property="og:title"/>
+<meta content="全维效能管理系统（TPI，V1.47）" property="og:title"/>
 <meta content="全维效能管理系统（TPI）| 全面追踪 · 科学管理 · 高效提升" property="og:description"/>
 <meta content="website" property="og:type"/>
 <meta content="https://mytpi.netlify.app/" property="og:url"/>
 <meta content="zh_CN" property="og:locale"/>
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="全维效能管理系统（TPI，V1.46）"/>
+<meta name="twitter:title" content="全维效能管理系统（TPI，V1.47）"/>
 <meta name="twitter:description" content="全维效能管理系统（TPI）"/>
 <meta content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" name="viewport"/>
 <meta content="全维效能管理系统（TPI）- 跨设备同步 | 支持电脑/手机/平板访问" name="description"/>
@@ -2279,7 +2279,7 @@ window.getTpiDayDataAsync = async function(dateStr) {
   } catch (e) {}
 })();
 </script>
-<title>全维效能管理系统（TPI，V1.46）</title>
+<title>全维效能管理系统（TPI，V1.47）</title>
 <script>
    'use strict';
         const getCurrentDate = () => {
@@ -4034,47 +4034,54 @@ window.importDataComplete = async function() {
                 } else if (importMode === 'direct_export') {
                     // tpi_direct_v7_full 格式：转换为内部格式并存储
                     const _directDate = data.date || today;
-                    const _internal = { date: _directDate, timestamp: new Date().toISOString(), version: data.version || '全维效能管理系统（TPI）' };
-                    // 处理有ID的元素（直接用id作为key）
-                    const _allFields = [
-                        ...(data.textareas || []),
-                        ...(data.selects || []),
-                        ...(data.numbers || []),
-                        ...(data.times || []),
-                        ...(data.texts || []),
-                        ...(data.richTexts || [])
-                    ];
-                    _allFields.forEach(f => {
-                        if (f.id) { _internal[f.id] = f.value !== undefined ? f.value : ''; }
-                        else if (f.label) { _internal['__al__' + f.label] = f.value !== undefined ? f.value : ''; }
-                    });
-                    // 处理checkbox
-                    (data.checkboxes || []).forEach(f => {
-                        if (f.id) { _internal[f.id] = !!f.checked; }
-                        else if (f.label && f.label !== 'input') { _internal['__al_cb__' + f.label] = !!f.checked; }
-                    });
-                    // 处理radio
-                    (data.radios || []).forEach(f => {
-                        if (f.checked && f.name) { _internal[f.name] = f.value; }
-                    });
-                    // scores 快捷恢复（覆盖scores里的得分）
-                    if (data.scores) {
-                        const _scoreMap = {
-                            'TPI总分': 'tpi-total', 'TPI评级': 'tpi-rating',
-                            'MA7（7日均分）': 'ma7-score', 'SYS得分': 'sys-score',
-                            'BCM-午间防守': 'bcm-noon-score', 'BCM-晚间防守': 'bcm-night-score'
-                        };
-                        Object.keys(data.scores).forEach(k => {
-                            if (_scoreMap[k]) _internal[_scoreMap[k]] = data.scores[k];
+                    // 使用共享转换函数
+                    let _internal = null;
+                    if(typeof window._convertV146DirectToFlat === 'function'){
+                        _internal = window._convertV146DirectToFlat(data);
+                    }
+                    if(!_internal){
+                        _internal = { date: _directDate, timestamp: new Date().toISOString(), version: data.version || '全维效能管理系统（TPI）' };
+                        const _allFields = [
+                            ...(data.textareas || []),
+                            ...(data.selects || []),
+                            ...(data.numbers || []),
+                            ...(data.times || []),
+                            ...(data.texts || []),
+                            ...(data.richTexts || [])
+                        ];
+                        _allFields.forEach(f => {
+                            if (f.id) { _internal[f.id] = f.value !== undefined ? f.value : ''; }
+                            else if (f.label) { _internal['__al__' + f.label] = f.value !== undefined ? f.value : ''; }
                         });
+                        (data.checkboxes || []).forEach(f => {
+                            if (f.id) { _internal[f.id] = !!f.checked; }
+                            else if (f.label && f.label !== 'input') { _internal['__al_cb__' + f.label] = !!f.checked; }
+                        });
+                        (data.radios || []).forEach(f => {
+                            if (f.checked && f.name) { _internal[f.name] = f.value; }
+                        });
+                        if (data.scores) {
+                            const _scoreMap = {
+                                'TPI总分': 'tpi-total', 'TPI评级': 'tpi-rating',
+                                'MA7（7日均分）': 'ma7-score', 'SYS得分': 'sys-score',
+                                'BCM-午间防守': 'bcm-noon-score', 'BCM-晚间防守': 'bcm-night-score'
+                            };
+                            Object.keys(data.scores).forEach(k => {
+                                if (_scoreMap[k]) _internal[_scoreMap[k]] = data.scores[k];
+                            });
+                        }
                     }
                     _lsSet('tpi_data_' + _directDate, JSON.stringify(_internal));
-                    // 也存储原始direct数据供高级恢复使用
-                    _lsSet('tpi_direct_raw_' + _directDate, JSON.stringify(data));
                     success = 1;
                 } else {
                     if (!data.date) data.date = today;
-                    _lsSet('tpi_data_' + today, JSON.stringify(data));
+                    // Safeguard: if this is actually V1.46 direct format, convert it
+                    let _singleData = data;
+                    if(data.schema && /tpi_direct_v\d+_full/i.test(String(data.schema))){
+                        const _conv = (typeof window._convertV146DirectToFlat === 'function') ? window._convertV146DirectToFlat(data) : null;
+                        if(_conv) _singleData = _conv;
+                    }
+                    _lsSet('tpi_data_' + (data.date || today), JSON.stringify(_singleData));
                     success = 1;
                 }
 
@@ -6651,7 +6658,7 @@ hr { border-color: #bbf7d0 !important; }
     </div>
 
     <div id="tpi-auth-panel" style="max-width: 820px;">
-      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center; margin-bottom:12px;">
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center; margin-bottom:12px; text-align:center;">
         <label for="tpi-username" style="font-weight:700; color:#0d9488; white-space:nowrap; font-size:14px;">📧 邮箱：</label>
         <input id="tpi-username" type="text" placeholder="请输入注册邮箱" autocomplete="email" style="flex:1; min-width:160px; padding:10px 12px; border: 2px solid #bbf7d0; border-radius:8px; font-size:14px; transition:border-color 0.2s; background:#fafbff;">
         <label for="tpi-password" style="font-weight:700; color:#0d9488; white-space:nowrap; font-size:14px;">🔒 密码：</label>
@@ -6751,11 +6758,11 @@ hr { border-color: #bbf7d0 !important; }
         <div id="tpi-bulk-sync-progress" style="font-size:12px;color:#92400e;display:none;margin-top:8px;"></div>
       </div>
 
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;justify-content:center;">
         <button type="button" onclick="try{window.__tpi_exportSyncLogs&amp;&amp;window.__tpi_exportSyncLogs()}catch(e){console.warn(e)}" style="padding:3px 10px; background:transparent; color:#6b7280; border: 1px solid #86efac; border-radius:6px; font-size:12px; cursor:pointer;">
           🧾 导出日志
         </button>
-        <span id="tpi-sync-queue-status" style="font-size:12px;color:#6b7280;">🔄 队列：检查中…</span>
+        <span id="tpi-sync-queue-status" style="font-size:12px;color:#6b7280;">🟢 队列：空</span>
         <span style="color:#d1d5db;">|</span>
         <span id="tpi-sync-last-time" style="font-size:12px;color:#6b7280;">上次同步：—</span>
       </div>
@@ -6773,6 +6780,17 @@ hr { border-color: #bbf7d0 !important; }
         <span style="color:#d1d5db;">|</span>
         <span>GIT 上次同步：<strong id="dual-gist-last">获取中...</strong></span>
         <button type="button" onclick="window.__tpiRefreshDualSyncSummary&amp;&amp;window.__tpiRefreshDualSyncSummary()" style="margin-left:auto;padding:3px 8px;font-size:11px;border: 1px solid #86efac;border-radius:5px;background:white;cursor:pointer;color:#6b7280;">↺ 刷新</button>
+      </div>
+
+      <!-- 同步历史记录面板 -->
+      <div style="margin-top:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:12px;font-weight:700;color:#374151;">📋 同步历史记录（最近10条）</span>
+          <button type="button" onclick="window.__tpi_refreshSyncHistoryUI&&window.__tpi_refreshSyncHistoryUI()" style="padding:2px 8px;font-size:11px;border:1px solid #86efac;border-radius:5px;background:white;cursor:pointer;color:#6b7280;">↺</button>
+        </div>
+        <div id="tpi-sync-history-panel" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;max-height:200px;overflow-y:auto;">
+          <div style="color:#9ca3af;font-size:12px;padding:8px;">暂无同步记录</div>
+        </div>
       </div>
     </div>
 
@@ -6883,6 +6901,17 @@ hr { border-color: #bbf7d0 !important; }
 
       <div id="gist-backup-msg" style="margin-top:12px; font-size:14px; max-height:260px; overflow-y:auto;"></div>
       <div id="gist-backup-status" style="display:none;"></div>
+
+      <!-- GIT 同步历史记录 -->
+      <div style="margin-top:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:12px;font-weight:700;color:#374151;">📋 GIT 同步历史（最近10条）</span>
+          <button type="button" onclick="window.__tpi_refreshSyncHistoryUI&&window.__tpi_refreshSyncHistoryUI()" style="padding:2px 8px;font-size:11px;border:1px solid #86efac;border-radius:5px;background:white;cursor:pointer;color:#6b7280;">↺</button>
+        </div>
+        <div id="tpi-gist-sync-history-panel" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;max-height:200px;overflow-y:auto;">
+          <div style="color:#9ca3af;font-size:12px;padding:8px;">暂无同步记录</div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -7012,6 +7041,17 @@ hr { border-color: #bbf7d0 !important; }
 </details>
 </div>
 
+<!-- TPI E 效能执行分 子模块 -->
+<div class="tpi-submodule" id="submod-tpie" style="border-color:#6ee7b7;margin-bottom:16px;">
+  <div class="tpi-submodule-header" onclick="tpiToggleSubmodule('submod-tpie')" role="button" tabindex="0" aria-expanded="true" aria-controls="submod-tpie-body" title="展开/折叠 TPI E 总分子模块" style="background:linear-gradient(135deg,#f0fdf4,#fafffe);border-bottom-color:#6ee7b7;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:18px;">🏆</span>
+      <span style="font-size:15px;font-weight:700;color:#0f766e;">TPI E（效能执行分）总分</span>
+      <span style="font-size:11px;font-weight:500;color:#065f46;background:#ccfbf1;padding:2px 8px;border-radius:10px;letter-spacing:0.03em;">Performance Execution Score</span>
+    </div>
+    <span class="tpi-submodule-arrow" aria-hidden="true">▼</span>
+  </div>
+  <div class="tpi-submodule-body" id="submod-tpie-body">
 <div class="text-center mb-6">
 <h2 id="tpi-total-heading">
          🏆 TPI
@@ -7132,6 +7172,9 @@ hr { border-color: #bbf7d0 !important; }
   </div>
 </div>
 </div>
+
+</div><!-- end tpi-submodule-body submod-tpie-body -->
+</div><!-- end submod-tpie -->
 
 <div class="tpi-submodule collapsed" id="submod-dash-table" style="border-color:#6ee7b7;margin-bottom:16px;">
   <div class="tpi-submodule-header" onclick="tpiToggleSubmodule('submod-dash-table')" role="button" tabindex="0" aria-expanded="false" aria-controls="submod-dash-table-body" title="展开/折叠 维度得分表" style="background:linear-gradient(135deg,#eff6ff,#f8faff);border-bottom-color:#6ee7b7;">
@@ -11234,12 +11277,7 @@ hr { border-color: #bbf7d0 !important; }
            🧮 晨间入馆计分公式
           </h4>
 <div style="background:#eff6ff;border: 1px solid #6ee7b7;border-radius:10px;padding:14px 16px;margin-top:8px;">
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-    <span style="font-size:16px;">📐</span>
-    
-
-  </div>
-  <table style="width:100%;font-size:13px;border-collapse:collapse;">
+    <table style="width:100%;font-size:13px;border-collapse:collapse;">
     <thead><tr style="background:#ccfbf1;">
       <th style="padding:6px 10px;text-align:center;border-bottom: 1px solid #6ee7b7;">等级</th>
       <th style="padding:6px 10px;text-align:center;border-bottom: 1px solid #6ee7b7;">条件</th>
@@ -13488,7 +13526,7 @@ hr { border-color: #bbf7d0 !important; }
     </div>
 
     <div class="data-processing-card" style="margin-top:14px;">
-      <h4>📋 复制前一天</h4>
+      <h4 style="text-align:center;">📋 复制前一天</h4>
       <p class="text-muted mb-3" style="font-size:13px;text-align:center;">快速复制前一天的数据到当前日期，适合日程相似的情况。</p>
       <button type="button" class="btn btn-primary" onclick="window.copyPreviousDayDataComplete()">
         📋 复制前一天数据
@@ -19972,7 +20010,23 @@ const __exp = (function(){
     .modal-body { padding: 20px; }
     .modal-footer { padding: 15px 20px; border-top: 1px solid #d1fae5; display: flex; justify-content: flex-end; gap: 10px; }
     .modal-button { padding: 8px 16px; border-radius: 6px; cursor: pointer; border: none; font-weight: 600; }
-     .quick-nav-group{position:fixed;right:20px;bottom:100px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:auto;will-change:auto;}.quick-btn{width:45px;height:45px;background-color:rgba(13,148,136,0.92);color:white;border:none;border-radius:50%;font-size:20px;cursor:pointer;box-shadow:0 4px 12px rgba(13,148,136,0.35);display:flex;align-items:center;justify-content:center;transition:background-color 0.2s ease,box-shadow 0.2s ease;will-change:background-color;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;backface-visibility:hidden;}.quick-btn:hover{background-color:#0f766e;box-shadow:0 6px 16px rgba(13,148,136,0.5);}.quick-btn:active{background-color:#0f766e;box-shadow:0 2px 8px rgba(13,148,136,0.4);}@media (max-width:768px){.quick-nav-group{right:15px;bottom:90px;}.quick-btn{width:42px;height:42px;font-size:17px;opacity:1;}}.loading-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s ease;}.loading-overlay.fade-out{opacity:0;}.loading-spinner{width:60px;height:60px;border:4px solid rgba(255, 255, 255, 0.3);border-top-color:white;border-radius:50%;animation:spin 1s linear infinite;}@keyframes spin{to{transform:rotate(360deg);}}.loading-text{margin-top:var(--spacing-6);color:white;font-size:var(--font-size-xl);font-weight:600;}.loading-version{margin-top:var(--spacing-2);color:rgba(255, 255, 255, 0.8);font-size:var(--font-size-sm);}@media (max-width:768px){table{display:block;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;}button, .btn, .quick-nav-btn-v19, input[type="button"], input[type="submit"]{min-height:44px;min-width:44px;padding:10px 16px;}.input-group{flex-direction:column;gap:var(--spacing-2);}.card{padding:var(--spacing-3);margin-bottom:var(--spacing-3);}.quick-nav-v19{flex-wrap:wrap;gap:8px;}.quick-nav-btn-v19{font-size:12px;padding:8px 12px;}body{font-size:14px;}h1{font-size:24px;}h2{font-size:20px;}h3{font-size:18px;}input[type="number"], input[type="text"], input[type="time"], input[type="date"], select, textarea{font-size:16px;min-height:44px;}.section{padding:var(--spacing-3);}.row, .flex-row{flex-direction:column;}.modal-content{width:95%;max-width:95%;margin:10px auto;}.desktop-only{display:none !important;}}@media (max-width:480px){.card{padding:var(--spacing-2);margin-bottom:var(--spacing-2);}.quick-nav-btn-v19{font-size:11px;padding:6px 10px;}table{font-size:12px;}th, td{padding:6px;}}@media (min-width:769px) and (max-width:1024px){.container{max-width:95%;}.grid-3{grid-template-columns:repeat(2, 1fr);}}@media (hover:none) and (pointer:coarse){a, button, input, select, textarea{min-height:44px;min-width:44px;}button:hover, .btn:hover{transform:none;}}@media (max-width:768px) and (orientation:landscape){.quick-nav-container-v19{max-height:50vh;overflow-y:auto;}}
+     .quick-nav-group{position:fixed;right:20px;bottom:100px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:auto;will-change:auto;}.quick-btn{width:45px;height:45px;background-color:rgba(13,148,136,0.92);color:white;border:none;border-radius:50%;font-size:20px;cursor:pointer;box-shadow:0 4px 12px rgba(13,148,136,0.35);display:flex;align-items:center;justify-content:center;transition:background-color 0.2s ease,box-shadow 0.2s ease;will-change:background-color;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;backface-visibility:hidden;}.quick-btn:hover{background-color:#0f766e;box-shadow:0 6px 16px rgba(13,148,136,0.5);}.quick-btn:active{background-color:#0f766e;box-shadow:0 2px 8px rgba(13,148,136,0.4);}@media (max-width:768px){.quick-nav-group{right:15px;bottom:90px;}.quick-btn{width:42px;height:42px;font-size:17px;opacity:1;}}.loading-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s ease;}.loading-overlay.fade-out{opacity:0;}.loading-spinner{width:60px;height:60px;border:4px solid rgba(255, 255, 255, 0.3);border-top-color:white;border-radius:50%;animation:spin 1s linear infinite;}@keyframes spin{to{transform:rotate(360deg);}}.loading-text{margin-top:var(--spacing-6);color:white;font-size:var(--font-size-xl);font-weight:600;}.loading-version{margin-top:var(--spacing-2);color:rgba(255, 255, 255, 0.8);font-size:var(--font-size-sm);}@media (max-width:768px){table{display:block;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;}button, .btn, .quick-nav-btn-v19, input[type="button"], input[type="submit"]{min-height:44px;min-width:44px;padding:10px 16px;}.input-group{flex-direction:column;gap:var(--spacing-2);}.card{padding:var(--spacing-3);margin-bottom:var(--spacing-3);}.quick-nav-v19{flex-wrap:wrap;gap:8px;}.quick-nav-btn-v19{font-size:12px;padding:8px 12px;}body{font-size:14px;}h1{font-size:24px;}h2{font-size:20px;}h3{font-size:18px;}input[type="number"], input[type="text"], input[type="time"], input[type="date"], select, textarea{font-size:16px;min-height:44px;}.section{padding:var(--spacing-3);}.row, .flex-row{flex-direction:column;}.modal-content{width:95%;max-width:95%;margin:10px auto;}.desktop-only{display:none !important;}}@media (max-width:480px){.card{padding:var(--spacing-2);margin-bottom:var(--spacing-2);}.quick-nav-btn-v19{font-size:11px;padding:6px 10px;}table{font-size:12px;}th, td{padding:6px;}}@media (min-width:769px) and (max-width:1024px){.container{max-width:95%;}.grid-3{grid-template-columns:repeat(2, 1fr);}}@media (hover:none) and (pointer:coarse){a, button, input, select, textarea{min-height:44px;min-width:44px;}button:hover, .btn:hover{transform:none;}}
+/* Mobile cursor fix - prevent dark dot cursor on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  *, *::before, *::after {
+    cursor: auto !important;
+  }
+  button, [role="button"], .card-header, .quick-nav-btn-v19, .quick-nav-toggle-第18版,
+  input[type="checkbox"], input[type="radio"], label, a, .mode-card, .btn,
+  .rules-header, .date-nav-btn, select {
+    cursor: pointer !important;
+  }
+  input[type="number"], input[type="text"], input[type="time"], input[type="date"], textarea {
+    cursor: text !important;
+  }
+  input[type="range"] { cursor: pointer !important; }
+}
+@media (max-width:768px) and (orientation:landscape){.quick-nav-container-v19{max-height:50vh;overflow-y:auto;}}
 
   @media (max-width: 768px) {
 
@@ -25383,33 +25437,93 @@ window.addEventListener('unhandledrejection', function(event) {
       r.onload = ()=>{
         try{
           const obj = JSON.parse(String(r.result||'{}'));
+
+          // 格式1: 标准全量备份包 { _meta, localStorage }
           const bag = obj && obj.localStorage && typeof obj.localStorage==='object' ? obj.localStorage : null;
-          if(!bag){
-            tpiToast('❌ 备份文件格式不正确（缺少 localStorage 字段）');
+          if(bag){
+            Object.keys(bag).forEach(k=>{
+              if(/token|secret|password|pat/i.test(k)) return;
+              try{ __tpi_ls_set(k, bag[k]); }catch(e){}
+            });
+            try{
+              const snap = obj && obj._todaySnapshot;
+              if(snap && typeof snap==='object'){
+                const dk = Object.keys(snap)[0];
+                if(dk && snap[dk]) __tpi_ls_set(`tpi_data_${dk}`, JSON.stringify(snap[dk]));
+              }
+            }catch(e){}
+            tpiToast('✅ 备份已恢复，请刷新页面以加载数据');
+            try{
+              const date = (typeof __tpi_getSelectedDate==='function') ? __tpi_getSelectedDate() : null;
+              if(date && typeof window.getTpiDayData==='function' && typeof window.restoreUIFromData==='function'){
+                const d = window.getTpiDayData(date);
+                if(d) window.restoreUIFromData(d);
+              }
+            }catch(e){}
             return;
           }
-          Object.keys(bag).forEach(k=>{
-            if(/token|secret|password|pat/i.test(k)) return;
-            try{ __tpi_ls_set(k, bag[k]); }catch(e){}
-          });
-          try{
-            const snap = obj && obj._todaySnapshot;
-            if(snap && typeof snap==='object'){
-              const dk = Object.keys(snap)[0];
-              if(dk && snap[dk]) __tpi_ls_set(`tpi_data_${dk}`, JSON.stringify(snap[dk]));
+
+          // 格式2: V1.46 单日导出 tpi_direct_v7_full
+          if(obj && obj.schema && /tpi_direct_v\d+_full/i.test(String(obj.schema)) && obj.date){
+            const flat = (typeof window._convertV146DirectToFlat === 'function')
+              ? window._convertV146DirectToFlat(obj)
+              : (function(){
+                  var f={date:obj.date,timestamp:new Date().toISOString()};
+                  [].concat(obj.textareas||[],obj.selects||[],obj.numbers||[],obj.times||[],obj.texts||[],obj.richTexts||[]).forEach(function(x){
+                    if(x.id) f[x.id]=x.value!==undefined?x.value:'';
+                    else if(x.label) f['__al__'+x.label]=x.value!==undefined?x.value:'';
+                  });
+                  (obj.checkboxes||[]).forEach(function(x){if(x.id)f[x.id]=!!x.checked;else if(x.label&&x.label!=='input')f['__al_cb__'+x.label]=!!x.checked;});
+                  return f;
+                })();
+            if(flat){
+              __tpi_ls_set('tpi_data_'+obj.date, JSON.stringify(flat));
+              tpiToast('✅ V1.46 单日数据已恢复（'+obj.date+'），请刷新页面');
+              return;
             }
-          }catch(e){}
-          tpiToast('✅ 备份已恢复：如需完全刷新状态，请手动刷新页面一次');
-          try{
-            const date = (typeof __tpi_getSelectedDate==='function') ? __tpi_getSelectedDate() : null;
-            if(date && typeof window.getTpiDayData==='function' && typeof window.restoreUIFromData==='function'){
-              const d = window.getTpiDayData(date);
-              if(d) window.restoreUIFromData(d);
+          }
+
+          // 格式3: 多日 Gist 格式 { "2026-01-01": { data: {...} }, ... }
+          if(obj && typeof obj === 'object'){
+            const dateKeys = Object.keys(obj).filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k));
+            if(dateKeys.length > 0){
+              let cnt = 0;
+              dateKeys.forEach(dk=>{
+                try{
+                  const entry = obj[dk];
+                  let dayData = (entry && entry.data && typeof entry.data==='object') ? entry.data : entry;
+                  if(dayData && typeof dayData==='object'){
+                    // Convert V1.46 format if needed
+                    if(dayData.schema && /tpi_direct_v\d+_full/i.test(String(dayData.schema))){
+                      const conv = (typeof window._convertV146DirectToFlat==='function') ? window._convertV146DirectToFlat(dayData) : null;
+                      if(conv) dayData = conv;
+                    }
+                    __tpi_ls_set('tpi_data_'+dk, JSON.stringify(dayData));
+                    cnt++;
+                  }
+                }catch(ex){}
+              });
+              tpiToast('✅ 已恢复 '+cnt+' 天数据，请刷新页面以加载');
+              return;
             }
-          }catch(e){}
+          }
+
+          // 格式4: full_newexport { _meta, dailyRecords }
+          if(obj && obj._meta && obj.dailyRecords && typeof obj.dailyRecords==='object'){
+            const dr = obj.dailyRecords;
+            let cnt2 = 0;
+            Object.keys(dr).forEach(dk=>{
+              if(!/^\d{4}-\d{2}-\d{2}$/.test(dk)) return;
+              try{ __tpi_ls_set('tpi_data_'+dk, JSON.stringify(dr[dk])); cnt2++; }catch(ex){}
+            });
+            tpiToast('✅ 已恢复 '+cnt2+' 天数据，请刷新页面以加载');
+            return;
+          }
+
+          tpiToast('❌ 备份文件格式不正确，请选择由本系统导出的 JSON 备份文件');
         }catch(err){
           console.error(err);
-          tpiToast('❌ 恢复失败：请看控制台');
+          tpiToast('❌ 恢复失败：'+err.message);
         }
       };
       r.readAsText(file);
@@ -30505,7 +30619,7 @@ document.addEventListener('DOMContentLoaded', function() {
       window.__tpi_ls_set(k, v) : (localStorage.setItem(k, v), true);
   };
 
-  const GIST_ID_HARDCODED = (window.__TPI_CONFIG && window.__TPI_CONFIG.gistId) ? window.__TPI_CONFIG.gistId : 'cab132a91b77c44ff7a66286a54c213d'; // 优先从 meta 标签读取
+  const GIST_ID_HARDCODED = (window.__TPI_CONFIG && window.__TPI_CONFIG.gistId) ? window.__TPI_CONFIG.gistId : ''; // User-provided ID only, no hardcoded fallback
   const GIST_TOKEN_KEY = 'tpi_gist_token';
   const GIST_ID_KEY = 'tpi_gist_id';
   const GIST_AUTO_BACKUP_KEY = 'tpi_gist_auto_backup';
@@ -30571,13 +30685,18 @@ document.addEventListener('DOMContentLoaded', function() {
     let token = $('gist-token') && $('gist-token').value ?
       $('gist-token').value.trim() : await getConfig(GIST_TOKEN_KEY, '');
 
-    let gistId = GIST_ID_HARDCODED;
+    // Get gistId from input field first, then saved config, then hardcoded fallback
+    let gistIdEl = $('gist-id');
+    let gistId = (gistIdEl && gistIdEl.value && gistIdEl.value.trim()) ? gistIdEl.value.trim()
+                 : await getConfig(GIST_ID_KEY, GIST_ID_HARDCODED);
 
     if (!token) {
       showGistMsg('⚠️ 请输入 GitHub Token', true);
       if ($('gist-token')) $('gist-token').focus();
       return null;
     }
+    // Save token for future use
+    try{ localStorage.setItem('tpi_gist_token', token); }catch(e){}
 
     await setConfig(GIST_TOKEN_KEY, token);
 
@@ -30722,6 +30841,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const duration = ((Date.now() - startTime) / 1000).toFixed(2);
 
         const _gist_ul_localDays = (() => { try { return Object.keys(window.__tpi_mem_cache || {}).filter(k => k.startsWith('tpi_data_')).length; } catch(_) { return 0; } })();
+        // Save sync history
+        if(typeof _saveSyncHistory === 'function') _saveSyncHistory('gist','daily-upload',{date:date,time:new Date().toISOString()});
+        if(typeof _refreshSyncHistoryUI === 'function') _refreshSyncHistoryUI();
         showGistMsg(
           [
             `✅ 上传成功！`,
@@ -32200,6 +32322,7 @@ window.__tpiDirectExport = function(fmt) {
             'font-size:11px;color:#92400e;line-height:1.4;'
           ].join('');
           hint.textContent = '⚠️ 安全提示：请勿在公共或共享设备上使用云端同步功能，Token 信息将存储在本地浏览器中。';
+          hint.style.textAlign = 'center';
           panel.insertBefore(hint, panel.firstChild);
         });
       } catch (e) {  }
@@ -33995,7 +34118,7 @@ mark.tpi-search-highlight.current { background:#f97316; color:white; border-radi
       var storageCard = document.getElementById('folder-storage-card');
       if (!storageCard) return;
 
-      var btnHtml = '<div style="margin-top:12px;">' +
+      var btnHtml = '<div style="margin-top:12px;text-align:center;">' +
         '<button type="button" id="tpi-records-toggle-btn" ' +
         'style="padding:5px 14px;font-size:12px;border: 1px solid #0d9488;color:#0d9488;border-radius:8px;background:white;cursor:pointer;" ' +
         'onclick="window.__tpiLoadRecordsList()">' +
@@ -40410,6 +40533,29 @@ h3.card-title, h4.card-title,
     return '';
   }
 
+  // ===== V1.46 tpi_direct_v7_full → flat {id:value} converter =====
+  function _convertV146DirectToFlat(data){
+    if(!data || typeof data !== 'object') return null;
+    if(!/tpi_direct_v\d+_full/i.test(String(data.schema||''))) return null;
+    var flat = { date: data.date || '', timestamp: new Date().toISOString(), version: data.version || '' };
+    var fields = [].concat(data.textareas||[], data.selects||[], data.numbers||[], data.times||[], data.texts||[], data.richTexts||[]);
+    fields.forEach(function(f){
+      if(f.id) flat[f.id] = f.value !== undefined ? f.value : '';
+      else if(f.label) flat['__al__'+f.label] = f.value !== undefined ? f.value : '';
+    });
+    (data.checkboxes||[]).forEach(function(f){
+      if(f.id) flat[f.id] = !!f.checked;
+      else if(f.label && f.label !== 'input') flat['__al_cb__'+f.label] = !!f.checked;
+    });
+    (data.radios||[]).forEach(function(f){
+      if(f.checked && f.name) flat[f.name] = f.value;
+    });
+    // scores fast-path
+    var scoreMap = {'TPI总分':'tpi-total','TPI评级':'tpi-rating','MA7（7日均分）':'ma7-score','SYS得分':'sys-score','BCM-午间防守':'bcm-noon-score','BCM-晚间防守':'bcm-night-score'};
+    if(data.scores) Object.keys(data.scores).forEach(function(k){ if(scoreMap[k]) flat[scoreMap[k]] = data.scores[k]; });
+    return flat;
+  }
+
   function _smartUnpack(rawStr){
     if(!rawStr || typeof rawStr !== 'string') return null;
     var outer;
@@ -40564,8 +40710,21 @@ h3.card-title, h4.card-title,
     return resp.json();
   }
   function _getGistId(){
+    // First check input field
+    var el = document.getElementById('gist-id');
+    if(el && el.value && el.value.trim()) return el.value.trim();
+    // Then check config
     if(window.__TPI_CONFIG && window.__TPI_CONFIG.gistId) return window.__TPI_CONFIG.gistId;
-    return 'cab132a91b77c44ff7a66286a54c213d';
+    // Then check localStorage
+    try{ var t = localStorage.getItem('tpi_gist_id'); if(t && t.trim()) return t.trim(); }catch(e){}
+    return '';
+  }
+  function _saveGistId(id){
+    if(!id) return;
+    try{ localStorage.setItem('tpi_gist_id', id); }catch(e){}
+    var el = document.getElementById('gist-id');
+    if(el) el.value = id;
+    if(window.__TPI_CONFIG) window.__TPI_CONFIG.gistId = id;
   }
 
   window.tpiSaveAllToCloud = async function(){
@@ -40620,6 +40779,8 @@ h3.card-title, h4.card-title,
     var s = '✅ Appwrite 全量上传完成！\n\n成功：'+success+' 天\n跳过（空数据）：'+skipped+' 天\n失败：'+failed+' 天';
     if(errors.length) s += '\n\n失败详情（前5条）：\n'+errors.slice(0,5).join('\n');
     alert(s);
+    // Save sync history
+    window.__tpi_refreshSyncHistoryUI && window.__tpi_refreshSyncHistoryUI();
     _toast('✅ Appwrite全量上传：'+success+'/'+dates.length+' 天','success');
   };
 
@@ -40726,6 +40887,11 @@ h3.card-title, h4.card-title,
         var globals   = obj.globals || {};
 
         if(dayData && typeof dayData === 'object'){
+          // Convert V1.46 tpi_direct_v7_full format to flat {id:value} format
+          if(dayData.schema && /tpi_direct_v\d+_full/i.test(String(dayData.schema))){
+            var converted146a = _convertV146DirectToFlat(dayData);
+            if(converted146a) dayData = converted146a;
+          }
           _ls_set('tpi_data_'+dateStr, JSON.stringify(dayData));
           success++;
           fmt_stats[unpacked.fmt] = (fmt_stats[unpacked.fmt]||0)+1;
@@ -40755,6 +40921,7 @@ h3.card-title, h4.card-title,
       '\n页面即将刷新以加载最新数据。';
     if(errors.length) summary += '\n\n失败详情（前5条）：\n'+errors.slice(0,5).join('\n');
     alert(summary);
+    window.__tpi_refreshSyncHistoryUI && window.__tpi_refreshSyncHistoryUI();
     _toast('✅ Appwrite全量下载：'+success+' 天，请点击刷新按钮加载数据','success');
 
     var progressEl = document.getElementById('tpi-bulk-sync-progress');
@@ -40768,6 +40935,91 @@ h3.card-title, h4.card-title,
         '<span style="margin-left:10px;font-size:11px;color:#6b7280;">（刷新后数据生效）</span>';
     }
   };
+
+
+  // ===== Sync History Helpers =====
+  function _saveSyncHistory(provider, type, info){
+    try{
+      var key = 'tpi_sync_history_v2';
+      var hist = [];
+      try{ hist = JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ hist=[]; }
+      hist.unshift({
+        provider: provider,   // 'gist' or 'appwrite'
+        type: type,           // 'bulk-upload','bulk-download','daily-upload','daily-download'
+        time: info.time || new Date().toISOString(),
+        completedAt: new Date().toISOString(),
+        days: info.days || 0,
+        failed: info.failed || 0,
+        gistId: info.gistId || '',
+        date: info.date || '',
+        note: info.note || ''
+      });
+      if(hist.length > 50) hist = hist.slice(0, 50);
+      localStorage.setItem(key, JSON.stringify(hist));
+    }catch(e){}
+  }
+
+  function _getSyncHistory(){
+    try{ return JSON.parse(localStorage.getItem('tpi_sync_history_v2')||'[]'); }catch(e){ return []; }
+  }
+
+  function _formatSyncTime(isoStr){
+    if(!isoStr) return '—';
+    try{
+      var d = new Date(isoStr);
+      var pad = function(n){ return n < 10 ? '0'+n : ''+n; };
+      return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+    }catch(e){ return isoStr; }
+  }
+
+  function _refreshSyncHistoryUI(){
+    try{
+      var hist = _getSyncHistory();
+      var typeMap = {'bulk-upload':'⬆️ 全量上传','bulk-download':'⬇️ 全量下载','daily-upload':'📅 当日上传','daily-download':'📅 当日下载'};
+      var providerMap = {'gist':'🐙 GIT','appwrite':'☁️ Appwrite'};
+      function makeHtml(filtered){
+        if(!filtered.length) return '<div style="color:#9ca3af;font-size:12px;padding:8px;">暂无同步记录</div>';
+        return filtered.slice(0,10).map(function(h){
+          var typeLabel = typeMap[h.type] || h.type;
+          var provLabel = providerMap[h.provider] || h.provider;
+          var detail = h.days ? ('共 '+h.days+' 天') : (h.date ? h.date : '');
+          if(h.failed) detail += '，失败 '+h.failed+' 天';
+          if(h.gistId) detail += ' | Gist: '+h.gistId.substring(0,8)+'…';
+          return '<div style="padding:6px 10px;border-bottom:1px solid #e5e7eb;font-size:12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">'
+            +'<span style="font-weight:700;color:#0d9488;">'+provLabel+'</span>'
+            +'<span style="background:#f0fdf4;padding:1px 6px;border-radius:4px;font-weight:600;color:#065f46;">'+typeLabel+'</span>'
+            +'<span style="color:#374151;">'+detail+'</span>'
+            +'<span style="color:#9ca3af;margin-left:auto;">'+_formatSyncTime(h.completedAt)+'</span>'
+            +'</div>';
+        }).join('');
+      }
+      // All sync panel
+      var el = document.getElementById('tpi-sync-history-panel');
+      if(el) el.innerHTML = makeHtml(hist);
+      // GIT-only panel
+      var el2 = document.getElementById('tpi-gist-sync-history-panel');
+      if(el2) el2.innerHTML = makeHtml(hist.filter(function(h){ return h.provider === 'gist'; }));
+    }catch(e){}
+  }
+
+  window.__tpi_refreshSyncHistoryUI = _refreshSyncHistoryUI;
+  window._convertV146DirectToFlat = _convertV146DirectToFlat;
+
+  // Refresh sync history UI on page load
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(function(){
+      _refreshSyncHistoryUI();
+      // Restore gist token from localStorage to input field
+      try{
+        var savedToken = localStorage.getItem('tpi_gist_token');
+        var savedId = localStorage.getItem('tpi_gist_id');
+        var tokenEl = document.getElementById('gist-token');
+        var idEl = document.getElementById('gist-id');
+        if(savedToken && tokenEl && !tokenEl.value) tokenEl.value = savedToken;
+        if(savedId && idEl && !idEl.value) idEl.value = savedId;
+      }catch(e){}
+    }, 1500);
+  });
 
   window.gistSaveAllToCloud = async function(){
     var dates = _getAllLocalDates();
@@ -40791,18 +41043,23 @@ h3.card-title, h4.card-title,
       _progress('tpi-gist-bulk-sync-progress','',true); return;
     }
     var gistId = _getGistId();
+    // Save token persistently
+    try{ localStorage.setItem('tpi_gist_token', token); }catch(e){}
 
-    _progress('tpi-gist-bulk-sync-progress','正在拉取 Gist 现有数据…');
+    _progress('tpi-gist-bulk-sync-progress','正在初始化 Gist…');
     var allBackupData = {};
-    try{
-      var existing = await _callGist('https://api.github.com/gists/'+gistId,'GET',token);
-      var fname = 'tpi-backup-data.json';
-      if(existing.files && existing.files[fname]){
-        try{ allBackupData = JSON.parse(existing.files[fname].content) || {}; }catch(e){ allBackupData={}; }
-      }
-    }catch(e){ console.warn('[Gist全量上传] 拉取现有数据失败(继续):',e); }
+    if(gistId){
+      try{
+        var existing = await _callGist('https://api.github.com/gists/'+gistId,'GET',token);
+        var fname = 'tpi-backup-data.json';
+        if(existing.files && existing.files[fname]){
+          try{ allBackupData = JSON.parse(existing.files[fname].content) || {}; }catch(e){ allBackupData={}; }
+        }
+      }catch(e){ console.warn('[Gist全量上传] 拉取现有数据失败(继续):',e); }
+    }
 
     var success=0, skipped=0;
+    var syncStartTime = new Date().toISOString();
     for(var i=0;i<dates.length;i++){
       var d = dates[i];
       _progress('tpi-gist-bulk-sync-progress','正在打包 '+(i+1)+'/'+dates.length+': '+d+'　✅'+success);
@@ -40815,7 +41072,7 @@ h3.card-title, h4.card-title,
         data: dayData,
         timestamp: Date.now(),
         backupTime: new Date().toISOString(),
-        source: 'TPI-BulkSync-v4',
+        source: 'TPI-BulkSync-v5',
         dataSize: rawStr.length,
         fieldCount: Object.keys(dayData).length
       };
@@ -40823,21 +41080,33 @@ h3.card-title, h4.card-title,
     }
 
     _progress('tpi-gist-bulk-sync-progress','正在写入 Gist（共 '+Object.keys(allBackupData).length+' 天）…');
+    var syncPayload = {
+      description: 'TPI 全维效能管理系统 - 全量数据备份 v1.47',
+      public: false,
+      files: { 'tpi-backup-data.json': { content: JSON.stringify(allBackupData,null,2) } }
+    };
     try{
-      await _callGist('https://api.github.com/gists/'+gistId,'PATCH',token,{
-        description: 'TPI 全维效能管理系统 - 全量数据备份 (BulkSync v5)',
-        public: false,
-        files: { 'tpi-backup-data.json': { content: JSON.stringify(allBackupData,null,2) } }
-      });
+      var resultGist;
+      if(gistId){
+        resultGist = await _callGist('https://api.github.com/gists/'+gistId,'PATCH',token, syncPayload);
+      } else {
+        _progress('tpi-gist-bulk-sync-progress','未找到 Gist ID，正在创建新 Gist…');
+        resultGist = await _callGist('https://api.github.com/gists','POST',token, syncPayload);
+        var newId = resultGist && resultGist.id;
+        if(newId){ _saveGistId(newId); gistId = newId; }
+      }
       _progress('tpi-gist-bulk-sync-progress','',true);
       _setBtns(['btn-gist-bulk-upload','btn-gist-bulk-download'],false);
+      // Save sync history
+      _saveSyncHistory('gist', 'bulk-upload', {days: success, total: Object.keys(allBackupData).length, gistId: gistId, time: syncStartTime});
+      _refreshSyncHistoryUI();
       alert('✅ Gist 全量上传完成！\n\n本次新增/更新：'+success+' 天\n跳过（空数据）：'+skipped+' 天\nGist 总存档：'+Object.keys(allBackupData).length+' 天\n\nGist ID: '+gistId);
       _toast('✅ Gist全量上传完成：'+success+' 天','success');
     }catch(e){
       _progress('tpi-gist-bulk-sync-progress','',true);
       _setBtns(['btn-gist-bulk-upload','btn-gist-bulk-download'],false);
       _toast('❌ Gist上传失败：'+((e&&e.message)||String(e)),'error');
-      alert('❌ Gist 全量上传失败！\n\n错误：'+((e&&e.message)||String(e))+'\n\n请检查 Token 权限（需 gist 权限）及网络连接。');
+      alert('❌ Gist 全量上传失败！\n\n错误：'+((e&&e.message)||String(e))+'\n\n请检查 Token 权限（需 gist 权限）及网络连接。\n\n如果 Token 已过期，请到 GitHub → Settings → Developer Settings → Personal Access Tokens 重新生成。');
     }
   };
 
@@ -40860,7 +41129,15 @@ h3.card-title, h4.card-title,
       _setBtns(['btn-gist-bulk-upload','btn-gist-bulk-download'],false);
       _progress('tpi-gist-bulk-sync-progress','',true); return;
     }
+    // Save token persistently
+    try{ localStorage.setItem('tpi_gist_token', token); }catch(e){}
     var gistId = _getGistId();
+    if(!gistId){
+      _toast('❌ 未找到 Gist ID','error');
+      alert('❌ 缺少 Gist ID\n\n请在"GitHub Gist 备份"面板中填写 Gist ID（全量上传时会自动生成并显示）。');
+      _setBtns(['btn-gist-bulk-upload','btn-gist-bulk-download'],false);
+      _progress('tpi-gist-bulk-sync-progress','',true); return;
+    }
 
     _progress('tpi-gist-bulk-sync-progress','正在从 Gist 拉取数据…');
     var allBackupData;
@@ -40869,12 +41146,28 @@ h3.card-title, h4.card-title,
       var fname = 'tpi-backup-data.json';
       if(!gistJson.files || !gistJson.files[fname])
         throw new Error('Gist 中没有找到备份文件 tpi-backup-data.json\n\n请先执行"全量上传"，将本地数据上传到 Gist。');
-      allBackupData = JSON.parse(gistJson.files[fname].content);
+      // Handle truncated content (large files)
+      var fileContent = gistJson.files[fname].content;
+      if(gistJson.files[fname].truncated){
+        _progress('tpi-gist-bulk-sync-progress','文件较大，正在获取完整内容…');
+        var rawFile = await _callGist(gistJson.files[fname].raw_url,'GET',token);
+        fileContent = typeof rawFile === 'string' ? rawFile : JSON.stringify(rawFile);
+      }
+      allBackupData = JSON.parse(fileContent);
     }catch(e){
       _toast('❌ 拉取 Gist 失败：'+((e&&e.message)||String(e)),'error');
-      alert('❌ Gist 全量下载失败！\n\n错误：'+((e&&e.message)||String(e))+'\n\n请检查 Token 是否有效、Gist ID 是否正确。');
+      alert('❌ Gist 全量下载失败！\n\n错误：'+((e&&e.message)||String(e))+'\n\n请检查 Token 是否有效（是否已过期）、Gist ID 是否正确。\n\n如果 Token 已过期，请到 GitHub → Settings → Developer Settings → Personal Access Tokens 重新生成。');
       _setBtns(['btn-gist-bulk-upload','btn-gist-bulk-download'],false);
       _progress('tpi-gist-bulk-sync-progress','',true); return;
+    }
+
+    // Handle V1.46 single-day export format (schema: tpi_direct_v7_full)
+    if(allBackupData.schema && allBackupData.date){
+      var importDate = allBackupData.date;
+      _progress('tpi-gist-bulk-sync-progress','检测到 V1.46 单日导出格式，正在转换…');
+      var converted = {};
+      converted[importDate] = { data: allBackupData, timestamp: Date.now(), backupTime: new Date().toISOString(), source: 'v146-import' };
+      allBackupData = converted;
     }
 
     var dateEntries = Object.keys(allBackupData)
@@ -40887,6 +41180,7 @@ h3.card-title, h4.card-title,
     }
 
     var success=0, failed=0, skipped=0, errors=[];
+    var downloadStartTime = new Date().toISOString();
     for(var i=0;i<dateEntries.length;i++){
       var d = dateEntries[i];
       _progress('tpi-gist-bulk-sync-progress',
@@ -40907,6 +41201,11 @@ h3.card-title, h4.card-title,
         }
 
         if(!dayData || typeof dayData !== 'object'){ skipped++; continue; }
+        // Convert V1.46 tpi_direct_v7_full format to flat {id:value} format
+        if(dayData.schema && /tpi_direct_v\d+_full/i.test(String(dayData.schema))){
+          var converted146g = _convertV146DirectToFlat(dayData);
+          if(converted146g) dayData = converted146g;
+        }
         _ls_set('tpi_data_'+d, JSON.stringify(dayData));
         success++;
       }catch(e){
@@ -40934,6 +41233,9 @@ h3.card-title, h4.card-title,
       '失败：'+failed+' 天\n\n' +
       '页面即将刷新以加载最新数据。';
     if(errors.length) summary += '\n\n失败详情（前5条）：\n'+errors.slice(0,5).join('\n');
+    // Save sync history
+    _saveSyncHistory('gist', 'bulk-download', {days: success, failed: failed, gistId: gistId, time: downloadStartTime});
+    _refreshSyncHistoryUI();
     alert(summary);
     _toast('✅ Gist全量下载：'+success+' 天，请点击刷新按钮加载数据','success');
 
