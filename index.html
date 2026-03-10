@@ -119,13 +119,13 @@
   };
 })();
 </script>
-<meta content="全维效能管理系统（TPI，V1.57）" property="og:title"/>
+<meta content="全维效能管理系统（TPI，V1.58）" property="og:title"/>
 <meta content="全维效能管理系统（TPI）| 全面追踪 · 科学管理 · 高效提升" property="og:description"/>
 <meta content="website" property="og:type"/>
 <meta content="https://mytpi.netlify.app/" property="og:url"/>
 <meta content="zh_CN" property="og:locale"/>
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="全维效能管理系统（TPI，V1.57）"/>
+<meta name="twitter:title" content="全维效能管理系统（TPI，V1.58）"/>
 <meta name="twitter:description" content="全维效能管理系统（TPI）"/>
 <meta content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" name="viewport"/>
 <meta content="全维效能管理系统（TPI）- 跨设备同步 | 支持电脑/手机/平板访问" name="description"/>
@@ -2279,7 +2279,7 @@ window.getTpiDayDataAsync = async function(dateStr) {
   } catch (e) {}
 })();
 </script>
-<title>全维效能管理系统（TPI，V1.57）</title>
+<title>全维效能管理系统（TPI，V1.58）</title>
 <script>
    'use strict';
         const getCurrentDate = () => {
@@ -2290,7 +2290,7 @@ window.getTpiDayDataAsync = async function(dateStr) {
             return `${year}-${month}-${day}`;
         };
 
-        window.TPI_VERSION = '全维效能管理系统（TPI，V1.57）';
+        window.TPI_VERSION = '全维效能管理系统（TPI，V1.58）';
         window.TPI_APP_VERSION = '1.57';
 
         // V1.50: 检查是否有待恢复的数据（import后不刷新，直接恢复）
@@ -2385,7 +2385,7 @@ window.TPI.DOM = window.TPI.DOM || {
                             : '三十';
             const lunarStr = `农历${lunarMonth}${lunarDay}${lunar.isLeap ? '(闰)' : ''}`;
 
-            document.title = `全维效能管理系统（TPI，V1.57）（${window.TPI_BUILD_DATE} ${weekday} ${lunarStr}）`;
+            document.title = `全维效能管理系统（TPI，V1.58）（${window.TPI_BUILD_DATE} ${weekday} ${lunarStr}）`;
 
             const dateDisplay = document.getElementById('current-date-display');
             if (dateDisplay) {
@@ -6494,7 +6494,7 @@ hr { border-color: #bbf7d0 !important; }
 <div class="header-content">
 <div class="header-title">
 <h1 style="font-size:clamp(1.5rem, 3vw, 2.5rem);font-weight:800;background:linear-gradient(135deg,#0f766e 0%,#0d9488 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.02em;">
-        全维效能管理系统（TPI，V1.57）
+        全维效能管理系统（TPI，V1.58）
        </h1>
 
 <div style="display:inline-flex;align-items:center;gap:6px;flex-shrink:0;">
@@ -6861,10 +6861,17 @@ hr { border-color: #bbf7d0 !important; }
           <label for="gist-token" style="font-weight:600; color:#374151; margin-bottom:5px; display:block;">
             🔑 GitHub Personal Access Token <span style="color:#6b7280;font-weight:400;">(需勾选 gist 权限)</span>:
           </label>
-          <input id="gist-token" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                 style="width:100%; padding:10px; border: 2px solid #bbf7d0; border-radius:8px; font-size:14px;" autocomplete="current-password">
+          <input id="gist-token" type="text" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                 style="width:100%; padding:10px; border: 2px solid #bbf7d0; border-radius:8px; font-size:14px; font-family:monospace; letter-spacing:0.5px;" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
           <div style="font-size:12px; color:#6b7280; margin-top:4px;">
-            🔗 <a href="https://github.com/settings/tokens/new?scopes=gist&amp;description=TPI%20Backup" target="_blank" style="color:#0d9488;" rel="noopener noreferrer">点击这里创建 Token</a>（跨设备同步时，两端填写同一 Token）
+            🔗 <a href="https://github.com/settings/tokens/new?scopes=gist&description=TPI%20Backup" target="_blank" style="color:#0d9488;" rel="noopener noreferrer">点击这里创建 Token</a>（跨设备同步时，两端填写同一 Token）
+          </div>
+          <div style="display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap;">
+            <button type="button" id="btn-verify-token" onclick="window.verifyAndSaveGistToken()"
+              style="padding:8px 16px; background:linear-gradient(135deg,#7c3aed,#6d28d9); color:white; border:none; border-radius:7px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;">
+              🔍 验证并保存 Token
+            </button>
+            <span id="gist-token-status" style="font-size:12px; color:#6b7280;"></span>
           </div>
         </div>
         <div class="form-group" style="min-width:200px; flex:1;">
@@ -21495,7 +21502,7 @@ window.addEventListener('resize', function() {
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#f8fafc;border-bottom: 1px solid #d1fae5;flex-shrink:0;">
                             <h3 style="margin:0;font-size:18px;color:#1e293b;">👁️ 报告预览</h3>
                             <div style="display:flex;gap:10px;">
-                                <button type="button" onclick="(function(){var p=document.getElementById('tpi-preview-body');if(p){var w=window.open('','_blank');if(w){w.document.write('<html><head><meta charset=UTF-8><title>全维效能管理系统（TPI，V1.57）</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:20px;}h2{color:#0d9488;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border: 1px solid #bbf7d0;}th{background:#f3f4f6;}.btn{padding:10px 20px;margin:10px 5px;cursor:pointer;border: 1px solid #86efac;border-radius:6px;background:#fff;}</style><\/head><body>'+p.innerHTML+'<div style=text-align:center;margin-top:30px><button type="button" class=btn onclick=window.print()>🖨️ 打印</button><button type="button" class=btn onclick=window.close()>关闭</button></div><\/body></html>');w.document.close();}}})()" style="padding:6px 14px;border: 1px solid #6ee7b7;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:#334155;transition:all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">🌐 新窗口打开</button>
+                                <button type="button" onclick="(function(){var p=document.getElementById('tpi-preview-body');if(p){var w=window.open('','_blank');if(w){w.document.write('<html><head><meta charset=UTF-8><title>全维效能管理系统（TPI，V1.58）</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:20px;}h2{color:#0d9488;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border: 1px solid #bbf7d0;}th{background:#f3f4f6;}.btn{padding:10px 20px;margin:10px 5px;cursor:pointer;border: 1px solid #86efac;border-radius:6px;background:#fff;}</style><\/head><body>'+p.innerHTML+'<div style=text-align:center;margin-top:30px><button type="button" class=btn onclick=window.print()>🖨️ 打印</button><button type="button" class=btn onclick=window.close()>关闭</button></div><\/body></html>');w.document.close();}}})()" style="padding:6px 14px;border: 1px solid #6ee7b7;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:#334155;transition:all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">🌐 新窗口打开</button>
                                 <button class="tpi-preview-close-btn" type="button" onclick="document.getElementById('tpi-preview-modal').remove()" style="padding:6px 14px;border: 1px solid #86efac;border-radius:6px;background:#f9fafb;color:#374151;cursor:pointer;font-size:13px;font-weight:600;transition:background 0.15s;">✕ 关闭</button>
                             </div>
                         </div>
@@ -22303,7 +22310,7 @@ window.addEventListener('resize', function() {
                 filename = 'TPI_数据导出_' + new Date().toISOString().split('T')[0] + '.txt';
                 mimeType = 'text/plain';
             } else if (format === 'html') {
-                let html = `<html><head><meta charset="UTF-8"><title>全维效能管理系统（TPI，V1.57）</title><\/head><body>
+                let html = `<html><head><meta charset="UTF-8"><title>全维效能管理系统（TPI，V1.58）</title><\/head><body>
 
         <div id="score-dashboard" style="background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%); padding: 8px 16px; border-radius: 0; margin: 0; color: #1e293b; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
             <div style="max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: nowrap;">
@@ -23318,7 +23325,7 @@ window.archiveOldDataComplete = function() {
                         alert('✅ JSON导出成功！');
                     }
                     else if (format === 'html') {
-                        let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>全维效能管理系统（TPI，V1.57）</title>';
+                        let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>全维效能管理系统（TPI，V1.58）</title>';
                         html += `<style>
 
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; align-items: center; justify-content: center; }
@@ -25628,7 +25635,7 @@ window.addEventListener('unhandledrejection', function(event) {
   }
 
   function backupAllDataNow(){
-    const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.57）'), appVersion: (window.TPI_APP_VERSION||'1.51'), exportedAt: new Date().toISOString() }, localStorage: {} };
+    const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.58）'), appVersion: (window.TPI_APP_VERSION||'1.51'), exportedAt: new Date().toISOString() }, localStorage: {} };
     for(let i=0;i<__tpi_ls_length();i++){
       const k = __tpi_ls_key(i);
       if(!k) continue;
@@ -25935,7 +25942,7 @@ try{
       }
       window.__tpi_backup_lock = true;
 
-      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.57）'), appVersion: (window.TPI_APP_VERSION||'1.51'), exportedAt: new Date().toISOString() }, localStorage: {} };
+      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.58）'), appVersion: (window.TPI_APP_VERSION||'1.51'), exportedAt: new Date().toISOString() }, localStorage: {} };
 
       for(let i=0;i<__tpi_ls_length();i++){
         const k = __tpi_ls_key(i);
@@ -26488,7 +26495,7 @@ try{
       }
       window.__tpi_backup_lock = true;
 
-      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.57）'), appVersion: (window.TPI_APP_VERSION||'1.51'), exportedAt: new Date().toISOString() }, localStorage: {} };
+      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.58）'), appVersion: (window.TPI_APP_VERSION||'1.51'), exportedAt: new Date().toISOString() }, localStorage: {} };
 
       for(let i=0;i<__tpi_ls_length();i++){
         const k = __tpi_ls_key(i);
@@ -31067,8 +31074,17 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   async function getGistAuth() {
-    let token = $('gist-token') && $('gist-token').value ?
-      $('gist-token').value.trim() : await getConfig(GIST_TOKEN_KEY, '');
+    // V1.58: 彻底清理token（去除所有不可见字符、换行、BOM等）
+    function cleanToken(raw) {
+      if (!raw) return '';
+      // 去除BOM、零宽空格、各类不可见字符、换行、制表符、首尾空格
+      return raw.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\uFEFF]/g, '').trim();
+    }
+
+    let rawToken = $('gist-token') && $('gist-token').value
+      ? $('gist-token').value
+      : await getConfig(GIST_TOKEN_KEY, '');
+    let token = cleanToken(rawToken);
 
     let gistId = GIST_ID_HARDCODED;
 
@@ -31090,6 +31106,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   async function callGistAPI(endpoint, method, token, body) {
+    // V1.58: 确保token清洁
+    if (token) token = token.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\uFEFF]/g, '').trim();
+    if (!token) throw new Error('Token 为空，请先在"GitHub Gist 备份"面板填写并点击「验证并保存 Token」');
+
     const headers = {
       'Authorization': `Bearer ${token}`,
       'Accept': 'application/vnd.github.v3+json',
@@ -31561,9 +31581,19 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(async function() {
 
     const savedToken = await getConfig(GIST_TOKEN_KEY, '');
+    // V1.58: 清理已保存的token
+    const cleanedSaved = savedToken ? savedToken.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\uFEFF]/g, '').trim() : '';
 
-    if (savedToken && $('gist-token')) {
-      $('gist-token').value = savedToken;
+    if (cleanedSaved && $('gist-token')) {
+      $('gist-token').value = cleanedSaved;
+      const statusEl = document.getElementById('gist-token-status');
+      if (statusEl) {
+        const masked = cleanedSaved.length > 8
+          ? cleanedSaved.slice(0, 4) + '****' + cleanedSaved.slice(-4)
+          : '****';
+        statusEl.textContent = '✅ 已有已保存 Token（' + masked + '）';
+        statusEl.style.color = '#059669';
+      }
     }
 
     if ($('gist-id')) {
@@ -31592,6 +31622,91 @@ document.addEventListener('DOMContentLoaded', function() {
 
     }, 10000); // 延迟10秒
   });
+
+  // V1.58: 验证并保存 Token — 先用 GitHub API 验证是否有效，再保存
+  window.verifyAndSaveGistToken = async function() {
+    const statusEl = document.getElementById('gist-token-status');
+    const btn = document.getElementById('btn-verify-token');
+    const inputEl = document.getElementById('gist-token');
+
+    function setStatus(msg, color) {
+      if (statusEl) { statusEl.textContent = msg; statusEl.style.color = color; }
+    }
+
+    if (!inputEl || !inputEl.value.trim()) {
+      setStatus('❌ 请先输入 Token', '#dc2626');
+      if (inputEl) inputEl.focus();
+      return;
+    }
+
+    // 彻底清理token
+    const raw = inputEl.value;
+    const token = raw.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\uFEFF]/g, '').trim();
+
+    if (token !== raw.trim()) {
+      inputEl.value = token; // 自动修正输入框中的脏数据
+    }
+
+    if (!token) {
+      setStatus('❌ Token 为空，请重新粘贴', '#dc2626');
+      return;
+    }
+
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ 验证中…'; }
+    setStatus('正在连接 GitHub…', '#6b7280');
+
+    try {
+      const resp = await fetch('https://api.github.com/user', {
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+
+      if (resp.status === 401) {
+        setStatus('❌ Token 无效 (401)。请重新生成一个新 Token，确保勾选 gist 权限', '#dc2626');
+        if (btn) { btn.disabled = false; btn.textContent = '🔍 验证并保存 Token'; }
+        return;
+      }
+      if (resp.status === 403) {
+        setStatus('❌ Token 权限不足 (403)。请勾选 gist 权限后重新生成', '#dc2626');
+        if (btn) { btn.disabled = false; btn.textContent = '🔍 验证并保存 Token'; }
+        return;
+      }
+      if (!resp.ok) {
+        setStatus('❌ GitHub 连接失败 (' + resp.status + ')，请检查网络', '#dc2626');
+        if (btn) { btn.disabled = false; btn.textContent = '🔍 验证并保存 Token'; }
+        return;
+      }
+
+      const user = await resp.json();
+      const login = user && user.login ? user.login : '未知用户';
+
+      // 验证 Gist 权限
+      const scopeHeader = resp.headers.get('x-oauth-scopes') || resp.headers.get('X-OAuth-Scopes') || '';
+      const hasGist = !scopeHeader || scopeHeader.includes('gist');
+
+      if (scopeHeader && !hasGist) {
+        setStatus('⚠️ Token 有效但缺少 gist 权限！请重新生成并勾选 gist', '#d97706');
+        if (btn) { btn.disabled = false; btn.textContent = '🔍 验证并保存 Token'; }
+        return;
+      }
+
+      // 保存到 IndexedDB + localStorage
+      await setConfig(GIST_TOKEN_KEY, token);
+      try { localStorage.setItem('tpi_gist_token', token); } catch(e) {}
+
+      setStatus('✅ 验证成功！已保存（用户: ' + login + '）', '#059669');
+      if (btn) { btn.disabled = false; btn.textContent = '🔍 验证并保存 Token'; }
+
+      if (window.tpiToast) window.tpiToast('✅ GitHub Token 验证通过，已保存（' + login + '）', 'success');
+
+    } catch(netErr) {
+      setStatus('❌ 网络错误：' + (netErr.message || String(netErr)), '#dc2626');
+      if (btn) { btn.disabled = false; btn.textContent = '🔍 验证并保存 Token'; }
+    }
+  };
 
   window.TPIGistBackup = {
     backup: window.gistBackupNow,
@@ -41125,23 +41240,32 @@ h3.card-title, h4.card-title,
     }
   }
 
+  // V1.58: 彻底清理token（去除BOM、换行、不可见字符等）
+  function _cleanToken(raw) {
+    if (!raw) return '';
+    return raw.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\uFEFF]/g, '').trim();
+  }
+
   async function _getGistToken(){
     var el = document.getElementById('gist-token');
-    if(el && el.value && el.value.trim()) return el.value.trim();
+    if(el && el.value && _cleanToken(el.value)) return _cleanToken(el.value);
     try{
       if(window.TPIIndexedDB && window.TPIIndexedDB.getConfig){
         var t = await window.TPIIndexedDB.getConfig('tpi_gist_token','');
-        if(t) return t;
+        if(t) return _cleanToken(t);
       }
     }catch(e){}
     try{
       var t2 = localStorage.getItem('tpi_gist_token');
-      if(t2) return t2;
+      if(t2) return _cleanToken(t2);
     }catch(e){}
     return '';
   }
   // V1.50: 增强 GitHub API 错误提示，根据状态码给出明确错误信息
   async function _callGist(url, method, token, body){
+    // V1.58: 清理 token 中的不可见字符
+    if (token) token = token.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\uFEFF]/g, '').trim();
+    if (!token) throw new Error('Token 为空，请先点击「验证并保存 Token」');
     var opts = {
       method: method||'GET',
       headers:{
@@ -41799,7 +41923,7 @@ h3.card-title, h4.card-title,
   function _v157_collectAll(){
     var result={
       _meta:{
-        version: window.TPI_VERSION||'全维效能管理系统（TPI，V1.57）',
+        version: window.TPI_VERSION||'全维效能管理系统（TPI，V1.58）',
         appVersion: window.TPI_APP_VERSION||'1.57',
         backupVersion:'V1.57',
         backupFormat:'full_v157_ultimate',
