@@ -119,13 +119,13 @@
   };
 })();
 </script>
-<meta content="全维效能管理系统（TPI，V1.69）" property="og:title"/>
+<meta content="全维效能管理系统（TPI，V1.78）" property="og:title"/>
 <meta content="全维效能管理系统（TPI）| 全面追踪 · 科学管理 · 高效提升" property="og:description"/>
 <meta content="website" property="og:type"/>
 <meta content="https://mytpi.netlify.app/" property="og:url"/>
 <meta content="zh_CN" property="og:locale"/>
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="全维效能管理系统（TPI，V1.69）"/>
+<meta name="twitter:title" content="全维效能管理系统（TPI，V1.78）"/>
 <meta name="twitter:description" content="全维效能管理系统（TPI）"/>
 <meta content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" name="viewport"/>
 <meta content="全维效能管理系统（TPI）- 跨设备同步 | 支持电脑/手机/平板访问" name="description"/>
@@ -725,8 +725,8 @@
           /* 4. 刷新打卡状态 */
           try {
             var checkinRaw = (function(){ try{ return localStorage.getItem('tpi_checkin_data')||window.__tpi_ls_get('tpi_checkin_data'); }catch(_){ return null; } })();
-            if (checkinRaw && window.TPI && window.TPI.state) {
-              try { var cd = JSON.parse(checkinRaw); window.TPI.state.checkinData = cd; } catch(_) {}
+            if (checkinRaw && window.__tpi_main_state) {
+              try { var cd = JSON.parse(checkinRaw); window.__tpi_main_state.checkinData = cd; } catch(_) {}
             }
           } catch(e) {}
           /* 5. 刷新当前模式 */
@@ -1999,7 +1999,7 @@ window.collectDailyData = function() {
   try {
     const _modeRaw = __tpi_ls_get('selectedMode') ||
         (document.querySelector('.mode-card.selected') ? document.querySelector('.mode-card.selected').id.replace('mode-','') : null) ||
-        (window.TPI && window.TPI.state && window.TPI.state.selectedMode) || 'normal';
+        (window.__tpi_main_state && window.__tpi_main_state.selectedMode) || 'normal';
     data["selectedMode"] = _modeRaw;
   } catch (_e) { console.warn('[collectDailyData] selectedMode pack failed:', _e); }
 
@@ -2360,7 +2360,7 @@ window.getTpiDayDataAsync = async function(dateStr) {
   } catch (e) {}
 })();
 </script>
-<title>全维效能管理系统（TPI，V1.69）</title>
+<title>全维效能管理系统（TPI，V1.78）</title>
 <script>
    'use strict';
         const getCurrentDate = () => {
@@ -2371,8 +2371,8 @@ window.getTpiDayDataAsync = async function(dateStr) {
             return `${year}-${month}-${day}`;
         };
 
-        window.TPI_VERSION = '全维效能管理系统（TPI，V1.69）';
-        window.TPI_APP_VERSION = '1.69';
+        window.TPI_VERSION = '全维效能管理系统（TPI，V1.78）';
+        window.TPI_APP_VERSION = '1.70';
 
         // V1.50: 检查是否有待恢复的数据（import后不刷新，直接恢复）
         // 此标志由各导入函数设置，用于在初始化完成后自动加载
@@ -2466,7 +2466,7 @@ window.TPI.DOM = window.TPI.DOM || {
                             : '三十';
             const lunarStr = `农历${lunarMonth}${lunarDay}${lunar.isLeap ? '(闰)' : ''}`;
 
-            document.title = `全维效能管理系统（TPI，V1.69）（${window.TPI_BUILD_DATE} ${weekday} ${lunarStr}）`;
+            document.title = `全维效能管理系统（TPI，V1.78）（${window.TPI_BUILD_DATE} ${weekday} ${lunarStr}）`;
 
             const dateDisplay = document.getElementById('current-date-display');
             if (dateDisplay) {
@@ -2999,7 +2999,6 @@ window.exportAsJSON = function () {
 };
 
 </script>
-
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Noto+Sans+SC:wght@300;400;500;700&amp;display=swap" rel="stylesheet">
 
@@ -3722,6 +3721,7 @@ body.dark-theme .heatmap-cell.hm-empty{background:#374151;color:#6b7280;}
   .toast, .modal { animation: none !important; }
   .loading-spinner { animation-duration: 1s !important; }
 }.fade-in{animation:fadeIn 0.5s ease-out;}.stagger-1{animation-delay:0.1s;}.stagger-2{animation-delay:0.2s;}.stagger-3{animation-delay:0.3s;}.stagger-4{animation-delay:0.4s;}.stagger-5{animation-delay:0.5s;}.writing-output-grid{display:grid;grid-template-columns:repeat(5, 1fr);gap:var(--spacing-2);margin-top:var(--spacing-1);}.writing-output-item{display:flex;flex-direction:column;}.writing-output-label{font-size:var(--font-size-xs);text-align:center;font-weight:600;margin-bottom:var(--spacing-1);color:var(--color-text-secondary);}.writing-output-input{width:100%;padding:var(--spacing-2);border:1px solid var(--color-border);border-radius:var(--radius-sm);font-size:var(--font-size-xs);text-align:center;}.status-select{min-width:100px;}.level-column{width:120px !important;}.history-date-picker{display:flex;align-items:center;gap:var(--spacing-2);margin-bottom:var(--spacing-4);}.export-buttons{display:flex;gap:var(--spacing-2);flex-wrap:wrap;margin-top:var(--spacing-4);}.exempt-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1rem;}.exempt-col{background:#f8fafc;padding:1rem;border-radius:var(--radius-lg);border:1px solid var(--color-border);}@media (max-width:768px){.exempt-grid{grid-template-columns:1fr;}}.radar-section.collapsed .event-item{display:flex;gap:var(--spacing-3);padding:var(--spacing-3);border-radius:var(--radius-md);border:1px solid transparent;transition:all 0.2s;position:relative;}.event-item:hover{background:var(--color-bg-hover);border-color:var(--color-primary-light);transform:translateX(4px);}.event-date-box{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:60px;padding:4px;background:var(--color-bg-tertiary);border-radius:8px;border:1px solid var(--color-border);}.event-days-left{font-size:1.2rem;font-weight:800;color:var(--color-primary);line-height:1;}.event-days-label{font-size:0.7rem;color:var(--color-text-muted);}.event-details{flex:1;}.event-title{font-weight:600;color:var(--color-text-primary);display:flex;align-items:center;gap:6px;}.event-meta{font-size:0.85rem;color:var(--color-text-secondary);margin-top:4px;display:flex;gap:10px;align-items:center;}.event-tag{font-size:0.75rem;padding:1px 6px;border-radius:4px;background:#eee;color:#555;}.tag-urgent{background:#fee2e2;color:#dc2626;}.tag-birthday{background:#fef3c7;color:#d97706;}.event-actions{opacity:0;transition:opacity 0.2s;display:flex;align-items:center;}.event-item:hover .event-actions{opacity:1;}.delete-btn{color:var(--color-text-muted);cursor:pointer;padding:4px;}.delete-btn:hover{color:var(--color-danger);}#json-import-area{width:100%;height:150px;font-family:monospace;font-size:12px;padding:10px;border:1px solid var(--color-border);border-radius:8px;margin-bottom:10px;}.event-type-tabs{display:flex;gap:8px;margin-bottom:16px;border-bottom:2px solid var(--color-border);padding-bottom:8px}.event-tab{padding:8px 16px;background:0 0;border:none;border-bottom:2px solid transparent;cursor:pointer;font-weight:500;color:var(--color-text-secondary);transition:all .15s;margin-bottom:-2px}.event-tab:hover{color:var(--color-primary)}.event-tab.active{color:var(--color-primary);border-bottom-color:var(--color-primary)}.event-container{display:none}.event-container.active{display:block}.event-item{background:var(--color-bg-primary);border:1px solid var(--color-border);border-radius:8px;margin-bottom:12px;overflow:hidden;transition:all .15s}.event-item:hover{box-shadow:var(--shadow-md);border-color:var(--color-primary)}.event-item-header{padding:12px 16px;background:var(--color-bg-secondary);cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}.event-item-header:hover{background:var(--color-bg-hover)}.event-item-title{display:flex;align-items:center;gap:8px;flex:1}.event-item-title .event-name{font-weight:600;color:var(--color-text-primary)}.event-item-title .event-time{color:var(--color-text-muted);font-size:14px;margin-left:8px}.event-status-badge{padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600}.event-status-upcoming{background:#ccfbf1;color:#0f766e}.event-status-today{background:#fef3c7;color:#92400e}.event-collapse-icon{transition:transform .25s;color:var(--color-text-muted)}.event-item-header.collapsed .event-collapse-icon{transform:rotate(-90deg)}.event-item-content{padding:16px;max-height:500px;overflow:hidden;transition:all .35s}.event-item-content.collapsed{max-height:0;padding-top:0;padding-bottom:0}.event-field{display:grid;grid-template-columns:120px 1fr;gap:12px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--color-border-light)}.event-field:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}.event-field-label{font-weight:600;color:var(--color-text-secondary);font-size:14px}.add-event-form{background:var(--color-bg-secondary);padding:16px;border-radius:12px;margin-bottom:16px}.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-bottom:16px}.calendar-type-switch{display:flex;gap:8px;margin-bottom:12px}.calendar-type-btn{padding:8px 12px;border:1px solid var(--color-border);background:var(--color-bg-primary);border-radius:8px;cursor:pointer;transition:all .15s;font-size:14px}.calendar-type-btn:hover{border-color:var(--color-primary)}.calendar-type-btn.active{background:var(--color-primary);color:#fff;border-color:var(--color-primary)}.sync-status{} @media (max-width:768px){.event-field{grid-template-columns:1fr;gap:4px}.form-row{grid-template-columns:1fr}.event-item-header{flex-direction:column;align-items:flex-start;gap:8px}}.timeline-container{position:relative;padding-left:40px;}.timeline-item{position:relative;margin-bottom:30px;padding-bottom:20px;}.timeline-item:not(:last-child):before{content:'';position:absolute;left:-25px;top:35px;width:2px;height:calc(100% - 15px);background:linear-gradient(180deg, var(--color-border) 0%, transparent 100%);}.timeline-badge{position:absolute;left:-40px;top:0;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,0.1);}.timeline-content{background:var(--color-bg-secondary);padding:var(--spacing-4);border-radius:var(--radius-lg);border-left:3px solid var(--color-primary);}.timeline-content h4{margin-top:0;margin-bottom:var(--spacing-2);color:var(--color-primary);}
+.axiom-content{text-align:center;}.axiom-title{text-align:center;}.mode-description{text-align:center;}.mode-target{text-align:center;}#reminder-text{text-align:center;}
   </style>
 
 <style>
@@ -5335,17 +5335,6 @@ tr.summary-row td {
   letter-spacing: 0.04em;
 }
 
-.version-badge {
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  padding: 3px 10px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%) !important;
-  color: white;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(13,148,136,0.25);
-}
-
 @media (max-width: 480px) { .version-badge { font-size: var(--font-size-xs); } }
 
 #daily-checkin-section .card-content {
@@ -6428,7 +6417,7 @@ textarea:focus {
 hr { border-color: #bbf7d0 !important; }
 </style>
 
-<!-- ===== TPI V1.69 排版美化：标题居中 + 副标题/段落最优对齐 ===== -->
+<!-- ===== TPI V1.78 排版美化：标题居中 + 副标题/段落最优对齐 ===== -->
 <style id="tpi-v168-layout-polish">
 
 /* ── 1. 模块标题（card-title）：居中 ── */
@@ -6588,8 +6577,136 @@ textarea {
   text-align: left !important;
 }
 
+/* ══════════════════════════════════════════════════
+   TPI V1.78 排版增强：标题中置 + 段落对齐优化
+   ══════════════════════════════════════════════════ */
+
+/* ── V1.78-A. 内容区所有级别标题：统一居中 ── */
+.card-content h1,
+.card-content h2,
+.card-content h3,
+.card-content h4,
+.card-content h5,
+.card-content h6,
+.tpi-submodule-body h1,
+.tpi-submodule-body h2,
+.tpi-submodule-body h3,
+.tpi-submodule-body h4,
+.tpi-submodule-body h5,
+.tpi-submodule-body h6,
+.alert h2,
+.alert h3,
+.alert h4,
+.alert h5,
+.rules-content h3,
+.rules-content h4,
+.rules-content h5,
+.tier-content h4,
+.axiom-title,
+.timeline-content h4 {
+  text-align: center !important;
+}
+
+/* ── V1.78-B. 只有一行的 label 式段落：居中 ── */
+.tpi-submodule-body > p.text-muted,
+.card-content > p.text-muted {
+  text-align: center !important;
+}
+
+/* ── V1.78-C. tier-content 说明段落：居中 ── */
+.tier-content > p {
+  text-align: center !important;
+}
+
+/* ── V1.78-D. axiom-card 内容：居中（卡片格式最美观）── */
+.axiom-content {
+  text-align: center !important;
+}
+
+/* ── V1.78-E. checkin 模块说明文字：居中 ── */
+.checkin-help > div {
+  text-align: center !important;
+}
+
 </style>
 
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   TPI V1.78 文本对齐覆盖规则
+   Text Alignment Override Rules
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 一、强制居中：所有层级标题 ── */
+h1, h2, h3, h4, h5, h6 {
+  text-align: center !important;
+}
+
+/* ── 覆盖特定情境下的标题（规则内容区、卡片内容区等） ── */
+.rules-content h4,
+.rules-content h5,
+.rules-content h3,
+.tier-content h4,
+.tier-content h5,
+.card-content h3,
+.card-content h4,
+.card-content h5,
+.modal-body h4,
+.modal-body h5,
+.data-processing-card h4,
+.alert h4 {
+  text-align: center !important;
+}
+
+/* ── axiom 卡片标题居中 ── */
+.axiom-title {
+  text-align: center !important;
+}
+
+/* ── 徽章名称居中 ── */
+.badge-name {
+  text-align: center !important;
+}
+
+/* ── 模式卡片标题居中 ── */
+.mode-title {
+  text-align: center !important;
+}
+
+/* ── 二、多行段落：左对齐 + 首行缩进2em（文章性文本） ── */
+/* axiom卡片内容（多行说明性段落）*/
+.axiom-content {
+  text-align: left !important;
+  text-indent: 2em !important;
+}
+
+/* 规则说明区的段落（详细规则说明，文章性） */
+.rules-content p {
+  text-align: left !important;
+  text-indent: 2em !important;
+}
+
+/* ── 三、模式描述：多行段落，左对齐 + 首行缩进 ── */
+.mode-description {
+  text-align: left !important;
+  text-indent: 2em !important;
+}
+
+/* ── 四、左对齐（无缩进）：列表旁说明、提示性文本 ── */
+.badge-description {
+  text-align: left !important;
+}
+
+/* ── 保持列表项左对齐 ── */
+li {
+  text-align: left !important;
+}
+
+/* ── 表格单元格保持原有对齐（不覆盖） ── */
+th, td {
+  /* 保留原有对齐方式 */
+}
+
+</style>
 </head>
 <body>
 
@@ -6607,15 +6724,15 @@ textarea {
       <span class="label">🗣️ FLI</span><span id="ts-fli" class="value">-</span><span id="ts-fli-pct" class="tpi-pct-badge" style="display:none;font-size:9px;margin-left:3px;opacity:0.75;"></span>
     </div>
     <div class="divider"></div>
-    <div class="pill" onclick="try{var el=document.getElementById('bcm')||document.getElementById('sys-section')||document.getElementById('sys');el&&el.scrollIntoView({behavior:'smooth',block:'start'})}catch(_){}" style="cursor:pointer;" title="点击跳转到 SYS 基石系统模块">
+    <div class="pill" onclick="try{var el=document.getElementById('bcm')||document.getElementById('sys-section')||document.getElementById('sys');el&amp;&amp;el.scrollIntoView({behavior:'smooth',block:'start'})}catch(_){}" style="cursor:pointer;" title="点击跳转到 SYS 基石系统模块">
       <span class="label">🧱 SYS</span><span id="ts-sys" class="value">-</span><span id="ts-sys-pct" class="tpi-pct-badge" style="display:none;font-size:9px;margin-left:3px;opacity:0.75;"></span>
     </div>
     <div class="divider"></div>
-    <div class="pill" onclick="try{var el=document.getElementById('bonus')||document.getElementById('bonus-section');el&&el.scrollIntoView({behavior:'smooth',block:'start'})}catch(_){}" style="cursor:pointer;" title="点击跳转到 BONUS 韧性加分模块">
+    <div class="pill" onclick="try{var el=document.getElementById('bonus')||document.getElementById('bonus-section');el&amp;&amp;el.scrollIntoView({behavior:'smooth',block:'start'})}catch(_){}" style="cursor:pointer;" title="点击跳转到 BONUS 韧性加分模块">
       <span class="label">🎁 BONUS</span><span id="ts-bonus" class="value">-</span>
     </div>
     <div class="divider"></div>
-    <div class="pill total" onclick="try{var h=document.getElementById('tpi-total-heading')||document.getElementById('tpi-dashboard');if(h){var card=h.closest('.card');if(card&&card.classList.contains('collapsed')&&window.TPI)window.TPI.toggleCard(card.id);setTimeout(function(){h.scrollIntoView({behavior:'smooth',block:'start'})},50)}}catch(_){}" style="cursor:pointer;" title="点击跳转到 TPI仪表盘 - TPI E总分">
+    <div class="pill total" onclick="try{var h=document.getElementById('tpi-total-heading')||document.getElementById('tpi-dashboard');if(h){var card=h.closest('.card');if(card&amp;&amp;card.classList.contains('collapsed')&amp;&amp;window.TPI)window.TPI.toggleCard(card.id);setTimeout(function(){h.scrollIntoView({behavior:'smooth',block:'start'})},50)}}catch(_){}" style="cursor:pointer;" title="点击跳转到 TPI仪表盘 - TPI E总分">
       <span class="label">🏆 总分</span><span id="ts-total" class="value">-</span><span id="ts-total-pct" class="tpi-pct-badge" style="display:none;font-size:9px;margin-left:3px;opacity:0.75;"></span>
     </div>
     <div id="ts-rating" class="pill rating" onclick="try{document.getElementById('tpi-dashboard')?document.getElementById('tpi-dashboard').scrollIntoView({behavior:'smooth',block:'start'}):window.scrollTo({top:0,behavior:'smooth'})}catch(_){}" style="cursor:pointer;" title="点击跳转到评级详情">加载中...</div>
@@ -7182,7 +7299,7 @@ document.addEventListener('click', function(e) {
 <div class="header-content">
 <div class="header-title">
 <h1 style="font-size:clamp(1.5rem, 3vw, 2.5rem);font-weight:800;background:linear-gradient(135deg,#0f766e 0%,#0d9488 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.02em;">
-        全维效能管理系统（TPI，V1.69）
+        全维效能管理系统（TPI，V1.78）
        </h1>
 
 <div style="display:inline-flex;align-items:center;gap:6px;flex-shrink:0;">
@@ -7243,7 +7360,7 @@ document.addEventListener('click', function(e) {
 </div>
 <div class="card-content">
 <div class="alert alert-info mb-3">
-<p>
+<p style="text-align: center;">
 <strong style="display:block;text-align:center;">✅ 功能说明：每日签到功能，记录您的连续签到天数，帮助培养良好的习惯。</strong>
         </p>
 </div>
@@ -7282,12 +7399,8 @@ document.addEventListener('click', function(e) {
 
 <div class="checkin-help" style="padding: 15px; background: var(--color-bg-tertiary); border-left: 4px solid rgba(13,148,136,0.55); border-radius: 8px;">
 <div style="font-weight: 700; margin-bottom: 10px; color: var(--color-text-secondary); text-align:center;">💡 使用说明</div>
-<div style="font-size: 14px; line-height: 1.6; color: var(--color-text-secondary); text-align:center;">
-<ul class="tpi-u-ml-20px" style="list-style:none;padding-left:0;">
-<li>每天只能签到一次，签到后按钮会变为"已签到"状态</li>
-<li>连续签到会累计天数，中断后会重新从1天开始计算</li>
-<li>建议配合云端同步功能使用，确保数据安全</li>
-</ul>
+<div style="font-size: 14px; line-height: 1.6; color: var(--color-text-secondary); text-align:justify;">
+<p style="text-indent:2em; margin:0;">每天只能签到一次，签到后按钮会变为"已签到"状态。连续签到会累计天数，中断后会重新从1天开始计算。建议配合云端同步功能使用，确保数据安全。</p>
 </div>
 </div>
 </div>
@@ -7436,8 +7549,8 @@ document.addEventListener('click', function(e) {
   <div class="tpi-submodule-body" id="submod-appwrite-body">
 
     <div class="alert alert-info" style="margin-bottom:12px;padding:10px 14px;border-radius:8px;background:#eff6ff;border: 1px solid #a7f3d0;">
-      <p style="margin:0;font-size:13px;"><strong>☁️ Appwrite 功能说明</strong>：注册账号后用邮箱+密码登录。<b>当日同步</b>仅上传/下载所选日期单天数据；<b>全量同步</b>一次处理所有历史天数，用于版本升级和跨设备完整迁移。<br>
-      <span style="opacity:.85">提示：同步只影响数据内容，不改动网页布局与计分规则。</span></p>
+      <p style="margin:0;font-size:13px;text-align:left;text-indent:2em;"><strong>☁️ Appwrite 功能说明</strong>：注册账号后用邮箱+密码登录。<b>当日同步</b>仅上传/下载所选日期单天数据；<b>全量同步</b>一次处理所有历史天数，用于版本升级和跨设备完整迁移。</p>
+      <p style="margin:4px 0 0 0;font-size:13px;text-align:center;"><span style="opacity:.85">提示：同步只影响数据内容，不改动网页布局与计分规则。</span></p>
     </div>
 
     <div id="tpi-auth-panel" style="max-width: 820px;">
@@ -7490,12 +7603,12 @@ document.addEventListener('click', function(e) {
           <span style="font-weight:600;color:#0f766e;">⏰ 自动同步时间窗口：</span>
           <label style="display:flex;align-items:center;gap:6px;">
             <span style="color:#6b7280;">开始</span>
-            <input type="time" id="tpi-window-start" value="22:00" style="padding:4px 8px;border: 1px solid #5eead4;border-radius:5px;font-size:13px;" onchange="window.__tpiSaveAppwriteWindow&&window.__tpiSaveAppwriteWindow()">
+            <input type="time" id="tpi-window-start" value="22:00" style="padding:4px 8px;border: 1px solid #5eead4;border-radius:5px;font-size:13px;" onchange="window.__tpiSaveAppwriteWindow&amp;&amp;window.__tpiSaveAppwriteWindow()">
           </label>
           <span style="color:#d1d5db;">—</span>
           <label style="display:flex;align-items:center;gap:6px;">
             <span style="color:#6b7280;">结束</span>
-            <input type="time" id="tpi-window-end" value="23:59" style="padding:4px 8px;border: 1px solid #5eead4;border-radius:5px;font-size:13px;" onchange="window.__tpiSaveAppwriteWindow&&window.__tpiSaveAppwriteWindow()">
+            <input type="time" id="tpi-window-end" value="23:59" style="padding:4px 8px;border: 1px solid #5eead4;border-radius:5px;font-size:13px;" onchange="window.__tpiSaveAppwriteWindow&amp;&amp;window.__tpiSaveAppwriteWindow()">
           </label>
           <span style="font-size:11px;color:#0f766e;">仅在此时段内触发自动同步（不影响手动同步）</span>
         </div>
@@ -7556,7 +7669,7 @@ document.addEventListener('click', function(e) {
       </div>
 
       <div id="tpi-sync-msg" style="margin-top:12px; font-size:14px; max-height:260px; overflow-y:auto;"></div>
-      <p id="sync-status" style="margin-top:6px; font-size:13px; opacity:.9;"></p>
+      <p id="sync-status" style="margin-top:6px; font-size:13px; opacity:.9; text-align:center;"></p>
       <div id="tpi-dual-sync-summary" style="margin-top:12px;padding:10px 14px;background:linear-gradient(135deg,#f0fdf4,#eff6ff);border: 1px solid #d1fae5;border-radius:8px;font-size:12px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:center;text-align:center;">
         <span style="font-weight:700;color:#374151;text-align:center;display:block;width:100%;">🔄 双云端状态摘要</span>
         <span>Appwrite 上次同步：<strong id="dual-appwrite-last">获取中...</strong></span>
@@ -7582,8 +7695,8 @@ document.addEventListener('click', function(e) {
   <div class="tpi-submodule-body tpi-submodule-body--gist" id="submod-gist-body">
 
     <div class="alert alert-warning mb-3">
-      <p style="margin:0;font-size:13px;"><strong>🐙 GIT 功能说明</strong>：用 GitHub Personal Access Token 授权，数据存储在你自己的 GitHub Gist 中。<b>当日同步</b>仅上传/下载所选日期单天数据；<b>全量同步</b>一次处理所有历史天数，用于版本升级和跨设备完整迁移。<br>
-      <span style="opacity:.85;">• 建议：将 GIT 作为 Appwrite 的备份补充，双重保障。每天睡前点击「当日上传」，或版本升级时使用「全量上传/下载」。</span></p>
+      <p style="margin:0;font-size:13px;text-align:left;text-indent:2em;"><strong>🐙 GIT 功能说明</strong>：用 GitHub Personal Access Token 授权，数据存储在你自己的 GitHub Gist 中。<b>当日同步</b>仅上传/下载所选日期单天数据；<b>全量同步</b>一次处理所有历史天数，用于版本升级和跨设备完整迁移。</p>
+      <p style="margin:4px 0 0 0;font-size:13px;text-align:center;"><span style="opacity:.85;">• 建议：将 GIT 作为 Appwrite 的备份补充，双重保障。每天睡前点击「当日上传」，或版本升级时使用「全量上传/下载」。</span></p>
     </div>
 
     <div id="gist-backup-panel" style="max-width: 820px;">
@@ -7599,7 +7712,7 @@ document.addEventListener('click', function(e) {
           <input id="gist-token" type="text" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
                  style="width:100%;padding:9px 10px;border:2px solid #fcd34d;border-radius:8px;font-size:13px;font-family:monospace;letter-spacing:0.5px;margin-bottom:8px;" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
           <div style="font-size:12px;color:#6b7280;margin-bottom:10px;">
-            🔗 <a href="https://github.com/settings/tokens/new?scopes=gist&description=TPI%20Backup" target="_blank" style="color:#0d9488;" rel="noopener noreferrer">点击这里创建 Token</a>（跨设备同步时，两端填写同一 Token）
+            🔗 <a href="https://github.com/settings/tokens/new?scopes=gist&amp;description=TPI%20Backup" target="_blank" style="color:#0d9488;" rel="noopener noreferrer">点击这里创建 Token</a>（跨设备同步时，两端填写同一 Token）
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
             <button type="button" id="btn-verify-token" onclick="window.verifyAndSaveGistToken()"
@@ -7694,8 +7807,8 @@ document.addEventListener('click', function(e) {
   </div>
 </div>
 
-</div>
 </section>
+</div>
 <div class="container">
      <section class="card fade-in stagger-2" id="misc-log-section">
       <div class="card-header" onclick="window.TPI &amp;&amp; window.TPI.toggleCard ? window.TPI.toggleCard('misc-log-section') : null">
@@ -7774,10 +7887,10 @@ document.addEventListener('click', function(e) {
   <div class="tpi-submodule-body" id="submod-tpi-e-score-body" style="padding:16px;">
 
 <div class="alert alert-danger mb-6" id="losing-streak-warning" style="display:none">
-<h4>
+<h4 style="text-align: center;">
          ⚠️ 连败预警
         </h4>
-<p>
+<p style="text-align:center;">
 <strong>
           检测到连续
           <span id="losing-days-display">
@@ -7786,7 +7899,7 @@ document.addEventListener('click', function(e) {
           日 TPI &lt; 95 分
          </strong>
 </p>
-<p style="margin-top: 8px; font-size: 0.95em;">
+<p style="margin-top: 8px; font-size: 0.95em; text-align:center;">
          建议主动分析原因：
         </p>
 <ul style="margin: 8px 0 0 20px; line-height: 1.8; font-size: 0.9em;">
@@ -7804,7 +7917,7 @@ document.addEventListener('click', function(e) {
           是否AMI产出持续为0？（启动障碍）
          </li>
 </ul>
-<p style="margin-top: 12px; font-weight: 600; color: #991b1b;">
+<p style="margin-top: 12px; font-weight: 600; color: #991b1b; text-align: center;">
          💡 建议操作：主动进入
          <strong>
           [🅱️ 复苏模式]
@@ -7817,14 +7930,14 @@ document.addEventListener('click', function(e) {
     <span>💡 如何结束连败状态？</span><span style="margin-left:auto;font-size:0.8em;opacity:0.7;">点击展开</span>
   </summary>
   <div style="padding:10px 12px;background:rgba(153,27,27,0.04);border-radius:0 0 6px 6px;font-size:0.85em;line-height:1.7;color:#7f1d1d;">
-    <p style="font-weight:600;margin-bottom:6px;">结束连败的最低条件：</p>
+    <p style="font-weight:600;margin-bottom:6px; text-align: center;">结束连败的最低条件：</p>
     <ul style="padding-left:16px;margin:0;">
       <li>当日 TPI<sub>E</sub> ≥ <strong>95 分</strong>（达标线）</li>
       <li>AMI 产出 ≥ 核心模块基础阈值（非零有效产出）</li>
       <li>BCM 子系统得分达到最低线（建议 ≥ 10 分）</li>
       <li>SYS<sub>Net</sub> ≥ 安全阈值（建议 ≥ 12 分）</li>
     </ul>
-    <p style="margin-top:6px;margin-bottom:0;color:#991b1b;">优先恢复睡眠与晨间入馆，是最快速的基石修复路径。</p>
+    <p style="margin-top:6px;margin-bottom:0;color:#991b1b; text-align: center;">优先恢复睡眠与晨间入馆，是最快速的基石修复路径。</p>
   </div>
 </details>
 </div>
@@ -8138,15 +8251,15 @@ document.addEventListener('click', function(e) {
   <div class="tpi-submodule-body" id="submod-dash-formula-body">
 <div class="alert alert-info mt-6">
 
-<p>
+<p style="text-align:center;">
          <span class="tpi-formula-display">TPI<sub>E</sub> = AMI<sub>Total</sub> + FLI + Sys<sub>Net</sub> + Bonus</span>
         </p>
-<p>
+<p style="text-indent:2em;text-align:justify;">
 <em>
           注：AMI<sub>Total</sub> = Base (h × 2.5) + Output [(Pages/Words × Price) × F] + 常驻任务奖励分
          </em>
 </p>
-<p style="font-size: 0.9em; margin-top: 4px;">
+<p style="font-size:0.9em;margin-top:4px;text-indent:2em;text-align:justify;">
 <em>
           💡
           <strong>
@@ -8155,7 +8268,7 @@ document.addEventListener('click', function(e) {
           ：学术论著扫描(每日≥100页)可额外获得+1分独立奖励，该分数直接计入AMI总分。
          </em>
 </p>
-<p>
+<p style="text-indent:2em;text-align:justify;">
 <em>
           注：Output Score 封顶规则：
           <strong>
@@ -8164,17 +8277,18 @@ document.addEventListener('click', function(e) {
           。
          </em>
 </p>
-<p>
+<p style="text-indent:2em;text-align:justify;">
 <em>
           注：Sys<sub>Net</sub> = min(25, BCM (Part 3) + Logistics (Part 4) + HSM (Part 5))
          </em>
 </p>
-<p>
+<p style="text-indent:2em;text-align:justify;">
 <em>
           ⚠️ 封顶与预警规则：
          </em>
 </p>
-<ol style="margin-left: 20px; font-size: 0.9em;">
+<div><div>
+<ol style="margin-left:2em;font-size:0.9em;text-align:justify;">
 <li>
           基石系统（Sys）各项得分之和若超过 25 分，最终计入总分时仅取
           <strong>
@@ -8187,28 +8301,29 @@ document.addEventListener('click', function(e) {
            子系统最低达标分预警
           </strong>
           ：任一子维度低于以下分数将触发系统提醒（不强制切换模式）：
-          <ul style="margin-left: 15px;">
+          <ul style="margin-left: 15px; list-style:disc;">
 <li>
 <strong>
              BCM
             </strong>
-            &lt; 10分
+            &lt; <span style="color:#dc2626;font-weight:700;">10</span>分
            </li>
 <li>
 <strong>
              Logistics
             </strong>
-            &lt; 4分
+            &lt; <span style="color:#dc2626;font-weight:700;">4</span>分
            </li>
 <li>
 <strong>
              HSM
             </strong>
-            &lt; 2.5分
+            &lt; <span style="color:#dc2626;font-weight:700;">2.5</span>分
            </li>
 </ul>
 </li>
 </ol>
+</div></div>
   </div>
 </div>
 </div>
@@ -8340,7 +8455,7 @@ document.addEventListener('click', function(e) {
             </strong>
 </li>
 </ul>
-<p>
+<p style="text-align:center;">
 <strong>
             🔋 能量平衡协议 (Energy Balance Protocol v23)
            </strong>
@@ -8405,10 +8520,10 @@ document.addEventListener('click', function(e) {
 <span class="axiom-icon">
            ⏳
           </span>
-<h4 class="axiom-title">
+<h4 class="axiom-title" style="text-align: center;">
            时空观
           </h4>
-<p class="axiom-content">
+<p class="axiom-content" style="text-align: center;">
            不过于想已经发生的事情（沉没成本），不想还未发生的事情（预期焦虑），只想眼前的事情（
            <strong>
             认知隧道
@@ -8420,10 +8535,10 @@ document.addEventListener('click', function(e) {
 <span class="axiom-icon">
            ⚓
           </span>
-<h4 class="axiom-title">
+<h4 class="axiom-title" style="text-align: center;">
            参照系
           </h4>
-<p class="axiom-content">
+<p class="axiom-content" style="text-align: center;">
            不跟他人比，只和自己的昨天比。
            <strong>
             长期主义的本质不是对自己更狠，而是这种生活方式能坚持更久。
@@ -8434,10 +8549,10 @@ document.addEventListener('click', function(e) {
 <span class="axiom-icon">
            📐
           </span>
-<h4 class="axiom-title">
+<h4 class="axiom-title" style="text-align: center;">
            方法论
           </h4>
-<p class="axiom-content">
+<p class="axiom-content" style="text-align: center;">
            数据是为了服务你，而不是审判你。
            <strong>
             Context is King.
@@ -8467,10 +8582,10 @@ document.addEventListener('click', function(e) {
            Tier 1
           </div>
 <div class="tier-content">
-<h4>
+<h4 style="text-align: center;">
             🔴 生存红线 [T1]
            </h4>
-<p>
+<p style="text-align:center;">
 <strong>
              不可被备注覆盖
             </strong>
@@ -8487,10 +8602,10 @@ document.addEventListener('click', function(e) {
            Tier 2
           </div>
 <div class="tier-content">
-<h4>
+<h4 style="text-align: center;">
             🟡 弹性规则 [T2]
            </h4>
-<p>
+<p style="text-align:center;">
 <strong>
              可被备注覆盖
             </strong>
@@ -8503,10 +8618,10 @@ document.addEventListener('click', function(e) {
            Tier 3
           </div>
 <div class="tier-content">
-<h4>
+<h4 style="text-align: center;">
             ⚪ 程序性规则 [T3]
            </h4>
-<p>
+<p style="text-align:center;">
 <strong>
              需直接重写而非备注
             </strong>
@@ -8561,7 +8676,7 @@ document.addEventListener('click', function(e) {
 <h4 style="text-align:center;">
            ✅ 客观豁免 (Objective Exemption)
           </h4>
-<p style="text-align:center;">
+<p style="text-align:left;text-indent:2em;">
            因
            <strong>
             客观因素
@@ -8783,7 +8898,7 @@ document.addEventListener('click', function(e) {
            </strong>
            : 若某任务已按 [Type D] 的"当量法"计分，则字数/页数记为 0。
           </p>
-<p style="text-align:center;">
+<p style="text-align:left;text-indent:2em;">
 <strong>
             Type D (特殊攻坚) 定义
            </strong>
@@ -8817,7 +8932,7 @@ document.addEventListener('click', function(e) {
 <span class="axiom-icon">
             🎯
            </span>
-<h4 class="axiom-title">
+<h4 class="axiom-title" style="text-align: center;">
             去道德化
            </h4>
 <p class="axiom-content" style="text-align:center;">
@@ -8828,7 +8943,7 @@ document.addEventListener('click', function(e) {
 <span class="axiom-icon">
             📝
            </span>
-<h4 class="axiom-title">
+<h4 class="axiom-title" style="text-align: center;">
             真实性
            </h4>
 <p class="axiom-content" style="text-align:center;">
@@ -8862,7 +8977,7 @@ document.addEventListener('click', function(e) {
     <span class="tpi-submodule-arrow" aria-hidden="true">▼</span>
   </div>
   <div class="tpi-submodule-body" id="submod-qb-sequence-body">
-<p style="text-align:center;">
+<p style="text-align:left;text-indent:2em;">
          请在
          <strong>
           上午 10:00 前
@@ -8888,13 +9003,13 @@ document.addEventListener('click', function(e) {
   <div class="tpi-submodule-body" id="submod-qb-diagnosis-body">
 <div class="grid-2 mt-4">
 <div>
-<h4>
+<h4 style="text-align: center;">
            🔋 身心电量
           </h4>
 <p class="text-muted mb-3" style="text-align:center;">
            今日醒来感到精力充沛吗？
           </p>
-<div style="display: flex; gap: var(--spacing-4);">
+<div style="display: flex; gap: var(--spacing-4); justify-content: center;">
 <label class="tpi-inline-03">
 <input aria-label="精力充沛" name="energy-level" type="radio" value="high"/>
 <span>
@@ -8910,13 +9025,13 @@ document.addEventListener('click', function(e) {
 </div>
 </div>
 <div>
-<h4>
+<h4 style="text-align: center;">
            🚧 客观干扰
           </h4>
 <p class="text-muted mb-3" style="text-align:center;">
            今日是否有 &gt;2小时 的行政/杂事占用？
           </p>
-<div style="display: flex; gap: var(--spacing-4);">
+<div style="display: flex; gap: var(--spacing-4); justify-content: center;">
 <label class="tpi-inline-03">
 <input aria-label="无干扰" name="interference" type="radio" value="none"/>
 <span>
@@ -8934,10 +9049,10 @@ document.addEventListener('click', function(e) {
 </div>
 
 <div class="alert alert-danger mb-6 tier-1-section">
-<h3>
+<h3 style="text-align: center;">
          💭 认知状态速记 (Cognitive Snapshot) [T1]
         </h3>
-<p class="text-muted" style="text-align:center;">
+<p class="text-muted" style="text-align:left;text-indent:2em;">
 <em>
           👇
           <strong>
@@ -8964,7 +9079,7 @@ document.addEventListener('click', function(e) {
          </em>
 </p>
 <div class="mt-4">
-<h5>📝 今日主要状态（可多选）</h5>
+<h5 style="text-align: center;">📝 今日主要状态（可多选）</h5>
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-3); margin-top: var(--spacing-3);">
 <label class="tpi-inline-03">
 <input aria-label="心流充沛" name="cognitive-state" type="checkbox" value="flow"/>
@@ -9029,7 +9144,7 @@ document.addEventListener('click', function(e) {
 </div>
 </div>
 <div class="mt-4">
-<h5>🔋 资源状态</h5>
+<h5 style="text-align: center;">🔋 资源状态</h5>
 <div style="display: flex; gap: var(--spacing-4); flex-wrap: wrap; margin-top: var(--spacing-3);">
 <label class="tpi-inline-03">
 <input aria-label="资料充足" name="resource-state" type="checkbox" value="sufficient"/>
@@ -9080,7 +9195,7 @@ document.addEventListener('click', function(e) {
 </p>
 <hr style="margin: var(--spacing-3) 0;"/>
 <div class="mb-4">
-<h5>
+<h5 style="text-align: center;">
           🛡️ 客观豁免 (不限制次数，需备注)
          </h5>
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-3);">
@@ -9172,7 +9287,7 @@ document.addEventListener('click', function(e) {
 </div>
 </div>
 <div style="margin-top: 1rem;">
-<h5>
+<h5 style="text-align: center;">
           📝 豁免理由简述
          </h5>
 
@@ -9184,7 +9299,7 @@ document.addEventListener('click', function(e) {
 </div>
 <textarea aria-label="豁免理由" class="tpi-inline-02" id="exemption-reason-textarea" placeholder="[在此简述豁免原因，特别是主观豁免需说明必要性]" rows="3"></textarea>
 <div class="alert alert-info tpi-u-mt-varspacing4">
-<h5 style="margin: 0 0 8px 0;">
+<h5 style="margin: 0 0 8px 0; text-align: center;">
            🏆 豁免与连胜规则
           </h5>
 <ul style="margin: 0; padding-left: 0; font-size: 0.9em; list-style: none; text-align:center;">
@@ -9222,7 +9337,7 @@ document.addEventListener('click', function(e) {
     <span class="tpi-submodule-arrow" aria-hidden="true">▼</span>
   </div>
   <div class="tpi-submodule-body" id="submod-qb-decision-body">
-<p class="text-muted mb-4" style="text-align:center;">
+<p class="text-muted mb-4" style="text-align:left;text-indent:2em;">
 <em>
           逻辑：默认模式选择具有
           <strong>
@@ -9248,7 +9363,7 @@ document.addEventListener('click', function(e) {
             混合/标准
            </span>
 </div>
-<p class="mode-description">
+<p class="mode-description" style="text-align: center;">
            库恩式的"解谜"状态。身心平稳，正常产出。
           </p>
 <div class="mode-target">
@@ -9267,7 +9382,7 @@ document.addEventListener('click', function(e) {
             主动休整
            </span>
 </div>
-<p class="mode-description">
+<p class="mode-description" style="text-align: center;">
            低迷/生病/强制触发。只求在场，不求产出。允许"合法摸鱼"。
           </p>
 <div class="mode-target">
@@ -9286,7 +9401,7 @@ document.addEventListener('click', function(e) {
             底线防御
            </span>
 </div>
-<p class="mode-description">
+<p class="mode-description" style="text-align: center;">
            11:00后开工，或上午完全失效。接受流失，力求止损。
           </p>
 <div class="mode-target">
@@ -9305,7 +9420,7 @@ document.addEventListener('click', function(e) {
             系统重置
            </span>
 </div>
-<p class="mode-description">
+<p class="mode-description" style="text-align: center;">
            不做学术是最高道德。法定节假日或彻底修复期。
           </p>
 <div class="mode-target">
@@ -9324,7 +9439,7 @@ document.addEventListener('click', function(e) {
             灵活组合
            </span>
 </div>
-<p class="mode-description">
+<p class="mode-description" style="text-align: center;">
            同一天应用不同模式逻辑。需在备注中明确各时段模式。
           </p>
 <div class="mode-target">
@@ -9349,19 +9464,19 @@ document.addEventListener('click', function(e) {
 </div>
 <div id="mode-reminder" style="display: none; margin-top: var(--spacing-4);">
 <div class="mode-reminder">
-<h4>
+<h4 style="text-align: center;">
            📢 模式提醒
           </h4>
-<p id="reminder-text">
+<p id="reminder-text" style="text-align: center;">
            请根据当前模式调整今日的期望和策略。
           </p>
 </div>
 </div>
 <div id="vacation-details" style="display: none; margin-top: var(--spacing-4);">
-<h4>
+<h4 style="text-align: center;">
           🏖️ 假期模式细分
          </h4>
-<p class="text-muted mb-3">
+<p class="text-muted mb-3" style="text-align:center;">
           选择休假时段数量：
          </p>
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-3); margin-bottom: var(--spacing-4);">
@@ -9393,7 +9508,7 @@ document.addEventListener('click', function(e) {
 </div>
 
 <div id="mixed-mode-selector" style="display: none; margin-top: var(--spacing-4);">
-<h4>
+<h4 style="text-align: center;">
           🔄 混合模式配置
          </h4>
 
@@ -9422,13 +9537,13 @@ document.addEventListener('click', function(e) {
   </div>
 </div>
 
-<p class="text-muted mb-3">
+<p class="text-muted mb-3" style="text-align:center;">
           💡 为每个时段选择对应的模式。各时段将分别按对应模式规则计分，最后汇总。
          </p>
 <div style="display: grid; gap: var(--spacing-4);">
 
 <div class="card tpi-u-759928">
-<h5 class="tpi-u-fd16ec">
+<h5 class="tpi-u-fd16ec" style="text-align: center;">
             🌅 上午时段 (8:00-11:00)
            </h5>
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--spacing-2);">
@@ -9460,7 +9575,7 @@ document.addEventListener('click', function(e) {
 </div>
 
 <div class="card tpi-u-759928">
-<h5 class="tpi-u-fd16ec">
+<h5 class="tpi-u-fd16ec" style="text-align: center;">
             ☀️ 下午时段 (15:00-17:00)
            </h5>
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--spacing-2);">
@@ -9492,7 +9607,7 @@ document.addEventListener('click', function(e) {
 </div>
 
 <div class="card tpi-u-759928">
-<h5 class="tpi-u-fd16ec">
+<h5 class="tpi-u-fd16ec" style="text-align: center;">
             🌆 晚上1时段 (18:30-20:00)
            </h5>
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--spacing-2);">
@@ -9524,7 +9639,7 @@ document.addEventListener('click', function(e) {
 </div>
 
 <div class="card tpi-u-759928">
-<h5 class="tpi-u-fd16ec">
+<h5 class="tpi-u-fd16ec" style="text-align: center;">
             🌙 晚上2时段 (20:40-23:00)
            </h5>
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--spacing-2);">
@@ -9556,7 +9671,7 @@ document.addEventListener('click', function(e) {
 </div>
 </div>
 <div class="alert alert-info tpi-u-mt-varspacing4">
-<p style="margin: 0; font-size: 0.9em;">
+<p style="margin: 0; font-size: 0.9em; text-align: center;">
            💡
            <strong>
             计分说明
@@ -9572,7 +9687,7 @@ document.addEventListener('click', function(e) {
           <span style="display:block;text-align:center;flex:1;">🧠 场景化模式解析与细则 Scenario Definition Reference (SDR)</span>
          </div>
 <div class="rules-content">
-<h4>
+<h4 style="text-align: center;">
            📚 1. 常态研究 (Normal Science) —— [混合/标准]
           </h4>
 <ul>
@@ -9603,7 +9718,7 @@ document.addEventListener('click', function(e) {
             ：≥ 90。
            </li>
 </ul>
-<h4>
+<h4 style="text-align: center;">
            🔄 2. 复苏/冷启动 (Recovery / Low Power) —— [主动休整/特殊板块]
           </h4>
 <ul>
@@ -9803,7 +9918,7 @@ document.addEventListener('click', function(e) {
             （不扣分，而非负分）。
            </li>
 </ul>
-<h4>
+<h4 style="text-align: center;">
            🛡️ 3. 斯多葛/止损 (Stoic / Damage Control) —— [底线防御]
           </h4>
 <ul>
@@ -9888,7 +10003,7 @@ document.addEventListener('click', function(e) {
 </ul>
 </li>
 </ul>
-<h4>
+<h4 style="text-align: center;">
            🏖️ 4. 假期/停机 (Vacation) —— [系统重置]
           </h4>
 <ul>
@@ -9945,7 +10060,7 @@ document.addEventListener('click', function(e) {
             。此时"不做学术"是最高道德。
            </li>
 </ul>
-<h4>
+<h4 style="text-align: center;">
            🔀 5. [M] 混合模式 (Mixed Mode) —— [灵活组合]
           </h4>
 <ul>
@@ -9995,9 +10110,8 @@ document.addEventListener('click', function(e) {
   </div>
 </div>
 
-</section>
   </div>
-</div>
+</section>
 </div>
 
 <section class="card fade-in stagger-5" id="bonus">
@@ -10017,12 +10131,12 @@ document.addEventListener('click', function(e) {
           <span style="display:block;text-align:center;flex:1;">🚀 势能感知系统与加分规则 Momentum Sensing Rules (MSR)</span>
          </div>
 <div class="rules-content">
-<p>
+<p style="text-align: center;">
 <strong>
             <span style="display:block;text-align:center;">定位：心理调节与关键转折。本板块奖励总分 <strong>≤ 5 分</strong>。</span>
            </strong>
 </p>
-<h4>🏆 一、各维度进步奖励方案（大幅精简）</h4>
+<h4 style="text-align: center;">🏆 一、各维度进步奖励方案（大幅精简）</h4>
 <ul>
 <li>
 <strong>
@@ -10074,7 +10188,7 @@ document.addEventListener('click', function(e) {
 </ul>
 </li>
 </ul>
-<h4>🌟 二、全局进步奖励（替代原自由填写）</h4>
+<h4 style="text-align: center;">🌟 二、全局进步奖励（替代原自由填写）</h4>
 <ul>
 <li>
             🏆
@@ -10105,8 +10219,8 @@ document.addEventListener('click', function(e) {
             ：连续 TPI ≥ 100 达到 7日(+1分)/14日(+2分)/21日(+3分)。奖励持续性，仅在里程碑日自动判定。
            </li>
 </ul>
-<h4>⚡ 三、连败预警与响应</h4>
-<p>
+<h4 style="text-align: center;">⚡ 三、连败预警与响应</h4>
+<p style="text-align: center;">
 <strong>
             触发条件
            </strong>
@@ -10116,13 +10230,13 @@ document.addEventListener('click', function(e) {
            </sub>
            &lt; 95。
           </p>
-<p>
+<p style="text-align: center;">
 <strong>
             预警显示
            </strong>
            ：系统将在TPI仪表盘顶部显示"稳态偏离提示"，提示您当前已偏离健康运行轨道。
           </p>
-<p>
+<p style="text-align: center;">
 <strong>
             建议操作
            </strong>
@@ -10136,7 +10250,7 @@ document.addEventListener('click', function(e) {
            </strong>
            模式进行系统性调整。
           </p>
-<p style="margin-top: 8px; font-size: 0.9em; color: var(--color-text-secondary);">
+<p style="margin-top: 8px; font-size: 0.9em; color: var(--color-text-secondary); text-align: center;">
 <em>
             <span style="display:block;text-align:center;">💡 去道德化：低分不等于失败，只是需要调整策略的信号。</span>
            </em>
@@ -10156,7 +10270,7 @@ document.addEventListener('click', function(e) {
   </div>
   <div class="tpi-submodule-body" id="submod-bonus-reward-body">
 <div class="alert alert-info mb-6">
-<h4>
+<h4 style="text-align: center;">
          📝 各维度进步奖励 (Dimension Progress Bonus)
         </h4>
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--spacing-4); margin-top: var(--spacing-3); margin-bottom: var(--spacing-6);">
@@ -10205,7 +10319,7 @@ document.addEventListener('click', function(e) {
 </div>
 </label>
 </div>
-<h4>
+<h4 style="text-align: center;">
          🏆 全局进步奖励 (Global Progress Bonus)
         </h4>
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--spacing-4); margin-top: var(--spacing-3);">
@@ -10319,18 +10433,18 @@ document.addEventListener('click', function(e) {
 </div>
 </div>
 <div class="mb-6">
-<h4>
+<h4 style="text-align: center;">
          📝 奖励理由 (必填)
         </h4>
 <textarea aria-label="奖励理由" id="bonus-reason" placeholder="在此处简述是什么事件/念头带来了转折..." rows="4"></textarea>
 </div>
 <div class="text-center">
-<h3>
+<h3 style="text-align: center;">
          🏆 韧性加分总分:
          <span id="bonus-total-score" style="font-size:1.3em;font-weight:800;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',Arial,sans-serif;font-variant-numeric:tabular-nums;">0</span>
          分
         </h3>
-<p class="text-muted">
+<p class="text-muted" style="text-align: center;">
          (上限 5 分，将计入 TPI
          <sub>
           E
@@ -10351,6 +10465,7 @@ document.addEventListener('click', function(e) {
   </div>
 </div>
 </div>
+</section>
 
 <section class="card fade-in stagger-1" id="ami">
 <div class="card-header" onclick="window.TPI.toggleCard('ami')">
@@ -10364,10 +10479,10 @@ document.addEventListener('click', function(e) {
 <div class="rules-container mb-6">
 <div class="rules-section collapsed" id="ami-rules">
 <div class="rules-header" onclick="window.TPI.toggleRules('ami-rules')">
-          <span style="display:block;text-align:center;flex:1;">📘 AMI 使用说明与规则 Academic Momentum Index Guide & Rules (AMI G&R)</span>
+          <span style="display:block;text-align:center;flex:1;">📘 AMI 使用说明与规则 Academic Momentum Index Guide & Rules (AMI G&amp;R)</span>
          </div>
 <div class="rules-content">
-<h4>
+<h4 style="text-align: center;">
            🎯 核心原则
           </h4>
 <ul>
@@ -10384,10 +10499,10 @@ document.addEventListener('click', function(e) {
             ：严禁在 Block 进行中预判专注系数 F，防止观察干扰状态。
            </li>
 </ul>
-<h4 class="mt-4">
+<h4 class="mt-4" style="text-align: center;">
            📊 计分逻辑
           </h4>
-<p>
+<p style="text-align: center;">
 <strong>
             AMI 总分 = 基础在场分 + 核心产出分
            </strong>
@@ -10463,7 +10578,7 @@ document.addEventListener('click', function(e) {
             。
            </li>
 </ul>
-<h4 class="mt-4">
+<h4 class="mt-4" style="text-align: center;">
            ⚠️ 关键任务说明
           </h4>
 <ul>
@@ -10492,7 +10607,7 @@ document.addEventListener('click', function(e) {
 </ul>
 
 <div style="margin-top:16px;padding-top:12px;border-top: 1px dashed #bbf7d0;">
-<h4 style="margin-bottom:8px;">🔥 阅读认知负荷分级 (Level I-III)</h4>
+<h4 style="margin-bottom:8px; text-align: center;">🔥 阅读认知负荷分级 (Level I-III)</h4>
 
 <ul>
 <li>
@@ -10533,7 +10648,7 @@ document.addEventListener('click', function(e) {
 </div>
 
 <div style="margin-top:16px;padding-top:12px;border-top: 1px dashed #bbf7d0;">
-<h4 style="margin-bottom:8px;">🖊️ 写作知识生产层级 (Type A-D)</h4>
+<h4 style="margin-bottom:8px; text-align: center;">🖊️ 写作知识生产层级 (Type A-D)</h4>
 
 <ul>
 <li>
@@ -10663,9 +10778,9 @@ document.addEventListener('click', function(e) {
 </div>
 
 <div style="margin-top:16px;padding-top:12px;border-top: 1px dashed #bbf7d0;">
-<h4 style="margin-bottom:8px;">🗣️ 现场 L (Embodied Presence)</h4>
+<h4 style="margin-bottom:8px; text-align: center;">🗣️ 现场 L (Embodied Presence)</h4>
 
-<p>
+<p style="text-align: center;">
 <strong>
                核心定义
               </strong>
@@ -10679,7 +10794,7 @@ document.addEventListener('click', function(e) {
               </strong>
               。
              </p>
-<p class="tpi-u-mt-12px">
+<p class="tpi-u-mt-12px" style="text-align: center;">
 <strong>
                ⚖️ 边界厘清
               </strong>
@@ -10690,7 +10805,7 @@ document.addEventListener('click', function(e) {
               的持续性活动。短于此的简单沟通或邮件，请计入"启动仪式"的固定 +2 分。
              </p>
 <div class="tpi-u-mt-12px">
-<p>
+<p style="text-align: center;">
 <strong>
                 ✅ 包含场景
                </strong>
@@ -10734,7 +10849,7 @@ document.addEventListener('click', function(e) {
 </ul>
 </div>
 <div style="margin-top: 12px; padding: 8px; background: #fef2f2; border-left: 3px solid #0d9488;">
-<p>
+<p style="text-align: center;">
 <strong>
                 🚫 排除项
                </strong>
@@ -10756,7 +10871,7 @@ document.addEventListener('click', function(e) {
 </ul>
 </div>
 <div class="tpi-u-mt-12px">
-<p>
+<p style="text-align: center;">
 <strong>
                 ⚖️ 评分逻辑
                </strong>
@@ -10785,7 +10900,7 @@ document.addEventListener('click', function(e) {
                </li>
 </ul>
 </div>
-<p style="margin-top: 12px; font-size: 0.9em; color: var(--color-text-secondary);">
+<p style="margin-top: 12px; font-size: 0.9em; color: var(--color-text-secondary); text-align: center;">
 <em>
                💡 注：现场 L 任务按基础分 (h × 2.5) 计算，若有实质性笔记产出可按上述 Tier 计入 Output。
               </em>
@@ -10794,10 +10909,10 @@ document.addEventListener('click', function(e) {
 </div>
 
 <div style="margin-top:16px;padding-top:12px;border-top: 1px dashed #bbf7d0;">
-<h4 style="margin-bottom:8px;">🧠 专注系数 F (干扰物管制)</h4>
+<h4 style="margin-bottom:8px; text-align: center;">🧠 专注系数 F (干扰物管制)</h4>
 
 <div style="padding: 10px; background: #fee2e2; border-left: 4px solid #059669; margin-bottom: 16px;">
-<p style="margin: 0; font-weight: 600; color: #dc2626;">
+<p style="margin: 0; font-weight: 600; color: #dc2626; text-align: center;">
                ⚠️ 海森堡防抖协议 (Heisenberg Protocol)
               </p>
 <ul style="margin: 8px 0 0 20px; color: #991b1b;">
@@ -10822,7 +10937,7 @@ document.addEventListener('click', function(e) {
 </li>
 </ul>
 </div>
-<p>
+<p style="text-align: center;">
 <strong>
                🚫 干扰物定义 (Definitions of Interference)
               </strong>
@@ -10847,7 +10962,7 @@ document.addEventListener('click', function(e) {
                ：AI 工具调试 (GPT/Claude)、Obsidian 插件折腾、软件升级
               </li>
 </ul>
-<p style="margin-top: 16px;">
+<p style="margin-top: 16px; text-align: center;">
 <strong>
                📊 判定标准 (Grading Criteria)
               </strong>
@@ -10991,7 +11106,7 @@ document.addEventListener('click', function(e) {
 <h4 style="text-align:center;">
          🔥 点火程序 (Ignition Protocol)
         </h4>
-<p>
+<p style="text-align: center;">
 <em>
           <span style="display:block;text-align:center;">微小动作是对抗拖延的唯一解药。</span>
          </em>
@@ -11032,7 +11147,7 @@ document.addEventListener('click', function(e) {
 </label>
 </div>
 <div style="margin-top: 12px; padding: 10px; background: #fef3c7; border-left: 3px solid #10b981; font-size: 0.9em;">
-<p style="margin: 0;">
+<p style="margin: 0; text-align: center;">
 <strong>
            🌉 断桥豁免机制
           </strong>
@@ -11048,7 +11163,7 @@ document.addEventListener('click', function(e) {
 <h4 style="text-align:center;">
          🚀 启动仪式与学术共同体 (Protocol Details)
         </h4>
-<p>
+<p style="text-align: center;">
 <strong style="display:block;text-align:center;">
           启动规则
          </strong>
@@ -11887,8 +12002,8 @@ document.addEventListener('click', function(e) {
 </div>
 
 <div class="text-center" style="margin-top:16px;padding:14px;background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:12px;border: 1.5px solid #6ee7b7;">
-  <h3 style="color:#0f766e;margin:0;">⚔️ AMI 学术战力总分：<span id="ami-total-score" style="font-size:1.5em;font-weight:800;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',Arial,sans-serif;font-variant-numeric:tabular-nums;">0</span> 分</h3>
-  <p style="margin:4px 0 0 0;font-size:12px;color:#64748b;">T = <span id="total-hours">0.0</span>h &nbsp;|&nbsp; P = <span id="total-pages">0</span>p &nbsp;|&nbsp; W = <span id="total-words">0</span>w</p>
+  <h3 style="color:#0f766e;margin:0; text-align: center;">⚔️ AMI 学术战力总分：<span id="ami-total-score" style="font-size:1.5em;font-weight:800;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',Arial,sans-serif;font-variant-numeric:tabular-nums;">0</span> 分</h3>
+  <p style="margin:4px 0 0 0;font-size:12px;color:#64748b; text-align: center;">T = <span id="total-hours">0.0</span>h &nbsp;|&nbsp; P = <span id="total-pages">0</span>p &nbsp;|&nbsp; W = <span id="total-words">0</span>w</p>
 </div>
 </div>
 </div>
@@ -11912,13 +12027,13 @@ document.addEventListener('click', function(e) {
   </div>
   <div class="tpi-submodule-body" id="submod-bcm-rules-body">
 
-<h4>
+<h4 style="text-align: center;">
            🎯 核心理念
           </h4>
-<p>
+<p style="text-align: center;">
            BCM (Behavioral Control Module) 是行为纪律系统。通过时间节点管理，建立稳定的生活节奏。BCM 是整个系统的基石，低于阈值将触发保护机制。
           </p>
-<h4 class="mt-4">
+<h4 class="mt-4" style="text-align: center;">
            📊 计分规则详解
           </h4>
 <ul>
@@ -12033,7 +12148,7 @@ document.addEventListener('click', function(e) {
             下午时段 AMI 实际有效时长 ≥ 1.5小时
            </li>
 </ul>
-<h4 class="mt-4">
+<h4 class="mt-4" style="text-align: center;">
            💡 操作建议与注意事项
           </h4>
 <ul>
@@ -12059,7 +12174,7 @@ document.addEventListener('click', function(e) {
             核心奖励项需下午AMI≥1.5小时才能获得
            </li>
 </ul>
-<h4 class="mt-4">
+<h4 class="mt-4" style="text-align: center;">
            🧮 评分机制
           </h4>
 <ul>
@@ -12096,13 +12211,13 @@ document.addEventListener('click', function(e) {
 </li>
 </ul>
 
-<h4 class="mt-4">
+<h4 class="mt-4" style="text-align: center;">
            🧮 晨间入馆计分公式
           </h4>
 <div style="background:#eff6ff;border: 1px solid #6ee7b7;border-radius:10px;padding:14px 16px;margin-top:8px;">
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
     <span style="font-size:16px;">📐</span>
-    
+
 
   </div>
   <table style="width:100%;font-size:13px;border-collapse:collapse;">
@@ -12823,10 +12938,9 @@ document.addEventListener('click', function(e) {
 </table>
 </div>
 </div>
-</section>
   </div>
 </div>
-</div>
+</section>
 <section class="card fade-in stagger-5" id="hsm">
 <div class="card-header" onclick="window.TPI.toggleCard('hsm')">
 <div class="card-title">
@@ -12846,13 +12960,13 @@ document.addEventListener('click', function(e) {
   </div>
   <div class="tpi-submodule-body" id="submod-hsm-rules-body">
 <div class="alert alert-info mb-6">
-<h5 class="mt-3">
+<h5 class="mt-3" style="text-align: center;">
          🎯 核心理念
         </h5>
-<p>
+<p style="text-align: center;">
          HSM (Health &amp; Stability Metrics) 是健康与稳定性管理系统。健康是一切的基础，身体状态直接影响学术产出和系统的可持续性。
         </p>
-<h5 class="mt-3">
+<h5 class="mt-3" style="text-align: center;">
          📊 计分规则详解
         </h5>
 <ul>
@@ -12917,15 +13031,15 @@ document.addEventListener('click', function(e) {
 </ul>
 </li>
 </ul>
-<h5 class="mt-3">
+<h5 class="mt-3" style="text-align: center;">
          🧮 总分计算
         </h5>
-<p>
+<p style="text-align: center;">
 <strong>
           HSM 实得分上限：4.0分
          </strong>
 </p>
-<p>
+<p style="text-align: center;">
 <strong>
           计算公式
          </strong>
@@ -13218,10 +13332,9 @@ document.addEventListener('click', function(e) {
 </table>
 </div>
 </div>
-</section>
   </div>
 </div>
-</div>
+</section>
 <section class="card fade-in stagger-2" id="fli">
 <div class="card-header" onclick="window.TPI.toggleCard('fli')">
 <div class="card-title">
@@ -13234,19 +13347,19 @@ document.addEventListener('click', function(e) {
 <div class="rules-container mb-6">
 <div class="rules-section collapsed" id="fli-rules">
 <div class="rules-header" onclick="window.TPI.toggleRules('fli-rules')">
-          <span style="display:block;text-align:center;flex:1;">📘 FLI 使用说明与规则 Foreign Language Index Guide & Rules (FLI G&R)</span>
+          <span style="display:block;text-align:center;flex:1;">📘 FLI 使用说明与规则 Foreign Language Index Guide & Rules (FLI G&amp;R)</span>
          </div>
 <div class="rules-content">
-<h4>
+<h4 style="text-align: center;">
            🎯 核心理念
           </h4>
-<p>
+<p style="text-align: center;">
            FLI (Foreign Language Infrastructure) 是外语学习系统。语言是人文研究的透镜，外语能力的提升将直接服务于学术研究的深度与广度。碎片化学习比集中突击更有效。
           </p>
-<h4 class="mt-4">
+<h4 class="mt-4" style="text-align: center;">
            📊 计分规则详解
           </h4>
-<p>
+<p style="text-align: center;">
 <strong>
             FLI 总分 = 核心学习得分 + 碎片磨耳得分
            </strong>
@@ -13307,7 +13420,7 @@ document.addEventListener('click', function(e) {
             FLI总分参考上限：常态约19分（复苏模式最高20分）
            </li>
 </ul>
-<h4 class="mt-4">
+<h4 class="mt-4" style="text-align: center;">
            💡 推荐做法
           </h4>
 <ul>
@@ -13362,7 +13475,7 @@ document.addEventListener('click', function(e) {
 <input aria-label="英语学习" id="fli-en" onblur="TPI.calculateFLI(); TPI.calculateSystem()" oninput="TPI.calculateFLI(); TPI.calculateSystem()" type="checkbox"/>
 <span>🇺🇸 英语：<input aria-label="英语内容" placeholder="学习内容" style="width: 200px; margin-left: var(--spacing-2);" type="text"/></span>
 </label>
-<p class="text-muted tpi-u-91c462"><em>(简述学习内容)</em></p>
+<p class="text-muted tpi-u-91c462" style="text-align: center;"><em>(简述学习内容)</em></p>
 </td>
 <td class="center">
 <select aria-label="核心学习状态" class="status-select tpi-inline-01" onchange="TPI.calculateFLI(); TPI.calculateSystem()">
@@ -13412,7 +13525,7 @@ document.addEventListener('click', function(e) {
 <input aria-label="晚上磨耳" class="fli-fragment" type="checkbox"/>
 <span>🌙 晚上：<input aria-label="晚上材料" placeholder="材料" style="width: 150px; margin-left: var(--spacing-2);" type="text"/></span>
 </label>
-<p class="text-muted tpi-u-91c462"><em>(0.5=中断/未完; 1.0=完成)</em></p>
+<p class="text-muted tpi-u-91c462" style="text-align: center;"><em>(0.5=中断/未完; 1.0=完成)</em></p>
 </td>
 <td class="center">
 <select aria-label="碎片磨耳状态" class="status-select tpi-inline-01" onchange="TPI.calculateAMI()">
@@ -13463,13 +13576,13 @@ document.addEventListener('click', function(e) {
   </div>
   <div class="tpi-submodule-body" id="submod-log-rules-body">
 <div class="alert alert-info mb-6">
-<h5 class="mt-3">
+<h5 class="mt-3" style="text-align: center;">
          🎯 核心理念
         </h5>
-<p>
+<p style="text-align: center;">
          Logistics (后勤与维护) 是日常杂事和后勤任务的管理系统。认真投入每一件事、如实记录耗时与等级，是保障核心工作有序推进的基础。
         </p>
-<h5 class="mt-3">
+<h5 class="mt-3" style="text-align: center;">
          📊 评分规则
         </h5>
 <ul>
@@ -13498,7 +13611,7 @@ document.addEventListener('click', function(e) {
           （完成 + 耗时 &gt;30分钟 + 关键等级）
          </li>
 </ul>
-<h5 class="mt-3">
+<h5 class="mt-3" style="text-align: center;">
          📦 等级体系与系数
         </h5>
 <ul>
@@ -13521,7 +13634,7 @@ document.addEventListener('click', function(e) {
           ：直接影响核心学术进展或重大事项（系数 1.5）
          </li>
 </ul>
-<h5 class="mt-3">
+<h5 class="mt-3" style="text-align: center;">
          ✅ 状态标记
         </h5>
 <ul>
@@ -13538,7 +13651,7 @@ document.addEventListener('click', function(e) {
           🔍 其他：其他特殊情况，需在备注中说明
          </li>
 </ul>
-<h5 class="mt-3">
+<h5 class="mt-3" style="text-align: center;">
          📝 填写要求
         </h5>
 <ul>
@@ -13555,14 +13668,11 @@ document.addEventListener('click', function(e) {
           可在备注中说明具体情况或选择"其他"时的特殊说明
          </li>
 </ul>
-<h5 class="mt-3">
+<h5 class="mt-3" style="text-align: center;">
          ⚡ 特殊杂事说明
         </h5>
-<p>
-         <strong>特殊杂事</strong>是指需要两至三小时乃至更长时间才能完成的事务（例如长途采购、复杂维修、集中整理归档等）。此类任务一般不鼓励出现，应尽量在日常安排中化整为零、提前分批处理。
-        </p>
-<p>
-         若确有必要记录特殊杂事，可将其按时间段或步骤拆分为若干子任务，命名为 <strong>A1、A2、A3</strong>（以此类推），每个子任务独立填写状态、耗时与等级。<strong>单项特殊杂事最多拆分为 3 个子任务</strong>（即 A1–A3），以防止分数虚高、占用过多记录条目。每个子任务建议耗时控制在合理范围内，如实填写，不得重复计入同一时段的耗时。
+<p style="text-align: justify; text-indent: 2em;">
+         <strong>特殊杂事</strong>是指需要两至三小时乃至更长时间才能完成的事务（例如长途采购、复杂维修、集中整理归档等）。此类任务一般不鼓励出现，应尽量在日常安排中化整为零、提前分批处理。若确有必要记录特殊杂事，可将其按时间段或步骤拆分为若干子任务，命名为 <strong>A1、A2、A3</strong>（以此类推），每个子任务独立填写状态、耗时与等级。<strong>单项特殊杂事最多拆分为 3 个子任务</strong>（即 A1–A3），以防止分数虚高、占用过多记录条目。每个子任务建议耗时控制在合理范围内，如实填写，不得重复计入同一时段的耗时。
         </p>
 <p style="color:#b45309;font-size:13px;text-align:center;">
          ⚠️ 提示：特殊杂事出现频率高，往往意味着日常后勤规划不足，请优先反思任务分配与时间管理。
@@ -14024,10 +14134,9 @@ document.addEventListener('click', function(e) {
 <strong>统计结果：<span id="logistics-total-score" style="font-size:1.2em;font-weight:800;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',Arial,sans-serif;font-variant-numeric:tabular-nums;">0</span></strong>
 <strong style="margin-left:12px;color:var(--color-text-secondary);">(填入上方 Sys)</strong>
 </div>
-</section>
+</div>
 
-</div>
-</div>
+</section>
 <section class="card fade-in collapsed" id="daily-review">
 <div class="card-header" onclick="window.TPI.toggleCard('daily-review')">
 <div class="card-title">
@@ -14120,10 +14229,8 @@ document.addEventListener('click', function(e) {
 </div>
 </div>
 </div>
-</section>
   </div>
-</div>
-</div>
+</section>
 
 <section class="card fade-in collapsed" id="data-analytics">
 <div class="card-header" onclick="window.TPI.toggleCard('data-analytics')">
@@ -14269,7 +14376,7 @@ document.addEventListener('click', function(e) {
     <span class="tpi-submodule-arrow" aria-hidden="true">▼</span>
   </div>
   <div class="tpi-submodule-body" id="submod-da-advanced-body">
-<div class="export-buttons tpi-u-mt-varspacing4" style="text-align:center;">
+<div class="export-buttons tpi-u-mt-varspacing4" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;text-align:center;">
 <button type="button" class="btn btn-secondary" onclick="if(window.TPIAdvanced &amp;&amp; window.TPIAdvanced.openComparison){window.TPIAdvanced.openComparison()}else{window.tpiToast &amp;&amp; window.tpiToast('⚠️ 数据对比功能正在初始化，请稍后重试', 'warning')}">
           📊 数据对比分析
          </button>
@@ -14279,10 +14386,8 @@ document.addEventListener('click', function(e) {
 </div>
 </div>
   </div>
-</div>
-
-</div>
 </section>
+
 <section class="card fade-in collapsed" id="data-processing">
 <div class="card-header" onclick="window.TPI.toggleCard('data-processing')">
 <div class="card-title">
@@ -14306,8 +14411,8 @@ document.addEventListener('click', function(e) {
   <div class="tpi-submodule-body" id="submod-dp-import-body">
 
     <!-- 操作指南 -->
-    <div style="margin-bottom:14px;padding:12px 14px;background:linear-gradient(135deg,#f0fdf4,#eff6ff);border:1.5px solid #6ee7b7;border-radius:8px;font-size:13px;line-height:1.8;color:#374151;text-align:center;">
-      <b>📘 跨版本 / 跨设备操作指南（必读）</b><br>
+    <div style="margin-bottom:14px;padding:12px 14px;background:linear-gradient(135deg,#f0fdf4,#eff6ff);border:1.5px solid #6ee7b7;border-radius:8px;font-size:13px;line-height:1.8;color:#374151;text-align:left;">
+      <div style="text-align:center;margin-bottom:6px;"><b>📘 跨版本 / 跨设备操作指南（必读）</b></div>
       <b>版本升级迁移：</b>① 在<b>旧版本</b>点击「备份所有数据（全量JSON）」下载文件 → ② 打开<b>新版本</b> → ③ 选择该文件点击「导入JSON数据」→ ④ 刷新页面确认数据完整。<br>
       <b>跨设备恢复：</b>在设备A导出全量备份文件 → 将文件传输到设备B → 在设备B导入 → 刷新确认。<br>
       <b>注意事项：</b>① 必须用「备份所有数据」导出的文件才能 100% 恢复所有历史数据（含设置等）；② 按时间范围导出的文件仅含部分数据，不适合完整迁移；③ 导入前建议先导出一份备份防止覆盖。
@@ -14315,7 +14420,7 @@ document.addEventListener('click', function(e) {
 
     <!-- 全量备份与恢复（推荐） -->
     <div style="margin-bottom:16px;padding:14px;background:linear-gradient(135deg,#fffbeb,#fef9c3);border:1.5px solid #f59e0b;border-radius:10px;">
-      <h5 style="margin:0 0 8px 0;font-size:14px;color:#92400e;">📦 全量备份 &amp; 恢复（推荐 · 最完整）</h5>
+      <h5 style="margin:0 0 8px 0;font-size:14px;color:#92400e; text-align: center;">📦 全量备份 &amp; 恢复（推荐 · 最完整）</h5>
       <div style="margin-bottom:10px;padding:8px 12px;background:#fffbeb;border-left:3px solid #f59e0b;border-radius:6px;font-size:12px;color:#78350f;line-height:1.6;">
         <b>全量备份</b>：导出含所有历史数据的完整包（打卡、杂事、设置等），可跨版本、跨设备 100% 恢复。<b>这是最推荐的备份方式。</b><br>
         <b>恢复备份</b>：选择「备份所有数据」导出的文件，一键还原所有历史数据到任意版本。<br>
@@ -14336,7 +14441,7 @@ document.addEventListener('click', function(e) {
 
     <!-- 导入区域 -->
     <div class="import-section" id="tpi-import-dropzone" style="border: 2px dashed var(--color-border); border-radius: var(--radius-lg); padding: var(--spacing-4); margin-bottom:16px;">
-      <h5 style="margin:0 0 8px 0;">📥 导入 JSON 数据（全量/单日 自动识别）</h5>
+      <h5 style="margin:0 0 8px 0; text-align: center;">📥 导入 JSON 数据（全量/单日 自动识别）</h5>
       <p style="font-size:12px;color:var(--color-text-muted);margin-bottom:8px;text-align:center;">
         💡 可直接将 JSON 文件拖拽到此区域 · 支持「备份所有数据」/ 单日快照 两种格式，自动识别100%导入
       </p>
@@ -14355,7 +14460,7 @@ document.addEventListener('click', function(e) {
 
     <!-- 当日快照导出 -->
     <div style="margin-bottom:16px;padding:14px;background:#f0fdf4;border-radius:8px;border-left:3px solid #10b981;">
-      <h5 style="margin:0 0 8px 0;font-size:14px;color:#065f46;">📅 当日快照导出（仅今日数据）</h5>
+      <h5 style="margin:0 0 8px 0;font-size:14px;color:#065f46; text-align: center;">📅 当日快照导出（仅今日数据）</h5>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
         <button type="button" class="btn btn-secondary" onclick="if(typeof window.exportCurrentSnapshot==='function'){window.exportCurrentSnapshot('json')}else{window.tpiToast&amp;&amp;window.tpiToast('⚠️ 导出功能初始化中，请稍候重试','warning')}" style="flex:1;min-width:160px;">
           📅 导出当日快照JSON
@@ -14368,9 +14473,9 @@ document.addEventListener('click', function(e) {
 
     <!-- 按时间范围导出 -->
     <div style="margin-bottom:16px;padding:12px;background:#f0fdf4;border-radius:8px;border-left:3px solid #10b981;">
-      <h5 style="margin:0 0 6px 0;font-size:14px;color:#065f46;">📅 按时间范围导出（非全量 · 仅供查阅归档）</h5>
+      <h5 style="margin:0 0 6px 0;font-size:14px;color:#065f46; text-align: center;">📅 按时间范围导出（非全量 · 仅供查阅归档）</h5>
       <p style="font-size:12px;color:#64748b;margin-bottom:8px;text-align:center;">仅导出指定时间段内的数据。<b>不适合</b>用于跨版本完整迁移，适合阶段性查阅归档。</p>
-      <div class="export-period-buttons" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+      <div class="export-period-buttons" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;justify-content:center;">
         <button type="button" class="btn btn-outline-primary" onclick="window.TPI.exportByPeriod('week')">本周</button>
         <button type="button" class="btn btn-outline-primary" onclick="window.TPI.exportByPeriod('month')">本月</button>
         <button type="button" class="btn btn-outline-primary" onclick="window.TPI.exportByPeriod('year')">本年</button>
@@ -14412,7 +14517,7 @@ document.addEventListener('click', function(e) {
   </div>
   <div class="tpi-submodule-body" id="submod-dp-stats-body">
     <div class="data-processing-card" style="margin-bottom:16px;padding:14px;background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1.5px solid #a7f3d0;border-radius:10px;">
-      <h4 style="display:flex;align-items:center;gap:8px;margin-bottom:8px;justify-content:center;">📋 复制前一天 <span style="font-size:12px;font-weight:400;color:#6b7280;">Copy Previous Day Data</span></h4>
+      <h4 style="display:flex;align-items:center;gap:8px;margin-bottom:8px;justify-content:center; text-align: center;">📋 复制前一天 <span style="font-size:12px;font-weight:400;color:#6b7280;">Copy Previous Day Data</span></h4>
       <p class="text-muted mb-3" style="font-size:13px;text-align:center;">快速复制前一天的数据到当前日期，适合日程相似的情况。</p>
       <div style="display:flex;justify-content:center;">
         <button type="button" class="btn btn-primary" onclick="window.copyPreviousDayDataComplete()">
@@ -14424,16 +14529,16 @@ document.addEventListener('click', function(e) {
       <div>
         <div class="tpi-stats-row" style="display:flex;gap:8px;margin-top:10px;flex-wrap:nowrap;overflow-x:auto;">
           <div class="alert alert-info" style="padding:8px 10px;flex:1;min-width:160px;">
-            <h5 style="margin:0 0 6px 0;">📅 记录天数</h5>
-            <p id="stats-days-count" style="margin:0;">0 天</p>
+            <h5 style="margin:0 0 6px 0; text-align: center;">📅 记录天数</h5>
+            <p id="stats-days-count" style="margin:0; text-align: center;">0 天</p>
           </div>
           <div class="alert alert-success" style="padding:8px 10px;flex:1;min-width:160px;">
-            <h5 style="margin:0 0 6px 0;">🏆 最高TPI</h5>
-            <p id="stats-max-tpi" style="margin:0;">0 分</p>
+            <h5 style="margin:0 0 6px 0; text-align: center;">🏆 最高TPI</h5>
+            <p id="stats-max-tpi" style="margin:0; text-align: center;">0 分</p>
           </div>
           <div class="alert alert-warning" style="padding:8px 10px;flex:1;min-width:160px;">
-            <h5 style="margin:0 0 6px 0;">📊 平均TPI</h5>
-            <p id="stats-avg-tpi" style="margin:0;">0 分</p>
+            <h5 style="margin:0 0 6px 0; text-align: center;">📊 平均TPI</h5>
+            <p id="stats-avg-tpi" style="margin:0; text-align: center;">0 分</p>
           </div>
         </div>
         <div class="text-center" style="margin-top:10px;">
@@ -14469,7 +14574,6 @@ document.addEventListener('click', function(e) {
 </div>
 </div>
 </section>
-</div>
 
 <script>
    'use strict';
@@ -17245,7 +17349,6 @@ window.MixedModeCalculator = (function() {
 
 })();
 
-
             function calculateTPI() {
                 try {
                     let ami = safeParseFloat(document.getElementById('ami-score')?.value || 0);
@@ -17256,7 +17359,6 @@ window.MixedModeCalculator = (function() {
 
                     const sysScoreElem = document.getElementById('sys-score');
                     if (sysScoreElem) sysScoreElem.value = sysNet.toFixed(1);
-
 
                     if (sysNet < CONSTANTS.SYS_NET_SAFETY_THRESHOLD) {
                         showSafetyAlert("Sys < 12: 触发自动保护，次日强制复苏模式");
@@ -17377,8 +17479,8 @@ window.MixedModeCalculator = (function() {
                         }
 
                     } else {
-                tpiTotal = ami + fli + sysNet + bonus;
-            }
+                        tpiTotal = ami + fli + sysNet + bonus;
+                    }
 
                     if (selectedMode === 'recovery') {
                         tpiTotal = Math.min(CONSTANTS.RECOVERY_MODE_CAP, tpiTotal);
@@ -22332,7 +22434,7 @@ window.addEventListener('resize', function() {
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#f8fafc;border-bottom: 1px solid #d1fae5;flex-shrink:0;">
                             <h3 style="margin:0;font-size:18px;color:#1e293b;">👁️ 报告预览</h3>
                             <div style="display:flex;gap:10px;">
-                                <button type="button" onclick="(function(){var p=document.getElementById('tpi-preview-body');if(p){var w=window.open('','_blank');if(w){w.document.write('<html><head><meta charset=UTF-8><title>全维效能管理系统（TPI，V1.69）</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:20px;}h2{color:#0d9488;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border: 1px solid #bbf7d0;}th{background:#f3f4f6;}.btn{padding:10px 20px;margin:10px 5px;cursor:pointer;border: 1px solid #86efac;border-radius:6px;background:#fff;}</style><\/head><body>'+p.innerHTML+'<div style=text-align:center;margin-top:30px><button type="button" class=btn onclick=window.print()>🖨️ 打印</button><button type="button" class=btn onclick=window.close()>关闭</button></div><\/body></html>');w.document.close();}}})()" style="padding:6px 14px;border: 1px solid #6ee7b7;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:#334155;transition:all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">🌐 新窗口打开</button>
+                                <button type="button" onclick="(function(){var p=document.getElementById('tpi-preview-body');if(p){var w=window.open('','_blank');if(w){w.document.write('<html><head><meta charset=UTF-8><title>全维效能管理系统（TPI，V1.78）</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:20px;}h2{color:#0d9488;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border: 1px solid #bbf7d0;}th{background:#f3f4f6;}.btn{padding:10px 20px;margin:10px 5px;cursor:pointer;border: 1px solid #86efac;border-radius:6px;background:#fff;}</style><\/head><body>'+p.innerHTML+'<div style=text-align:center;margin-top:30px><button type="button" class=btn onclick=window.print()>🖨️ 打印</button><button type="button" class=btn onclick=window.close()>关闭</button></div><\/body></html>');w.document.close();}}})()" style="padding:6px 14px;border: 1px solid #6ee7b7;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:#334155;transition:all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">🌐 新窗口打开</button>
                                 <button class="tpi-preview-close-btn" type="button" onclick="document.getElementById('tpi-preview-modal').remove()" style="padding:6px 14px;border: 1px solid #86efac;border-radius:6px;background:#f9fafb;color:#374151;cursor:pointer;font-size:13px;font-weight:600;transition:background 0.15s;">✕ 关闭</button>
                             </div>
                         </div>
@@ -23138,7 +23240,7 @@ window.addEventListener('resize', function() {
                 filename = 'TPI_数据导出_' + new Date().toISOString().split('T')[0] + '.txt';
                 mimeType = 'text/plain';
             } else if (format === 'html') {
-                let html = `<html><head><meta charset="UTF-8"><title>全维效能管理系统（TPI，V1.69）</title><\/head><body>
+                let html = `<html><head><meta charset="UTF-8"><title>全维效能管理系统（TPI，V1.78）</title><\/head><body>
 
         <div id="score-dashboard" style="background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%); padding: 8px 16px; border-radius: 0; margin: 0; color: #1e293b; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
             <div style="max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: nowrap;">
@@ -24153,7 +24255,7 @@ window.archiveOldDataComplete = function() {
                         alert('✅ JSON导出成功！');
                     }
                     else if (format === 'html') {
-                        let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>全维效能管理系统（TPI，V1.69）</title>';
+                        let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>全维效能管理系统（TPI，V1.78）</title>';
                         html += `<style>
 
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; align-items: center; justify-content: center; }
@@ -26463,7 +26565,7 @@ window.addEventListener('unhandledrejection', function(event) {
   }
 
   function backupAllDataNow(){
-    const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.69）'), appVersion: (window.TPI_APP_VERSION||'1.51'), exportedAt: new Date().toISOString() }, localStorage: {} };
+    const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.78）'), appVersion: (window.TPI_APP_VERSION||'1.70'), exportedAt: new Date().toISOString() }, localStorage: {} };
     for(let i=0;i<__tpi_ls_length();i++){
       const k = __tpi_ls_key(i);
       if(!k) continue;
@@ -26480,7 +26582,7 @@ window.addEventListener('unhandledrejection', function(event) {
     const blob = new Blob([JSON.stringify(out, null, 2)], {type:'application/json'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `TPI_V1.69_full_backup_${(new Date()).toISOString().slice(0,10)}.json`;
+    a.download = `TPI_V1.78_full_backup_${(new Date()).toISOString().slice(0,10)}.json`;
     a.click();
     tpiToast('✅ 已导出“备份所有数据”JSON（可用于全量恢复）');
   }
@@ -26770,7 +26872,7 @@ try{
       }
       window.__tpi_backup_lock = true;
 
-      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.69）'), appVersion: (window.TPI_APP_VERSION||'1.51'), exportedAt: new Date().toISOString() }, localStorage: {} };
+      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.78）'), appVersion: (window.TPI_APP_VERSION||'1.70'), exportedAt: new Date().toISOString() }, localStorage: {} };
 
       for(let i=0;i<__tpi_ls_length();i++){
         const k = __tpi_ls_key(i);
@@ -27323,7 +27425,7 @@ try{
       }
       window.__tpi_backup_lock = true;
 
-      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.69）'), appVersion: (window.TPI_APP_VERSION||'1.51'), exportedAt: new Date().toISOString() }, localStorage: {} };
+      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.78）'), appVersion: (window.TPI_APP_VERSION||'1.70'), exportedAt: new Date().toISOString() }, localStorage: {} };
 
       for(let i=0;i<__tpi_ls_length();i++){
         const k = __tpi_ls_key(i);
@@ -37496,7 +37598,7 @@ function tpiInitModuleBreakdown() {
   var panel = document.createElement('div');
   panel.id = 'tpi-module-breakdown';
   panel.style.cssText = 'margin-top:24px;border-top: 1px solid #d1fae5;padding-top:20px;';
-  panel.innerHTML = '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">'
+  panel.innerHTML = '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;justify-content:center;">'
     + '<h4 style="margin:0;font-size:16px;color:#1e293b;">📊 模块细分统计（周/月）</h4>'
     + '<div style="display:flex;gap:6px;">'
     + '<button type="button" onclick="window.__tpiModuleBreakdown(7)" class="btn btn-secondary" style="padding:4px 12px;font-size:13px;">近7天</button>'
@@ -37753,7 +37855,6 @@ function tpiInitCliffhangerSync() {
   updateMirror();
   window.__tpiUpdateCliffhangerMirror = updateMirror;
 }
-
 
 function tpiInitReflectionGuide() {
   var fields = [
@@ -43084,8 +43185,8 @@ h3.card-title, h4.card-title,
   function _v157_collectAll(){
     var result={
       _meta:{
-        version: window.TPI_VERSION||'全维效能管理系统（TPI，V1.69）',
-        appVersion: window.TPI_APP_VERSION||'1.57',
+        version: window.TPI_VERSION||'全维效能管理系统（TPI，V1.78）',
+        appVersion: window.TPI_APP_VERSION||'1.70',
         backupVersion:'V1.57',
         backupFormat:'full_v157_ultimate',
         exportedAt: new Date().toISOString(),
@@ -43457,8 +43558,8 @@ h3.card-title, h4.card-title,
 
     var result = {
       _meta: {
-        version: window.TPI_VERSION || '全维效能管理系统（TPI，V1.69）',
-        appVersion: window.TPI_APP_VERSION || '1.60',
+        version: window.TPI_VERSION || '全维效能管理系统（TPI，V1.78）',
+        appVersion: window.TPI_APP_VERSION || '1.70',
         backupVersion: 'V1.60',
         backupFormat: 'full_v159_ultimate',
         exportedAt: new Date().toISOString(),
@@ -43652,9 +43753,9 @@ h3.card-title, h4.card-title,
       var miscCount = Object.keys(data.miscRecords).length;
       var rawCount = Object.keys(data.rawKV).length;
       var content = JSON.stringify(data, null, 2);
-      var filename = 'TPI_全量备份_V1.69_' + _dateStr() + '.json';
+      var filename = 'TPI_全量备份_V1.78_' + _dateStr() + '.json';
       _dlBlob(content, filename, 'application/json;charset=utf-8');
-      _toast('✅ 全量备份成功（V1.69）！共 ' + dayCount + ' 天日记录，' + miscCount + ' 天杂事，' + rawCount + ' 项完整键值。文件：' + filename);
+      _toast('✅ 全量备份成功（V1.78）！共 ' + dayCount + ' 天日记录，' + miscCount + ' 天杂事，' + rawCount + ' 项完整键值。文件：' + filename);
       console.log('[TPI V1.60] 备份完成：', dayCount+'天记录，', rawCount+'项键值');
     } catch(e) {
       _err('❌ 备份失败：' + (e && e.message ? e.message : String(e)));
