@@ -119,13 +119,13 @@
   };
 })();
 </script>
-<meta content="全维效能管理系统（TPI，V1.83）" property="og:title"/>
+<meta content="全维效能管理系统（TPI，V1.85）" property="og:title"/>
 <meta content="全维效能管理系统（TPI）| 全面追踪 · 科学管理 · 高效提升" property="og:description"/>
 <meta content="website" property="og:type"/>
 <meta content="https://mytpi.netlify.app/" property="og:url"/>
 <meta content="zh_CN" property="og:locale"/>
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="全维效能管理系统（TPI，V1.83）"/>
+<meta name="twitter:title" content="全维效能管理系统（TPI，V1.85）"/>
 <meta name="twitter:description" content="全维效能管理系统（TPI）"/>
 <meta content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" name="viewport"/>
 <meta content="全维效能管理系统（TPI）- 跨设备同步 | 支持电脑/手机/平板访问" name="description"/>
@@ -1462,12 +1462,44 @@ window.__tpi_clearAllForm = function() {
       exportedAt: _nowISO(),
       date: dateKey,
       _meta: {
-        version: (window.TPI_VERSION || 'V1.83'),
-        exportVersion: 'V1.83',
+        version: (window.TPI_VERSION || 'V1.85'),
+        exportVersion: 'V1.85',
         exportedAt: _nowISO(),
-        date: dateKey
+        date: dateKey,
+        exportType: 'full',
+        note: '完整版导出：含用户所有操作内容及页面自动生成的计算值、评分、状态等全部数据。'
       },
       data: cleanData
+    };
+  }
+
+  // V1.85: 构建简化版导出对象（仅含用户勾选、点击、输入产生的内容）
+  function _buildSimplifiedExportObject(){
+    var expFull = _buildExportObject();
+    var fullData = expFull.data || {};
+    var SYSTEM_KEYS = [
+      '_computedScores','_viewState','_badgeStates','_domSnapshot','_formState',
+      '_v159_domMerged','_miscRecords','timestamp','_meta'
+    ];
+    var simplified = {};
+    Object.keys(fullData).forEach(function(k){
+      if(SYSTEM_KEYS.indexOf(k) !== -1) return;
+      if(/^__/.test(k)) return;
+      simplified[k] = fullData[k];
+    });
+    return {
+      schema: 'tpi_simplified_export_v1',
+      exportedAt: _nowISO(),
+      date: expFull.date,
+      _meta: {
+        version: (window.TPI_VERSION || 'V1.85'),
+        exportVersion: 'V1.85',
+        exportType: 'simplified',
+        exportedAt: _nowISO(),
+        date: expFull.date,
+        note: '简化版导出：仅含用户勾选、点击、输入等操作产生的内容，不含系统自动生成的计算值和页面状态数据。'
+      },
+      data: simplified
     };
   }
 
@@ -1690,50 +1722,44 @@ window.__tpi_clearAllForm = function() {
   }
   window.exportCurrentSnapshot = function(format){
     try{
-      // V1.83: 导出前强制触发重算 + 保存当前表单状态，确保所有输入、勾选、点击内容均被纳入
+      // V1.85: 导出前强制触发重算 + 保存当前表单状态，确保所有输入、勾选、点击内容均被纳入
       try{ if(typeof window.__tpi_triggerRecalc==='function') window.__tpi_triggerRecalc(); }catch(_){}
       try{ if(window.ScoreDashboard&&typeof window.ScoreDashboard.update==='function') window.ScoreDashboard.update(); }catch(_){}
       try{ if(window.TPI&&typeof window.TPI.saveData==='function') window.TPI.saveData(); }catch(_){}
       try{ if(typeof window.saveFormData==='function') window.saveFormData(); }catch(_){}
       try{ if(typeof window.__tpi_autoSaveCurrentDay==='function') window.__tpi_autoSaveCurrentDay(); }catch(_){}
 
-      const exp = _buildExportObject();
-      const safeDate = (exp.date || _localDate() || 'unknown').replace(/[^0-9\-]/g,'');
+      var isSimplified = (format === 'json-simplified' || format === 'simplified');
+      var exp = isSimplified ? _buildSimplifiedExportObject() : _buildExportObject();
+      var safeDate = (exp.date || _localDate() || 'unknown').replace(/[^0-9\-]/g,'');
+      var suffix = isSimplified ? '_简化版' : '_完整版';
 
-      if (format === 'markdown' || format === 'md') {
-        const md = _buildMarkdown(exp);
-        const blob = new Blob([md], {type: 'text/markdown;charset=utf-8'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        // V1.83: 文件名以日期命名
-        a.href = url; a.download = `TPI_${safeDate}.md`;
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        setTimeout(function(){ URL.revokeObjectURL(url); }, 10000);
-      } else {
-        // V1.83: 直接使用 JSON.stringify，exp.data 已经过 safeParse 处理，无死包风险
-        const content = JSON.stringify(exp, null, 2);
-        const blob = new Blob([content], {type: 'application/json;charset=utf-8'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        // V1.83: 文件名以日期命名（YYYY-MM-DD.json）
-        a.href = url; a.download = `TPI_${safeDate}.json`;
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        setTimeout(function(){ URL.revokeObjectURL(url); }, 10000);
-      }
+      var content = JSON.stringify(exp, null, 2);
+      var blob = new Blob([content], {type: 'application/json;charset=utf-8'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'TPI_' + safeDate + suffix + '.json';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 10000);
 
       try{ __tpi_ls_set('tpi_last_manual_backup', String(Date.now())); }catch(e){}
-      _toast('✅ 导出成功！已完整导出当前日期所有内容（含所有输入、勾选、点击及页面生成数据）', 'success');
+      if(isSimplified){
+        _toast('✅ 简化版JSON导出成功！仅含用户勾选、点击、输入等操作产生的内容。', 'success');
+      } else {
+        _toast('✅ 完整版JSON导出成功！已导出当前日期所有内容（含所有输入、勾选、点击及页面生成数据）。', 'success');
+      }
     }catch(e){
       console.error('[exportCurrentSnapshot] failed:', e);
       _toast('❌ 导出失败：请查看控制台错误信息', 'error');
     }
   };
 
-  // V1.83: 暴露 safeParse 到全局，供其他模块使用
+  // V1.85: 暴露 safeParse 到全局，供其他模块使用
   window.__tpi_safeParse = safeParse;
 
   window.exportTpiDataComplete = function(){ window.exportCurrentSnapshot('json'); };
-  window.exportDataComplete = function(fmt){ window.exportCurrentSnapshot(fmt === 'markdown' ? 'markdown' : 'json'); };
+  window.exportDataComplete = function(fmt){ window.exportCurrentSnapshot(fmt === 'simplified' ? 'json-simplified' : 'json'); };
 
   if (document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', _removeBackupBannerIfAny, {once:true});
@@ -2447,7 +2473,7 @@ window.getTpiDayDataAsync = async function(dateStr) {
   } catch (e) {}
 })();
 </script>
-<title>全维效能管理系统（TPI，V1.83）</title>
+<title>全维效能管理系统（TPI，V1.85）</title>
 <script>
    'use strict';
         const getCurrentDate = () => {
@@ -2458,7 +2484,7 @@ window.getTpiDayDataAsync = async function(dateStr) {
             return `${year}-${month}-${day}`;
         };
 
-        window.TPI_VERSION = '全维效能管理系统（TPI，V1.83）';
+        window.TPI_VERSION = '全维效能管理系统（TPI，V1.85）';
         window.TPI_APP_VERSION = '1.70';
 
         // V1.50: 检查是否有待恢复的数据（import后不刷新，直接恢复）
@@ -2553,7 +2579,7 @@ window.TPI.DOM = window.TPI.DOM || {
                             : '三十';
             const lunarStr = `农历${lunarMonth}${lunarDay}${lunar.isLeap ? '(闰)' : ''}`;
 
-            document.title = `全维效能管理系统（TPI，V1.83）（${window.TPI_BUILD_DATE} ${weekday} ${lunarStr}）`;
+            document.title = `全维效能管理系统（TPI，V1.85）（${window.TPI_BUILD_DATE} ${weekday} ${lunarStr}）`;
 
             const dateDisplay = document.getElementById('current-date-display');
             if (dateDisplay) {
@@ -7385,7 +7411,7 @@ document.addEventListener('click', function(e) {
 <div class="header-content">
 <div class="header-title">
 <h1 style="font-size:clamp(1.5rem, 3vw, 2.5rem);font-weight:800;background:linear-gradient(135deg,#0f766e 0%,#0d9488 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.02em;">
-        全维效能管理系统（TPI，V1.83）
+        全维效能管理系统（TPI，V1.85）
        </h1>
 
 <div style="display:inline-flex;align-items:center;gap:6px;flex-shrink:0;">
@@ -14409,32 +14435,71 @@ document.addEventListener('click', function(e) {
 
     <!-- 当日导出 -->
     <div style="margin-bottom:16px;padding:14px;background:#f0fdf4;border-radius:8px;border-left:3px solid #10b981;">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
-        <button type="button" class="btn btn-secondary" onclick="if(typeof window.exportCurrentSnapshot==='function'){window.exportCurrentSnapshot('json')}else{window.tpiToast&amp;&amp;window.tpiToast('⚠️ 导出功能初始化中，请稍候重试','warning')}" style="flex:1;min-width:160px;">
-          📅 导出当日
+      <div style="font-size:13px;font-weight:700;color:#065f46;margin-bottom:6px;text-align:center;">📅 导出当日</div>
+      <div style="margin-bottom:8px;padding:7px 10px;background:#ecfdf5;border-radius:6px;font-size:12px;color:#065f46;line-height:1.6;">
+        <b>📦 完整版JSON</b>：含用户所有操作内容 + 页面自动生成的计算值、评分、状态等全部数据，可100%还原当日记录。<br>
+        <b>📋 简化版JSON</b>：仅含用户勾选、点击、输入等操作产生的内容，不含系统自动生成数据，文件更小、更简洁。
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+        <button type="button" class="btn btn-secondary" onclick="if(typeof window.exportCurrentSnapshot==='function'){window.exportCurrentSnapshot('json')}else{window.tpiToast&amp;&amp;window.tpiToast('⚠️ 导出功能初始化中，请稍候重试','warning')}" style="flex:1;min-width:140px;" title="完整版JSON：含所有输入、勾选、计算值，可100%还原">
+          📦 完整版 JSON
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="if(typeof window.exportCurrentSnapshot==='function'){window.exportCurrentSnapshot('json-simplified')}else{window.tpiToast&amp;&amp;window.tpiToast('⚠️ 导出功能初始化中，请稍候重试','warning')}" style="flex:1;min-width:140px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-color:#10b981;color:#065f46;" title="简化版JSON：仅含用户勾选、点击、输入等操作产生的内容">
+          📋 简化版 JSON
         </button>
       </div>
       <p style="font-size:12px;color:#64748b;margin:0;text-align:center;">
-        导出当前所选日期的完整数据（含所有输入、勾选、点击及页面生成内容）。以日期命名 JSON 文件。<b>不包含</b>其他历史日期，不适合版本迁移。
+        导出当前所选日期数据。<b>完整版</b>含所有用户操作及页面生成内容，可100%还原；<b>简化版</b>仅含用户操作内容，便于轻量归档。<b>不包含</b>其他历史日期，不适合版本迁移。
       </p>
     </div>
 
     <!-- 按时间范围导出 -->
     <div style="margin-bottom:16px;padding:12px;background:#f0fdf4;border-radius:8px;border-left:3px solid #10b981;">
       <h5 style="margin:0 0 6px 0;font-size:14px;color:#065f46; text-align: center;">📅 按时间范围导出（非全量 · 仅供查阅归档）</h5>
-      <p style="font-size:12px;color:#64748b;margin-bottom:8px;text-align:center;">仅导出指定时间段内的数据。<b>不适合</b>用于跨版本完整迁移，适合阶段性查阅归档。</p>
-      <div class="export-period-buttons" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;justify-content:center;">
-        <button type="button" class="btn btn-outline-primary" onclick="window.TPI.exportByPeriod('week')">本周</button>
-        <button type="button" class="btn btn-outline-primary" onclick="window.TPI.exportByPeriod('month')">本月</button>
-        <button type="button" class="btn btn-outline-primary" onclick="window.TPI.exportByPeriod('year')">本年</button>
+      <p style="font-size:12px;color:#64748b;margin-bottom:6px;text-align:center;">仅导出指定时间段内的数据。<b>不适合</b>用于跨版本完整迁移，适合阶段性查阅归档。</p>
+      <div style="margin-bottom:10px;padding:7px 10px;background:#ecfdf5;border-radius:6px;font-size:12px;color:#065f46;line-height:1.6;">
+        <b>📦 完整版JSON</b>：含用户所有操作内容 + 页面自动生成的计算值、评分、状态等全部数据。<br>
+        <b>📋 简化版JSON</b>：仅含用户勾选、点击、输入等操作产生的内容，不含系统自动生成数据，文件更小、更简洁。
       </div>
-      <div>
-        <label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block;text-align:center;">自定义日期范围：</label>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <input id="export-start-date" style="flex:1;min-width:130px;" type="date"/>
-          <span>至</span>
-          <input id="export-end-date" style="flex:1;min-width:130px;" type="date"/>
-          <button type="button" class="btn btn-secondary" onclick="window.TPI.exportCustomRange()">导出</button>
+
+      <!-- 本周 -->
+      <div style="margin-bottom:8px;padding:8px 10px;background:white;border-radius:6px;border:1px solid #a7f3d0;">
+        <div style="font-size:12px;font-weight:600;color:#065f46;margin-bottom:6px;text-align:center;">📆 本周</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
+          <button type="button" class="btn btn-outline-primary" onclick="window.TPI.exportByPeriod('week','json')" style="flex:1;min-width:100px;font-size:12px;" title="导出本周完整版JSON">📦 完整版 JSON</button>
+          <button type="button" class="btn btn-outline-primary" onclick="window.TPI.exportByPeriod('week','json-simplified')" style="flex:1;min-width:100px;font-size:12px;border-color:#10b981;color:#065f46;" title="导出本周简化版JSON（仅用户操作内容）">📋 简化版 JSON</button>
+        </div>
+      </div>
+
+      <!-- 本月 -->
+      <div style="margin-bottom:8px;padding:8px 10px;background:white;border-radius:6px;border:1px solid #a7f3d0;">
+        <div style="font-size:12px;font-weight:600;color:#065f46;margin-bottom:6px;text-align:center;">📆 本月</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
+          <button type="button" class="btn btn-outline-primary" onclick="window.TPI.exportByPeriod('month','json')" style="flex:1;min-width:100px;font-size:12px;" title="导出本月完整版JSON">📦 完整版 JSON</button>
+          <button type="button" class="btn btn-outline-primary" onclick="window.TPI.exportByPeriod('month','json-simplified')" style="flex:1;min-width:100px;font-size:12px;border-color:#10b981;color:#065f46;" title="导出本月简化版JSON（仅用户操作内容）">📋 简化版 JSON</button>
+        </div>
+      </div>
+
+      <!-- 本年 -->
+      <div style="margin-bottom:8px;padding:8px 10px;background:white;border-radius:6px;border:1px solid #a7f3d0;">
+        <div style="font-size:12px;font-weight:600;color:#065f46;margin-bottom:6px;text-align:center;">📆 本年</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
+          <button type="button" class="btn btn-outline-primary" onclick="window.TPI.exportByPeriod('year','json')" style="flex:1;min-width:100px;font-size:12px;" title="导出本年完整版JSON">📦 完整版 JSON</button>
+          <button type="button" class="btn btn-outline-primary" onclick="window.TPI.exportByPeriod('year','json-simplified')" style="flex:1;min-width:100px;font-size:12px;border-color:#10b981;color:#065f46;" title="导出本年简化版JSON（仅用户操作内容）">📋 简化版 JSON</button>
+        </div>
+      </div>
+
+      <!-- 自定义 -->
+      <div style="padding:8px 10px;background:white;border-radius:6px;border:1px solid #a7f3d0;">
+        <label style="font-size:12px;font-weight:600;margin-bottom:6px;display:block;text-align:center;color:#065f46;">📐 自定义日期范围</label>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+          <input id="export-start-date" style="flex:1;min-width:120px;" type="date"/>
+          <span style="font-size:12px;color:#6b7280;">至</span>
+          <input id="export-end-date" style="flex:1;min-width:120px;" type="date"/>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
+          <button type="button" class="btn btn-secondary" onclick="window.TPI.exportCustomRange('json')" style="flex:1;min-width:100px;font-size:12px;" title="自定义范围导出完整版JSON">📦 完整版 JSON</button>
+          <button type="button" class="btn btn-secondary" onclick="window.TPI.exportCustomRange('json-simplified')" style="flex:1;min-width:100px;font-size:12px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-color:#10b981;color:#065f46;" title="自定义范围导出简化版JSON（仅用户操作内容）">📋 简化版 JSON</button>
         </div>
       </div>
     </div>
@@ -14443,8 +14508,8 @@ document.addEventListener('click', function(e) {
       <strong>✅ 操作总结：</strong>
       版本迁移 → 用「备份所有数据（全量备份）」；
       跨设备恢复 → 导出全量备份 → 传输文件 → 新设备导入；
-      日常快速备份 → 导出当日（完整JSON）或配合云端同步（Appwrite）；
-      阶段归档查阅 → 按时间范围导出。
+      日常完整备份 → 导出当日或范围「完整版JSON」（含所有数据，可100%还原）；
+      轻量归档查阅 → 导出「简化版JSON」（仅含用户操作内容，文件更小）。
     </div>
 
   </div>
@@ -22358,7 +22423,7 @@ window.addEventListener('resize', function() {
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#f8fafc;border-bottom: 1px solid #d1fae5;flex-shrink:0;">
                             <h3 style="margin:0;font-size:18px;color:#1e293b;">👁️ 报告预览</h3>
                             <div style="display:flex;gap:10px;">
-                                <button type="button" onclick="(function(){var p=document.getElementById('tpi-preview-body');if(p){var w=window.open('','_blank');if(w){w.document.write('<html><head><meta charset=UTF-8><title>全维效能管理系统（TPI，V1.83）</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:20px;}h2{color:#0d9488;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border: 1px solid #bbf7d0;}th{background:#f3f4f6;}.btn{padding:10px 20px;margin:10px 5px;cursor:pointer;border: 1px solid #86efac;border-radius:6px;background:#fff;}</style><\/head><body>'+p.innerHTML+'<div style=text-align:center;margin-top:30px><button type="button" class=btn onclick=window.print()>🖨️ 打印</button><button type="button" class=btn onclick=window.close()>关闭</button></div><\/body></html>');w.document.close();}}})()" style="padding:6px 14px;border: 1px solid #6ee7b7;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:#334155;transition:all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">🌐 新窗口打开</button>
+                                <button type="button" onclick="(function(){var p=document.getElementById('tpi-preview-body');if(p){var w=window.open('','_blank');if(w){w.document.write('<html><head><meta charset=UTF-8><title>全维效能管理系统（TPI，V1.85）</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:20px;}h2{color:#0d9488;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border: 1px solid #bbf7d0;}th{background:#f3f4f6;}.btn{padding:10px 20px;margin:10px 5px;cursor:pointer;border: 1px solid #86efac;border-radius:6px;background:#fff;}</style><\/head><body>'+p.innerHTML+'<div style=text-align:center;margin-top:30px><button type="button" class=btn onclick=window.print()>🖨️ 打印</button><button type="button" class=btn onclick=window.close()>关闭</button></div><\/body></html>');w.document.close();}}})()" style="padding:6px 14px;border: 1px solid #6ee7b7;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:#334155;transition:all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">🌐 新窗口打开</button>
                                 <button class="tpi-preview-close-btn" type="button" onclick="document.getElementById('tpi-preview-modal').remove()" style="padding:6px 14px;border: 1px solid #86efac;border-radius:6px;background:#f9fafb;color:#374151;cursor:pointer;font-size:13px;font-weight:600;transition:background 0.15s;">✕ 关闭</button>
                             </div>
                         </div>
@@ -23164,7 +23229,7 @@ window.addEventListener('resize', function() {
                 filename = 'TPI_数据导出_' + new Date().toISOString().split('T')[0] + '.txt';
                 mimeType = 'text/plain';
             } else if (format === 'html') {
-                let html = `<html><head><meta charset="UTF-8"><title>全维效能管理系统（TPI，V1.83）</title><\/head><body>
+                let html = `<html><head><meta charset="UTF-8"><title>全维效能管理系统（TPI，V1.85）</title><\/head><body>
 
         <div id="score-dashboard" style="background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%); padding: 8px 16px; border-radius: 0; margin: 0; color: #1e293b; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
             <div style="max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: nowrap;">
@@ -24179,7 +24244,7 @@ window.archiveOldDataComplete = function() {
                         alert('✅ JSON导出成功！');
                     }
                     else if (format === 'html') {
-                        let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>全维效能管理系统（TPI，V1.83）</title>';
+                        let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>全维效能管理系统（TPI，V1.85）</title>';
                         html += `<style>
 
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; align-items: center; justify-content: center; }
@@ -26366,21 +26431,228 @@ window.addEventListener('unhandledrejection', function(event) {
   }
 
   function exportRangeAsJSON(rangeObj, filename){
-    const blob = new Blob([JSON.stringify(rangeObj, null, 2)], {type:'application/json'});
+    // V1.85: 完整版JSON - 包含所有用户操作及页面自动生成的数据
+    var exportObj = {
+      schema: 'tpi_range_export_v2',
+      exportType: 'full',
+      exportedAt: new Date().toISOString(),
+      exportNote: '完整版导出：含用户所有操作内容及页面自动生成的计算值、评分、状态等全部数据。',
+      dayCount: Object.keys(rangeObj || {}).length,
+      days: rangeObj || {}
+    };
+    var blob = new Blob([JSON.stringify(exportObj, null, 2)], {type:'application/json'});
+    downloadBlob(blob, filename);
+  }
+
+  // V1.85: 简化版范围JSON导出 - 仅含用户操作产生的内容
+  function exportRangeAsSimplifiedJSON(rangeObj, filename){
+    var SYSTEM_KEYS = [
+      '_computedScores','_viewState','_badgeStates','_domSnapshot','_formState',
+      '_v159_domMerged','_miscRecords','timestamp','_meta'
+    ];
+    var simplifiedDays = {};
+    Object.keys(rangeObj || {}).forEach(function(date){
+      var dayData = rangeObj[date] || {};
+      var simplified = {};
+      Object.keys(dayData).forEach(function(k){
+        if(SYSTEM_KEYS.indexOf(k) !== -1) return;
+        if(/^__/.test(k)) return;
+        simplified[k] = dayData[k];
+      });
+      simplifiedDays[date] = simplified;
+    });
+    var exportObj = {
+      schema: 'tpi_range_simplified_export_v1',
+      exportType: 'simplified',
+      exportedAt: new Date().toISOString(),
+      exportNote: '简化版导出：仅含用户勾选、点击、输入等操作产生的内容，不含系统自动生成的计算值和页面状态数据。',
+      dayCount: Object.keys(simplifiedDays).length,
+      days: simplifiedDays
+    };
+    var blob = new Blob([JSON.stringify(exportObj, null, 2)], {type:'application/json'});
     downloadBlob(blob, filename);
   }
 
   function exportRangeAsMarkdown(rangeObj, filename){
-    let md = '# TPI 数据导出（范围）\n\n';
-    md += `导出时间：${new Date().toLocaleString()}\n\n`;
-    const dates = Object.keys(rangeObj || {}).sort();
-    dates.forEach(d=>{
-      md += `## ${d}\n\n`;
-      md += '```json\n';
-      md += JSON.stringify(rangeObj[d] ?? {}, null, 2);
-      md += '\n```\n\n';
+    var lines = [];
+    var dates = Object.keys(rangeObj || {}).sort();
+    var exportedAt = new Date().toLocaleString('zh-CN');
+    var periodLabel = dates.length > 0 ? (dates[0] + ' 至 ' + dates[dates.length-1]) : '无数据';
+
+    lines.push('# TPI 数据导出（Markdown · 时间范围）');
+    lines.push('');
+    lines.push('| 字段 | 值 |');
+    lines.push('|------|-----|');
+    lines.push('| **导出时间** | ' + exportedAt + ' |');
+    lines.push('| **时间范围** | ' + periodLabel + ' |');
+    lines.push('| **天数** | ' + dates.length + ' 天 |');
+    lines.push('');
+    lines.push('> 本文档包含指定时间范围内每日的输入、勾选、计算分数及页面生成内容。末尾各日期附完整 JSON 快照（用于数据还原）。');
+    lines.push('');
+    lines.push('---');
+    lines.push('');
+
+    dates.forEach(function(d){
+      var dd = rangeObj[d] || {};
+      lines.push('# 📅 ' + d);
+      lines.push('');
+
+      /* === 分数看板 === */
+      try {
+        var cs = dd['_computedScores'] || {};
+        var vs = dd['_viewState'] || {};
+        var scoreRows = [];
+        var scoreMap = {
+          'dashboard-total':'**TPI总分（看板）**','dashboard-rating':'**TPI评级（看板）**',
+          'dashboard-ami':'AMI（看板）','dashboard-bcm':'BCM（看板）',
+          'dashboard-hsm':'HSM（看板）','dashboard-bonus':'BONUS（看板）',
+          'ami-total-score':'AMI模块总分','bcm-total-score':'BCM模块总分',
+          'hsm-total-score':'HSM模块总分','fli-total-score':'FLI模块总分',
+          'logistics-total-score':'Logistics模块总分','bonus-total-score':'BONUS模块总分',
+          'ignition-total':'燃点总分','tpi-total-score':'TPI合计（实时计算）',
+          'total-hours':'总学习时长','total-pages':'总阅读页数','total-words':'总写作字数'
+        };
+        Object.keys(scoreMap).forEach(function(k){
+          var v = cs[k] || (vs['#'+k] && vs['#'+k].text) || '';
+          if(v && String(v).trim()) scoreRows.push([scoreMap[k], String(v).trim()]);
+        });
+        var fieldScoreMap = {
+          'tpi-total':'TPI总分(input)','tpi-rating':'TPI评级','ma7-score':'MA7',
+          'ami-score':'AMI得分','fli-score':'FLI得分','sys-score':'SYS得分','bonus-score':'BONUS得分',
+          'bcm-morning-score':'BCM晨间','bcm-evening-score':'BCM晚间','bcm-sleep-score':'BCM睡眠',
+          'bcm-digital-score':'BCM数字气隙','bcm-afternoon-score':'BCM下午',
+          'hsm-core-score':'HSM核心','hsm-morning-score':'HSM上午','hsm-afternoon-score':'HSM下午',
+          'fli-core-score':'FLI核心','fli-fragment-score':'FLI碎片'
+        };
+        Object.keys(fieldScoreMap).forEach(function(k){
+          var v = dd[k];
+          if(v !== undefined && v !== null && String(v).trim() !== '' && String(v) !== '0') scoreRows.push([fieldScoreMap[k], String(v)]);
+        });
+        if(scoreRows.length > 0){
+          lines.push('## 分数看板');
+          lines.push('');
+          lines.push('| 指标 | 值 |');
+          lines.push('|------|-----|');
+          scoreRows.forEach(function(r){ lines.push('| ' + r[0] + ' | **' + r[1] + '** |'); });
+          lines.push('');
+        }
+      } catch(e){}
+
+      /* === 时间记录 === */
+      try {
+        var timeMap = {'bcm-morning-time':'晨间入馆','bcm-morning-yesterday-time':'昨日晨间','bcm-evening-exit':'晚间离馆','bcm-evening-yesterday':'昨日晚间','bcm-sleep-time':'睡眠','bcm-sleep-yesterday':'昨日睡眠'};
+        var timeRows = [];
+        Object.keys(timeMap).forEach(function(k){ var v=dd[k]; if(v) timeRows.push([timeMap[k],v]); });
+        if(timeRows.length > 0){
+          lines.push('## 时间记录');
+          lines.push('');
+          timeRows.forEach(function(r){ lines.push('- **' + r[0] + '**：' + r[1]); });
+          lines.push('');
+        }
+      } catch(e){}
+
+      /* === 每日文字内容 === */
+      try {
+        var textMap = {'daily-summary':'每日总结','cliffhanger':'悬念引导','first-action':'第一行动','daily-reflection':'日末反思','fli-core-notes':'FLI核心笔记','victory-1':'今日成就1','victory-2':'今日成就2','victory-3':'今日成就3','bonus-reason':'加分原因'};
+        var hasText = false;
+        Object.keys(textMap).forEach(function(k){
+          var v = dd[k];
+          if(v && String(v).trim()){
+            if(!hasText){ lines.push('## 每日文字内容'); lines.push(''); hasText=true; }
+            lines.push('### ' + textMap[k]);
+            lines.push('');
+            lines.push(String(v));
+            lines.push('');
+          }
+        });
+      } catch(e){}
+
+      /* === 勾选框状态 === */
+      try {
+        var boolMap = {'ignition-physical':'燃点·体能启动','ignition-micro-target':'燃点·微目标','ignition-painless-start':'燃点·无痛启动','start-morning-block':'晨间时段启动','start-afternoon-block':'午间时段启动','start-evening-block':'晚间时段启动','academic-dialogue':'学术对话','ami-scan-reading':'AMI扫描阅读','fli-vn':'FLI·越南语','fli-en':'FLI·英语'};
+        var checks = [];
+        Object.keys(boolMap).forEach(function(k){ var v=dd[k]; if(v!==undefined) checks.push((v?'✅':'☐')+' **'+boolMap[k]+'**'); });
+        if(checks.length > 0){
+          lines.push('## 勾选框状态');
+          lines.push('');
+          checks.forEach(function(c){ lines.push('- ' + c); });
+          lines.push('');
+        }
+      } catch(e){}
+
+      /* === 表单详细数据 === */
+      try {
+        var fs = dd['_formState'] || {};
+        var handledIds = new Set(['tpi-total','ma7-score','ami-score','fli-score','sys-score','bonus-score','tpi-rating','bcm-morning-time','bcm-morning-yesterday-time','bcm-evening-exit','bcm-evening-yesterday','bcm-sleep-time','bcm-sleep-yesterday','date-input','ignition-physical','ignition-micro-target','ignition-painless-start','start-morning-block','start-afternoon-block','start-evening-block','academic-dialogue','ami-scan-reading','fli-vn','fli-en','daily-summary','cliffhanger','first-action','daily-reflection','fli-core-notes','victory-1','victory-2','victory-3','bonus-reason']);
+        var tableRows = [];
+        Object.keys(fs).forEach(function(k){
+          var item = fs[k]; if(!item) return;
+          var cleanK = k.replace(/^#/,'');
+          if(handledIds.has(cleanK)) return;
+          if(item.type==='checkbox'||item.type==='radio') return;
+          var v = String(item.value||'').trim();
+          if(!v || v==='0' || v==='0.00') return;
+          if(/token|secret|password|pat/i.test(cleanK)) return;
+          var lbl = item.label || cleanK;
+          tableRows.push({label:lbl, value:v});
+        });
+        if(tableRows.length > 0){
+          lines.push('## 表单详细数据（AMI/FLI/SYS/BCM/HSM各项）');
+          lines.push('');
+          lines.push('| 字段 | 内容 |');
+          lines.push('|------|------|');
+          tableRows.slice(0,300).forEach(function(r){
+            var lbl = r.label.replace(/[|]/g,'｜');
+            var val = r.value.replace(/[|]/g,'｜').replace(/\n/g,' ').slice(0,300);
+            lines.push('| ' + lbl + ' | ' + val + ' |');
+          });
+          lines.push('');
+        }
+      } catch(e){}
+
+      /* === 杂事记录 === */
+      try {
+        var m = dd.miscRecordsV1;
+        if(!Array.isArray(m) && dd['_miscRecords']) m = dd['_miscRecords'];
+        if(Array.isArray(m) && m.length > 0){
+          lines.push('## 杂事记录（' + m.length + ' 条）');
+          lines.push('');
+          m.forEach(function(item,i){
+            if(typeof item === 'object' && item){
+              var text = item.text||item.content||item.title||JSON.stringify(item);
+              var done = item.done!==undefined?(item.done?'✅':'☐'):'';
+              lines.push((i+1) + '. ' + done + ' ' + text);
+            } else { lines.push((i+1) + '. ' + item); }
+          });
+          lines.push('');
+        }
+      } catch(e){}
+
+      /* === 模式与配置 === */
+      try {
+        var cfgs = [];
+        if(dd.selectedMode) cfgs.push(['当前模式', dd.selectedMode]);
+        if(dd.vacationPeriods!=null) cfgs.push(['假期天数', dd.vacationPeriods]);
+        if(cfgs.length > 0){
+          lines.push('## 模式与配置');
+          lines.push('');
+          cfgs.forEach(function(p){ lines.push('- **' + p[0] + '**：' + p[1]); });
+          lines.push('');
+        }
+      } catch(e){}
+
+      /* === 完整 JSON 快照 === */
+      lines.push('### 完整 JSON 快照');
+      lines.push('');
+      lines.push('```json');
+      try { lines.push(JSON.stringify(dd, null, 2)); } catch(e){ lines.push('{}'); }
+      lines.push('```');
+      lines.push('');
+      lines.push('---');
+      lines.push('');
     });
-    const blob = new Blob([md], {type:'text/markdown;charset=utf-8'});
+
+    var blob = new Blob([lines.join('\n')], {type:'text/markdown;charset=utf-8'});
     downloadBlob(blob, filename);
   }
 
@@ -26395,7 +26667,7 @@ window.addEventListener('unhandledrejection', function(event) {
   }
 
   function exportRange(startYMD, endYMD, opts){
-    opts = opts || { json:true, md:false };
+    opts = opts || { json:true, simplified:false };
     try{
       const today = ymdTodayLocal();
       if(startYMD <= today && today <= endYMD){
@@ -26404,20 +26676,22 @@ window.addEventListener('unhandledrejection', function(event) {
           if(typeof window.collectDailyData === 'function'){
             const obj = window.collectDailyData();
             const dk = Object.keys(obj||{})[0];
-            if(dk && obj[dk]) __tpi_ls_set(`tpi_data_${today}`, JSON.stringify(obj[dk]));
+            if(dk && obj[dk]) __tpi_ls_set('tpi_data_' + today, JSON.stringify(obj[dk]));
           }
         }catch(e){}
       }
 
       const db = getAllDaysDbSafe();
       const rangeObj = pickRange(db, startYMD, endYMD);
-      const base = `TPI_${startYMD}_to_${endYMD}`;
+      const base = 'TPI_' + startYMD + '_to_' + endYMD;
 
-      if(opts.json){
-        try{ exportRangeAsJSON(rangeObj, `${base}.json`); }catch(e){ console.warn(e); }
+      if(opts.simplified){
+        try{ exportRangeAsSimplifiedJSON(rangeObj, base + '_简化版.json'); }catch(e){ console.warn(e); }
+        tpiToast('✅ 简化版JSON范围导出成功！仅含用户勾选、点击、输入等操作产生的内容。');
+      } else {
+        try{ exportRangeAsJSON(rangeObj, base + '_完整版.json'); }catch(e){ console.warn(e); }
+        tpiToast('✅ 完整版JSON范围导出成功！含所有用户操作及页面生成数据。');
       }
-
-      tpiToast('✅ 范围导出已触发（如浏览器拦截下载，请允许多文件下载）');
     }catch(e){
       console.error('[exportRange] failed:', e);
       tpiToast('❌ 范围导出失败（看控制台）');
@@ -26450,11 +26724,13 @@ window.addEventListener('unhandledrejection', function(event) {
 
   window.TPI = window.TPI || {};
   window.TPI.exportRange = exportRange;
-  window.TPI.exportByPeriod = function(period){
+  // V1.85: format 支持 'json'（完整版）或 'json-simplified'（简化版）
+  window.TPI.exportByPeriod = function(period, format){
     const r = periodToRange(period);
-    exportRange(r.start, r.end, { json:true, md:false });
+    var isSimplified = (format === 'json-simplified' || format === 'simplified');
+    exportRange(r.start, r.end, { json: !isSimplified, simplified: isSimplified });
   };
-  window.TPI.exportCustomRange = function(){
+  window.TPI.exportCustomRange = function(format){
     const sEl = document.getElementById('export-start-date') || document.getElementById('export-range-start');
     const eEl = document.getElementById('export-end-date') || document.getElementById('export-range-end');
     if(!sEl || !eEl){
@@ -26467,7 +26743,8 @@ window.addEventListener('unhandledrejection', function(event) {
       tpiToast('⚠️ 范围日期格式应为 YYYY-MM-DD');
       return;
     }
-    exportRange(start, end, { json:true, md:false });
+    var isSimplified = (format === 'json-simplified' || format === 'simplified');
+    exportRange(start, end, { json: !isSimplified, simplified: isSimplified });
   };
 
   function hideLoadingOverlaySafely(){
@@ -26489,7 +26766,7 @@ window.addEventListener('unhandledrejection', function(event) {
   }
 
   function backupAllDataNow(){
-    const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.83）'), appVersion: (window.TPI_APP_VERSION||'1.70'), exportedAt: new Date().toISOString() }, localStorage: {} };
+    const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.85）'), appVersion: (window.TPI_APP_VERSION||'1.70'), exportedAt: new Date().toISOString() }, localStorage: {} };
     for(let i=0;i<__tpi_ls_length();i++){
       const k = __tpi_ls_key(i);
       if(!k) continue;
@@ -26506,7 +26783,7 @@ window.addEventListener('unhandledrejection', function(event) {
     const blob = new Blob([JSON.stringify(out, null, 2)], {type:'application/json'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `TPI_V1.82_full_backup_${(new Date()).toISOString().slice(0,10)}.json`;
+    a.download = `TPI_V1.85_full_backup_${(new Date()).toISOString().slice(0,10)}.json`;
     a.click();
     tpiToast('✅ 已导出“备份所有数据”JSON（可用于全量恢复）');
   }
@@ -26796,7 +27073,7 @@ try{
       }
       window.__tpi_backup_lock = true;
 
-      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.83）'), appVersion: (window.TPI_APP_VERSION||'1.70'), exportedAt: new Date().toISOString() }, localStorage: {} };
+      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.85）'), appVersion: (window.TPI_APP_VERSION||'1.70'), exportedAt: new Date().toISOString() }, localStorage: {} };
 
       for(let i=0;i<__tpi_ls_length();i++){
         const k = __tpi_ls_key(i);
@@ -27347,7 +27624,7 @@ try{
       }
       window.__tpi_backup_lock = true;
 
-      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.83）'), appVersion: (window.TPI_APP_VERSION||'1.70'), exportedAt: new Date().toISOString() }, localStorage: {} };
+      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统（TPI，V1.85）'), appVersion: (window.TPI_APP_VERSION||'1.70'), exportedAt: new Date().toISOString() }, localStorage: {} };
 
       for(let i=0;i<__tpi_ls_length();i++){
         const k = __tpi_ls_key(i);
@@ -39334,7 +39611,7 @@ setTimeout(function() {
     if (typeof window.exportCurrentSnapshot === 'function') window.exportCurrentSnapshot('json');
   };
   window.TPI.actions['export-markdown'] = function() {
-    if (typeof window.exportCurrentSnapshot === 'function') window.exportCurrentSnapshot('markdown');
+    if (typeof window.exportCurrentSnapshot === 'function') window.exportCurrentSnapshot('json-simplified');
   };
   window.TPI.actions['show-changelog'] = function() {
     if (typeof window.tpiShowChangelog === 'function') window.tpiShowChangelog();
@@ -41556,7 +41833,7 @@ h3.card-title, h4.card-title,
   function _v157_collectAll(){
     var result={
       _meta:{
-        version: window.TPI_VERSION||'全维效能管理系统（TPI，V1.83）',
+        version: window.TPI_VERSION||'全维效能管理系统（TPI，V1.85）',
         appVersion: window.TPI_APP_VERSION||'1.70',
         backupVersion:'V1.57',
         backupFormat:'full_v157_ultimate',
@@ -41929,7 +42206,7 @@ h3.card-title, h4.card-title,
 
     var result = {
       _meta: {
-        version: window.TPI_VERSION || '全维效能管理系统（TPI，V1.83）',
+        version: window.TPI_VERSION || '全维效能管理系统（TPI，V1.85）',
         appVersion: window.TPI_APP_VERSION || '1.70',
         backupVersion: 'V1.60',
         backupFormat: 'full_v159_ultimate',
@@ -42124,9 +42401,9 @@ h3.card-title, h4.card-title,
       var miscCount = Object.keys(data.miscRecords).length;
       var rawCount = Object.keys(data.rawKV).length;
       var content = JSON.stringify(data, null, 2);
-      var filename = 'TPI_全量备份_V1.82_' + _dateStr() + '.json';
+      var filename = 'TPI_全量备份_V1.85_' + _dateStr() + '.json';
       _dlBlob(content, filename, 'application/json;charset=utf-8');
-      _toast('✅ 全量备份成功（V1.82）！共 ' + dayCount + ' 天日记录，' + miscCount + ' 天杂事，' + rawCount + ' 项完整键值。文件：' + filename);
+      _toast('✅ 全量备份成功（V1.85）！共 ' + dayCount + ' 天日记录，' + miscCount + ' 天杂事，' + rawCount + ' 项完整键值。文件：' + filename);
       console.log('[TPI V1.60] 备份完成：', dayCount+'天记录，', rawCount+'项键值');
     } catch(e) {
       _err('❌ 备份失败：' + (e && e.message ? e.message : String(e)));
