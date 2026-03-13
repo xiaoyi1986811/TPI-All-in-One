@@ -28958,6 +28958,36 @@ window.__tpi_syncDateToMain = function(){
 
     tpiShowMsg('tpi-login-msg', '⏳ 正在登录...');
     try{
+      // V1.87修复：登录前先清除已有 session，避免 "session is active" 错误
+      try {
+        const _acct = window.__appwriteAccount || (typeof account !== 'undefined' ? account : null);
+        if (_acct && typeof _acct.deleteSession === 'function') {
+          await _acct.deleteSession('current');
+        }
+      } catch(_) { /* 无活跃 session 时忽略错误 */ }
+      // 清除本地缓存的 session 数据
+      try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && (k.startsWith('cookieFallback') || k.startsWith('a_session') ||
+              k.indexOf('appwrite') !== -1 || k === 'tpi_backend_token')) {
+            keysToRemove.push(k);
+          }
+        }
+        keysToRemove.forEach(k => { try { localStorage.removeItem(k); } catch(_) {} });
+      } catch(_) {}
+      // 重置 Appwrite Client，清除内存中残留的 session 状态
+      try {
+        const _ep  = window.APPWRITE_ENDPOINT_ACTIVE || 'https://sgp.cloud.appwrite.io/v1';
+        const _pid = (window.__TPI_CONFIG && window.__TPI_CONFIG.appwriteProject) ? window.__TPI_CONFIG.appwriteProject : '698d998e003c903490e1';
+        const _nc  = new Appwrite.Client();
+        _nc.setEndpoint(_ep).setProject(_pid);
+        window.__appwriteClient    = _nc;
+        window.__appwriteAccount   = new Appwrite.Account(_nc);
+        window.__appwriteDatabases = new Appwrite.Databases(_nc);
+      } catch(_) {}
+
       const session = await (__withEndpointFallback(async ({account}) => {
         if (account.createEmailPasswordSession) return await account.createEmailPasswordSession(username, password);
         if (account.createEmailSession) return await account.createEmailSession(username, password);
