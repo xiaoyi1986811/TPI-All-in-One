@@ -2,13 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"/>
-<link crossorigin="" href="https://cdn.jsdelivr.net" rel="preconnect"/>
+<link crossorigin="anonymous" href="https://cdn.jsdelivr.net" rel="preconnect"/>
 <link href="https://cdn.jsdelivr.net" rel="dns-prefetch"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link crossorigin="anonymous" href="https://fonts.gstatic.com" rel="preconnect"/>
 <meta content="nosniff" http-equiv="X-Content-Type-Options"/>
-<meta content="1; mode=block" http-equiv="X-XSS-Protection"/>
-
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://cloud.appwrite.io https://sgp.cloud.appwrite.io https://unpkg.com blob:; worker-src blob:; manifest-src blob:; object-src 'none'; base-uri 'self'; form-action 'self';"/>
 <meta content="strict-origin-when-cross-origin" http-equiv="Referrer-Policy"/>
 <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=()"/>
@@ -119,13 +117,13 @@
   };
 })();
 </script>
-<meta content="全维效能管理系统 TPI（V2.02）" property="og:title"/>
+<meta content="全维效能管理系统 TPI（V2.07）" property="og:title"/>
 <meta content="全维效能管理系统（TPI）| 全面追踪 · 科学管理 · 高效提升" property="og:description"/>
 <meta content="website" property="og:type"/>
 <meta content="https://mytpi.netlify.app/" property="og:url"/>
 <meta content="zh_CN" property="og:locale"/>
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="全维效能管理系统 TPI（V2.02）"/>
+<meta name="twitter:title" content="全维效能管理系统 TPI（V2.07）"/>
 <meta name="twitter:description" content="全维效能管理系统（TPI）"/>
 <meta content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" name="viewport"/>
 <meta content="全维效能管理系统（TPI）- 跨设备同步 | 支持电脑/手机/平板访问" name="description"/>
@@ -900,7 +898,7 @@ if (typeof window.__tpi_debug_log === 'function') window.__tpi_debug_log('[Stora
     autoClean: autoClean,
     isUsingFallback: function() {
 
-      return _usingFallback || (typeof window.__tpi_mem_cache === window.__tpi_mem_cache && false);
+      return _usingFallback || (false);
     },
     _setFallback: function(v) { _usingFallback = !!v; },
 
@@ -1774,7 +1772,205 @@ window.__tpi_clearAllForm = function() {
 
   window.exportTpiDataComplete = function(){ window.exportCurrentSnapshot('json'); };
   window.exportDataComplete = function(fmt){ window.exportCurrentSnapshot(fmt === 'simplified' ? 'json-simplified' : 'json'); };
+  /**
+   * 导出当日完整Markdown报告，尽可能对齐 V1.26 模板
+   */
+  window.exportTodayMarkdown = function() {
+    if(window.__tpi_any_export_active){
+      if(window.tpiToast) window.tpiToast('⏳ 导出进行中，请稍候再试…', 'warning');
+      return;
+    }
+    window.__tpi_any_export_active = true;
+    window.__tpi_export_snapshot_lock = true;
+    try {
+      // 强制更新数据
+      if(typeof window.__tpi_triggerRecalc === 'function') window.__tpi_triggerRecalc();
+      if(window.ScoreDashboard && typeof window.ScoreDashboard.update === 'function') window.ScoreDashboard.update();
+      if(window.TPI && typeof window.TPI.saveData === 'function') window.TPI.saveData();
+      if(typeof window.saveFormData === 'function') window.saveFormData();
+      if(typeof window.__tpi_autoSaveCurrentDay === 'function') window.__tpi_autoSaveCurrentDay();
+      if(typeof window.__tpi_forceSaveDOM === 'function') window.__tpi_forceSaveDOM();
 
+      // 获取当天日期
+      const dateInput = document.getElementById('date-input');
+      const today = dateInput ? dateInput.value : new Date().toISOString().slice(0,10);
+
+      // 收集所有数据
+      const data = (typeof window.collectDailyData === 'function') ? window.collectDailyData() : {};
+      const dayData = data && data[today] ? data[today] : {};
+
+      // 辅助函数：获取元素值
+      function getVal(id, fallback = '') {
+        const el = document.getElementById(id);
+        if(!el) return fallback;
+        if(el.tagName === 'INPUT' && (el.type === 'checkbox' || el.type === 'radio')) {
+          return el.checked ? '✅' : '☐';
+        }
+        return el.value || el.textContent || fallback;
+      }
+
+      function getScore(id) { return getVal(id, '0'); }
+
+      // 收集豁免勾选
+      let exemptionLines = [];
+      document.querySelectorAll('input[name="exemption-a"]:checked, input[name="exemption-b"]:checked, input[name="objective-exemption"]:checked').forEach(cb => {
+        const label = cb.closest('label') ? cb.closest('label').innerText.trim() : cb.value;
+        exemptionLines.push(`- [x] ${label}`);
+      });
+      const exemptionReason = document.getElementById('exemption-reason-textarea') ? document.getElementById('exemption-reason-textarea').value : '';
+
+      // 收集模式
+      const modeCards = document.querySelectorAll('.mode-card.selected');
+      const mode = modeCards.length ? modeCards[0].id.replace('mode-','') : '未选择';
+
+      // 构建 Markdown 内容
+      let md = `# 📅 TPI日报 — ${today}\n\n`;
+
+      // ----- 核心信条 -----
+      md += `## 🚩 核心信条与最高裁判原则\n\n`;
+      const axiomCards = document.querySelectorAll('#core-axioms .axiom-card');
+      axiomCards.forEach(card => {
+        const title = card.querySelector('.axiom-title') ? card.querySelector('.axiom-title').innerText : '';
+        const content = card.querySelector('.axiom-content') ? card.querySelector('.axiom-content').innerText : '';
+        md += `**${title}**  \n${content}\n\n`;
+      });
+
+      // 最高裁判原则
+      const tierItems = document.querySelectorAll('.tier-item');
+      md += `**最高裁判原则**\n`;
+      tierItems.forEach(item => {
+        const badge = item.querySelector('.tier-badge-large') ? item.querySelector('.tier-badge-large').innerText : '';
+        const title = item.querySelector('.tier-content h4') ? item.querySelector('.tier-content h4').innerText : '';
+        const desc = item.querySelector('.tier-content p') ? item.querySelector('.tier-content p').innerText : '';
+        md += `- **${badge} ${title}**：${desc}\n`;
+      });
+      md += `\n**缓冲时间统一条款 [T2]**：本表所有时间节点均设立 15分钟的缓冲时间，但花费时间不足15分钟者例外（如5分钟的微运动）。\n\n`;
+
+      // 豁免体系
+      md += `### ⛑️ 豁免声明区\n\n`;
+      if(exemptionLines.length) {
+        md += exemptionLines.join('\n') + '\n\n';
+      } else {
+        md += `- [ ] 无豁免\n\n`;
+      }
+      if(exemptionReason) md += `**豁免理由简述**：${exemptionReason}\n\n`;
+
+      // ----- TPI仪表盘 -----
+      md += `## 📊 TPI 全维效能仪表盘\n\n`;
+      md += `- **TPI_E总分**：${getScore('tpi-total')} 分 **评级**：${getVal('tpi-rating')}\n`;
+      md += `- **7日均分 MA7（严格版）**：${getScore('ma7-score')} 分\n`;
+      md += `- **连胜**：${getScore('streak-days')} 日\n`;
+      md += `- **连败预警**：${getScore('losing-streak-days')} 日\n\n`;
+
+      md += `| 维度 | 得分 | 角色定位 | 目标权重 | 逻辑说明 |\n`;
+      md += `|------|------|----------|----------|----------|\n`;
+      md += `| ⚔️ **学术战力 (AMI)** | ${getScore('ami-score')} | 核心输出 | 65% | 产出越多越好 |\n`;
+      md += `| 🗣️ **语言工具 (FLI)** | ${getScore('fli-score')} | 辅助工具 | 10% | 语言是人文研究的透镜 |\n`;
+      md += `| 🧱 **基石系统 (Sys_Net)** | ${getScore('sys-score')} | 生存保障 | 20% | 红线制，低于12分触发保护 |\n`;
+      md += `| 💖 **韧性加分 (Bonus)** | ${getScore('bonus-score')} | 反脆弱 | 5% | 奖励关键转折、心理调节 |\n\n`;
+
+      // ----- 每日四分卫 -----
+      md += `## 🧱 每日四分卫：模式选择与意图声明\n\n`;
+      md += `**当前模式**：${mode}\n\n`;
+
+      // 豁免勾选（已在上方）
+
+      // ----- 韧性加分 -----
+      md += `## 💖 韧性与突破加分\n\n`;
+      const bonusItems = [];
+      document.querySelectorAll('input[name="bonus-item"]:checked').forEach(cb => {
+        const label = cb.closest('label') ? cb.closest('label').innerText.trim() : cb.value;
+        bonusItems.push(`- [x] ${label}`);
+      });
+      if(bonusItems.length) {
+        md += bonusItems.join('\n') + '\n\n';
+      } else {
+        md += `- [ ] 无加分项\n\n`;
+      }
+      md += `**奖励理由**：${getVal('bonus-reason')}\n\n`;
+
+      // ----- AMI -----
+      md += `## ⚔️ 第一部分：学术战力指标 (AMI)\n\n`;
+      // 点火程序
+      md += `### 🔥 点火程序\n`;
+      md += `- 🧼 **物理就位**：${getVal('ignition-physical') ? '✅' : '☐'}\n`;
+      md += `- 🤏 **微观目标**：${getVal('ignition-micro-target') ? '✅' : '☐'}\n`;
+      md += `- 🚀 **无痛启动**：${getVal('ignition-painless-start') ? '✅' : '☐'}\n`;
+      md += `- 📖 **学术论著扫描**：${getVal('ami-scan-reading') ? '✅' : '☐'}\n`;
+      md += `**协议加分小计**：${getVal('ignition-total')} 分\n\n`;
+
+      md += `### 📊 时段记录\n`;
+      // 简单列出几个主要时段得分，实际可遍历更细致
+      md += `- **上午**：${getVal('ami-morning-score')} 分\n`;
+      md += `- **下午**：${getVal('ami-afternoon-score')} 分\n`;
+      md += `- **晚上1**：${getVal('ami-evening1-score')} 分\n`;
+      md += `- **晚上2**：${getVal('ami-evening2-score')} 分\n`;
+      md += `- **机动**：${getVal('ami-flexible-score')} 分\n\n`;
+      md += `**∑ AMI总分**：${getVal('ami-total-score')} 分\n\n`;
+
+      // ----- BCM -----
+      md += `## 🔧 第二部分：基石系统 (BCM)\n\n`;
+      md += `- **晨间入馆**：${getVal('bcm-morning-score')} 分\n`;
+      md += `- **午间防守**：${getVal('bcm-lunch-score')} 分\n`;
+      md += `- **晚间防守**：${getVal('bcm-dinner-score')} 分\n`;
+      md += `- **晚间离馆**：${getVal('bcm-evening-score')} 分\n`;
+      md += `- **睡眠计分**：${getVal('bcm-sleep-score')} 分\n`;
+      md += `- **数字气隙**：${getVal('bcm-digital-score')} 分\n`;
+      md += `- **下午核心学习维持**：${getVal('bcm-afternoon-score')} 分\n\n`;
+      md += `**BCM实得分**：${getVal('bcm-total-score')} 分\n\n`;
+
+      // ----- HSM -----
+      md += `## 🛡️ 第三部分：健康与稳定性 (HSM)\n\n`;
+      md += `- **核心生存运动**：${getVal('hsm-core-score')} 分\n`;
+      md += `- **上午微运动**：${getVal('hsm-morning-score')} 分\n`;
+      md += `- **下午微运动**：${getVal('hsm-afternoon-score')} 分\n`;
+      md += `- **上午喝水**：${getVal('hsm-water-morning-score')} 分\n`;
+      md += `- **下午喝水**：${getVal('hsm-water-afternoon-score')} 分\n`;
+      md += `- **晚上喝水**：${getVal('hsm-water-evening-score')} 分\n\n`;
+      md += `**HSM实得分**：${getVal('hsm-total-score')} 分\n\n`;
+
+      // ----- FLI -----
+      md += `## 🗣️ 第四部分：外语技能实验室 (FLI)\n\n`;
+      md += `- **核心学习**：${getVal('fli-core-score')} 分\n`;
+      md += `- **碎片磨耳**：${getVal('fli-fragment-score')} 分\n\n`;
+      md += `**FLI总分**：${getVal('fli-total-score')} 分\n\n`;
+
+      // ----- Logistics -----
+      md += `## 🧹 第五部分：后勤与维护 (Logistics)\n\n`;
+      md += `**Logistics总分**：${getVal('logistics-total-score')} 分\n\n`;
+
+      // 每日文字内容
+      md += `## 📝 每日文字记录\n\n`;
+      md += `**每日总结**：${getVal('daily-summary')}\n\n`;
+      md += `**悬念引导**：${getVal('cliffhanger')}\n\n`;
+      md += `**明日第一动作**：${getVal('first-action')}\n\n`;
+      md += `**今日反思**：${getVal('daily-reflection')}\n\n`;
+      md += `**微小胜利**：\n- ${getVal('victory-1')}\n- ${getVal('victory-2')}\n- ${getVal('victory-3')}\n\n`;
+
+      md += `---\n*报告由全维效能管理系统 TPI（V2.07）自动生成，时间：${new Date().toLocaleString('zh-CN')}*\n`;
+
+      // 下载文件
+      const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `TPI_${today}_完整报告.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      if(window.tpiToast) window.tpiToast('✅ Markdown报告导出成功！', 'success');
+    } catch(e) {
+      console.error('[exportTodayMarkdown] 导出失败:', e);
+      if(window.tpiToast) window.tpiToast('❌ 导出失败：' + (e.message || '未知错误'), 'error');
+    } finally {
+      setTimeout(function(){
+        window.__tpi_any_export_active = false;
+        window.__tpi_export_snapshot_lock = false;
+      }, 800);
+    }
+  };
   if (document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', _removeBackupBannerIfAny, {once:true});
   } else {
@@ -1844,7 +2040,7 @@ function __tpi_collectFormState() {
   const controls = document.querySelectorAll('input, textarea, select, [contenteditable="true"]');
 
   function cssEscape(s) {
-    try { return (window.CSS && CSS.escape) ? CSS.escape(s) : s.replace(/[^a-zA-Z0-9_-]/g, '\\$&'); } catch(e) { return s; }
+    try { return (window.CSS && window.CSS.escape) ? CSS.escape(s) : s.replace(/[^a-zA-Z0-9_-]/g, '\\$&'); } catch(e) { return s; }
   }
   function cssPath(el) {
     if (!el) return null;
@@ -2487,7 +2683,7 @@ window.getTpiDayDataAsync = async function(dateStr) {
   } catch (e) {}
 })();
 </script>
-<title>全维效能管理系统 TPI（V2.02）</title>
+<title>全维效能管理系统 TPI（V2.07）</title>
 <script>
    'use strict';
         const getCurrentDate = () => {
@@ -2498,7 +2694,7 @@ window.getTpiDayDataAsync = async function(dateStr) {
             return `${year}-${month}-${day}`;
         };
 
-        window.TPI_VERSION = '全维效能管理系统 TPI（V2.02）';
+        window.TPI_VERSION = '全维效能管理系统 TPI（V2.07）';
         window.TPI_APP_VERSION = '1.88';
 
         // V1.50: 检查是否有待恢复的数据（import后不刷新，直接恢复）
@@ -2593,7 +2789,7 @@ window.TPI.DOM = window.TPI.DOM || {
                             : '三十';
             const lunarStr = `农历${lunarMonth}${lunarDay}${lunar.isLeap ? '(闰)' : ''}`;
 
-            document.title = `全维效能管理系统 TPI（V2.02）（${window.TPI_BUILD_DATE} ${weekday} ${lunarStr}）`;
+            document.title = `全维效能管理系统 TPI（V2.07）（${window.TPI_BUILD_DATE} ${weekday} ${lunarStr}）`;
 
             const dateDisplay = document.getElementById('current-date-display');
             if (dateDisplay) {
@@ -6836,7 +7032,7 @@ th, td {
 </style>
 
 <!-- ═══════════════════════════════════════════════════════════
-     TPI V2.02 Android 移动端专项优化样式
+     TPI V2.07 Android 移动端专项优化样式
      优化范围：触控目标、字体、输入框、布局、滚动、表格
      ═══════════════════════════════════════════════════════════ -->
 <style id="tpi-android-mobile-v201">
@@ -7883,7 +8079,7 @@ document.addEventListener('click', function(e) {
 <div class="header-content">
 <div class="header-title">
 <h1 style="font-size:clamp(1.5rem, 3vw, 2.5rem);font-weight:800;background:linear-gradient(135deg,#0f766e 0%,#0d9488 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.02em;">
-        全维效能管理系统 TPI（V2.02）
+        全维效能管理系统 TPI（V2.07）
        </h1>
 
 <div style="display:inline-flex;align-items:center;gap:6px;flex-shrink:0;">
@@ -7980,7 +8176,42 @@ document.addEventListener('click', function(e) {
 
 </div>
 </div>
-
+<!-- 签到森林奖励系统 TPIV2.07 -->
+<div class="tpi-tree-rewards" style="margin-top: 20px; padding: 16px; background: linear-gradient(145deg, #f0fdf4, #f7fee7); border-radius: 16px; border: 2px solid #86efac; box-shadow: 0 6px 16px rgba(13,148,136,0.12);">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+    <span style="font-weight: 700; font-size: 1.1rem; color: #2e7d32;">🌳 签到森林</span>
+    <span style="font-size: 0.9rem; background: #2e7d32; color: white; padding: 3px 12px; border-radius: 20px; font-weight: 600;">累计 <span id="total-checkin-days">0</span> 天</span>
+  </div>
+  <div style="display: flex; gap: 12px; justify-content: space-around; align-items: flex-end; text-align: center;">
+    <!-- 小树 7天 -->
+    <div style="flex: 1;">
+      <div id="tree-sapling" style="font-size: 2.6rem; color:#22c55e; filter: drop-shadow(0 4px 6px rgba(74,222,128,0.4)); transition: all 0.3s; opacity: 0.4;">🌱</div>
+      <div style="font-weight: 600; font-size: 0.8rem; color: #15803d;">小树</div>
+      <div style="font-size: 0.7rem; color: #166534;">7天</div>
+    </div>
+    <!-- 中树 28天 -->
+    <div style="flex: 1;">
+      <div id="tree-medium" style="font-size: 3.4rem; color:#16a34a; filter: drop-shadow(0 4px 8px rgba(34,197,94,0.5)); transition: all 0.3s; opacity: 0.4;">🌴</div>
+      <div style="font-weight: 600; font-size: 0.8rem; color: #16a34a;">中树</div>
+      <div style="font-size: 0.7rem; color: #166534;">28天</div>
+    </div>
+    <!-- 大树 84天 -->
+    <div style="flex: 1;">
+      <div id="tree-large" style="font-size: 4.2rem; color:#2563eb; filter: drop-shadow(0 6px 10px rgba(59,130,246,0.5)); transition: all 0.3s; opacity: 0.4;">🌳</div>
+      <div style="font-weight: 600; font-size: 0.8rem; color: #2563eb;">大树</div>
+      <div style="font-size: 0.7rem; color: #1e3a8a;">84天</div>
+    </div>
+    <!-- 神树 168天 -->
+    <div style="flex: 1;">
+      <div id="tree-legend" style="font-size: 5rem; color:#9333ea; filter: drop-shadow(0 8px 12px rgba(168,85,247,0.6)); transition: all 0.3s; opacity: 0.4;">🌲</div>
+      <div style="font-weight: 600; font-size: 0.8rem; color: #9333ea;">神树</div>
+      <div style="font-size: 0.7rem; color: #6b21a5;">168天</div>
+    </div>
+  </div>
+  <div style="margin-top: 14px; font-size: 0.8rem; color: #14532d; background: #ecfdf5; padding: 8px 12px; border-radius: 8px; text-align: center;">
+    <span>累计签到达到相应天数，树会从幼苗长成参天大树！继续坚持～</span>
+  </div>
+</div>
 <div class="checkin-help" style="padding: 15px; background: var(--color-bg-tertiary); border-left: 4px solid rgba(13,148,136,0.55); border-radius: 8px;">
 <div style="font-weight: 700; margin-bottom: 10px; color: var(--color-text-secondary); text-align:center;">💡 使用说明</div>
 <div style="font-size: 14px; line-height: 1.6; color: var(--color-text-secondary); text-align:justify;">
@@ -14954,6 +15185,9 @@ document.addEventListener('click', function(e) {
           <button type="button" class="btn btn-secondary" onclick="if(typeof window.exportCurrentSnapshot==='function'){window.exportCurrentSnapshot('json')}else{window.tpiToast&amp;&amp;window.tpiToast('⚠️ 导出功能初始化中，请稍候重试','warning')}" style="width:100%;justify-content:center;" title="完整JSON：含所有输入、勾选、计算值，可100%还原">
             📦 导出当日完整 JSON
           </button>
+                          <button type="button" class="btn btn-secondary" onclick="window.exportTodayMarkdown()" style="width:100%;justify-content:center;margin-top:8px;" title="导出当日Markdown报告，参考V1.26模板">
+                            📝 导出当日完整 Markdown
+                          </button>
         </div>
 
         <!-- 按时间范围导出 -->
@@ -22893,7 +23127,7 @@ window.addEventListener('resize', function() {
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#f8fafc;border-bottom: 1px solid #d1fae5;flex-shrink:0;">
                             <h3 style="margin:0;font-size:18px;color:#1e293b;">👁️ 报告预览</h3>
                             <div style="display:flex;gap:10px;">
-                                <button type="button" onclick="(function(){var p=document.getElementById('tpi-preview-body');if(p){var w=window.open('','_blank');if(w){w.document.write('<html><head><meta charset=UTF-8><title>全维效能管理系统 TPI（V2.02）</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:20px;}h2{color:#0d9488;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border: 1px solid #bbf7d0;}th{background:#f3f4f6;}.btn{padding:10px 20px;margin:10px 5px;cursor:pointer;border: 1px solid #86efac;border-radius:6px;background:#fff;}</style><\/head><body>'+p.innerHTML+'<div style=text-align:center;margin-top:30px><button type="button" class=btn onclick=window.print()>🖨️ 打印</button><button type="button" class=btn onclick=window.close()>关闭</button></div><\/body></html>');w.document.close();}}})()" style="padding:6px 14px;border: 1px solid #6ee7b7;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:#334155;transition:all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">🌐 新窗口打开</button>
+                                <button type="button" onclick="(function(){var p=document.getElementById('tpi-preview-body');if(p){var w=window.open('','_blank');if(w){w.document.write('<html><head><meta charset=UTF-8><title>全维效能管理系统 TPI（V2.07）</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:20px;}h2{color:#0d9488;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border: 1px solid #bbf7d0;}th{background:#f3f4f6;}.btn{padding:10px 20px;margin:10px 5px;cursor:pointer;border: 1px solid #86efac;border-radius:6px;background:#fff;}</style><\/head><body>'+p.innerHTML+'<div style=text-align:center;margin-top:30px><button type="button" class=btn onclick=window.print()>🖨️ 打印</button><button type="button" class=btn onclick=window.close()>关闭</button></div><\/body></html>');w.document.close();}}})()" style="padding:6px 14px;border: 1px solid #6ee7b7;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:#334155;transition:all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">🌐 新窗口打开</button>
                                 <button class="tpi-preview-close-btn" type="button" onclick="document.getElementById('tpi-preview-modal').remove()" style="padding:6px 14px;border: 1px solid #86efac;border-radius:6px;background:#f9fafb;color:#374151;cursor:pointer;font-size:13px;font-weight:600;transition:background 0.15s;">✕ 关闭</button>
                             </div>
                         </div>
@@ -23699,7 +23933,7 @@ window.addEventListener('resize', function() {
                 filename = 'TPI_数据导出_' + new Date().toISOString().split('T')[0] + '.txt';
                 mimeType = 'text/plain';
             } else if (format === 'html') {
-                let html = `<html><head><meta charset="UTF-8"><title>全维效能管理系统 TPI（V2.02）</title><\/head><body>
+                let html = `<html><head><meta charset="UTF-8"><title>全维效能管理系统 TPI（V2.07）</title><\/head><body>
 
         <div id="score-dashboard" style="background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%); padding: 8px 16px; border-radius: 0; margin: 0; color: #1e293b; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
             <div style="max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: nowrap;">
@@ -24714,7 +24948,7 @@ window.archiveOldDataComplete = function() {
                         alert('✅ JSON导出成功！');
                     }
                     else if (format === 'html') {
-                        let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>全维效能管理系统 TPI（V2.02）</title>';
+                        let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>全维效能管理系统 TPI（V2.07）</title>';
                         html += `<style>
 
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; align-items: center; justify-content: center; }
@@ -27262,7 +27496,7 @@ window.addEventListener('unhandledrejection', function(event) {
   }
 
   function backupAllDataNow(){
-    const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统 TPI（V2.02）'), appVersion: (window.TPI_APP_VERSION||'1.70'), exportedAt: new Date().toISOString() }, localStorage: {} };
+    const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统 TPI（V2.07）'), appVersion: (window.TPI_APP_VERSION||'1.70'), exportedAt: new Date().toISOString() }, localStorage: {} };
     for(let i=0;i<__tpi_ls_length();i++){
       const k = __tpi_ls_key(i);
       if(!k) continue;
@@ -27569,7 +27803,7 @@ try{
       }
       window.__tpi_backup_lock = true;
 
-      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统 TPI（V2.02）'), appVersion: (window.TPI_APP_VERSION||'1.70'), exportedAt: new Date().toISOString() }, localStorage: {} };
+      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统 TPI（V2.07）'), appVersion: (window.TPI_APP_VERSION||'1.70'), exportedAt: new Date().toISOString() }, localStorage: {} };
 
       for(let i=0;i<__tpi_ls_length();i++){
         const k = __tpi_ls_key(i);
@@ -28120,7 +28354,7 @@ try{
       }
       window.__tpi_backup_lock = true;
 
-      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统 TPI（V2.02）'), appVersion: (window.TPI_APP_VERSION||'1.70'), exportedAt: new Date().toISOString() }, localStorage: {} };
+      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统 TPI（V2.07）'), appVersion: (window.TPI_APP_VERSION||'1.70'), exportedAt: new Date().toISOString() }, localStorage: {} };
 
       for(let i=0;i<__tpi_ls_length();i++){
         const k = __tpi_ls_key(i);
@@ -28225,7 +28459,7 @@ try{
     return streak;
   }
 
-  function updateCheckInStatus() {
+   function updateCheckInStatus() {
     try {
       const data = getCheckInData();
       const today = getTodayDateString();
@@ -28262,11 +28496,41 @@ try{
       }
 
       updateCheckInCalendar();
+      updateTreeRewards(); // 新增：更新签到森林
     } catch (e) {
       console.error('更新签到状态失败:', e);
     }
   }
+// 更新签到森林树的状态
+function updateTreeRewards() {
+  try {
+    const data = getCheckInData();
+    const totalDays = data.dates.length; // 累计签到天数
+    document.getElementById('total-checkin-days').textContent = totalDays;
 
+    const thresholds = [7, 28, 84, 168];
+    const treeIds = ['tree-sapling', 'tree-medium', 'tree-large', 'tree-legend'];
+
+    for (let i = 0; i < thresholds.length; i++) {
+      const el = document.getElementById(treeIds[i]);
+      if (el) {
+        if (totalDays >= thresholds[i]) {
+          el.style.opacity = '1';
+          // 添加发光效果
+          if (i === 0) el.style.textShadow = '0 0 8px #4ade80';
+          else if (i === 1) el.style.textShadow = '0 0 8px #22c55e';
+          else if (i === 2) el.style.textShadow = '0 0 8px #3b82f6';
+          else if (i === 3) el.style.textShadow = '0 0 10px #a855f7';
+        } else {
+          el.style.opacity = '0.4';
+          el.style.textShadow = 'none';
+        }
+      }
+    }
+  } catch (e) {
+    console.error('更新签到树失败:', e);
+  }
+}
   function updateCheckInCalendar() {
     try {
       const calendarGrid = document.getElementById('checkin-calendar-grid');
@@ -29973,10 +30237,10 @@ window.__tpi_syncDateToMain = function(){
     /* V1.93: 收集全量 localStorage 键（排除敏感项）*/
     function _pickGlobalKeys(dateStr){
       const SENSITIVE = /token|secret|password|pat\b/i;
-      /* V2.02: 排除临时/快照/草稿/云端备份缓存键，防止 globals 套娃膨胀 */
+      /* V2.07: 排除临时/快照/草稿/云端备份缓存键，防止 globals 套娃膨胀 */
       const BLOAT_RE = /^tpi_(draft|unsaved_data|upload_snapshots|download_snapshots|error_logs|banner_dismissed|direct_raw|cloud_backup)_/;
       const keys = new Set();
-      /* 固定必收键（V2.02: 补全所有非 tpi_ 前缀的用户数据键）*/
+      /* 固定必收键（V2.07: 补全所有非 tpi_ 前缀的用户数据键）*/
       const FIXED = [
         'tpi_checkin_data','selectedMode','vacationPeriods',
         'tpi_action_logs','tpi_date_bookmarks','tpi_collapsed_state',
@@ -29990,7 +30254,7 @@ window.__tpi_syncDateToMain = function(){
         'tpi_display_prefs','tpi_theme','tpi_dark_mode',
         'tpi_user_notes','tpi_weekly_summary',
         'tpi_goal_settings','tpi_notification_prefs',
-        /* V2.02: 补全混合模式、恢复模式、深色模式等非 tpi_ 前缀的用户状态键 */
+        /* V2.07: 补全混合模式、恢复模式、深色模式等非 tpi_ 前缀的用户状态键 */
         'dark-mode',
         'mixed_auto_calc','mixed_manual_total',
         'force_recovery_mode','force_recovery_date','force_recovery_reason','force_recovery_meta',
@@ -30002,7 +30266,7 @@ window.__tpi_syncDateToMain = function(){
       if (dateStr) {
         keys.add('tpi_misc_records_' + dateStr);
       }
-      /* V2.02: 扫描全部 localStorage，收录所有用户设置键（排除临时键和套娃键）*/
+      /* V2.07: 扫描全部 localStorage，收录所有用户设置键（排除临时键和套娃键）*/
       try {
         const ls = window.localStorage;
         for (let i = 0; i < ls.length; i++) {
@@ -30011,7 +30275,7 @@ window.__tpi_syncDateToMain = function(){
           if (BLOAT_RE.test(k)) continue;
           if (/^tpi_data_\d{4}-\d{2}-\d{2}$/.test(k)) continue;
           if (/^tpi_misc_records_\d{4}-\d{2}-\d{2}$/.test(k)) { keys.add(k); continue; }
-          /* V2.02: 同时收录 mixed_period_* / manual_mode_override_* 等动态前缀键 */
+          /* V2.07: 同时收录 mixed_period_* / manual_mode_override_* 等动态前缀键 */
           if (k.startsWith('tpi_') || k.startsWith('mixed_') || k.startsWith('manual_mode_override_') ||
               k === 'selectedMode' || k === 'vacationPeriods' || k === 'lastModeChangeTime' ||
               k === 'dark-mode' || k === 'force_recovery_mode' || k === 'force_recovery_date' ||
@@ -31148,7 +31412,7 @@ const __download_end_time = Date.now();
         }
       } catch(_) {}
 
-      /* ── 3. 收集所有全局设置键（V2.02: 排除临时/快照/草稿/云端备份缓存键）── */
+      /* ── 3. 收集所有全局设置键（V2.07: 排除临时/快照/草稿/云端备份缓存键）── */
       const BULK_BLOAT_RE = /^tpi_(draft|unsaved_data|upload_snapshots|download_snapshots|error_logs|banner_dismissed|direct_raw|cloud_backup)_/;
       const masterSettings = {};
       try {
@@ -31159,7 +31423,7 @@ const __download_end_time = Date.now();
           if(/^tpi_data_\d{4}-\d{2}-\d{2}$/.test(k)) continue;
           if(BULK_BLOAT_RE.test(k)) continue;
           if(/^tpi_misc_records_/.test(k)) { masterSettings[k] = ls.getItem(k); continue; }
-          /* V2.02: 收录 mixed_period_* / manual_mode_override_* / dark-mode / force_recovery_* 等所有用户状态键 */
+          /* V2.07: 收录 mixed_period_* / manual_mode_override_* / dark-mode / force_recovery_* 等所有用户状态键 */
           if(k.startsWith('tpi_') || k.startsWith('mixed_') || k.startsWith('manual_mode_override_') ||
              k==='selectedMode' || k==='vacationPeriods' || k==='lastModeChangeTime' ||
              k==='dark-mode' || k==='force_recovery_mode' || k==='force_recovery_date' ||
@@ -31173,7 +31437,7 @@ const __download_end_time = Date.now();
 
       const totalSteps = allDatesSorted.length + 1;
       if(allDatesSorted.length === 0){
-        /* V2.02修复：无历史日期记录时，仍继续上传 master 全局设置文件（不提前返回）*/
+        /* V2.07修复：无历史日期记录时，仍继续上传 master 全局设置文件（不提前返回）*/
         if(prog) prog.textContent = '⚠️ 本地暂无历史日期数据，将仅上传全局设置文件…';
       }
 
@@ -31359,7 +31623,7 @@ const __download_end_time = Date.now();
             } catch(idbErr){ console.warn('[V1.97 全量下载] IDB 写入失败 '+dateStr+'（不影响 LS 恢复）:', idbErr); }
           }
 
-          /* V2.02: 还原全局设置（globals，含各日期的 misc 记录）→ localStorage
+          /* V2.07: 还原全局设置（globals，含各日期的 misc 记录）→ localStorage
              排除套娃/临时键，确保 mixed_* / dark-mode / force_recovery_* 等均被还原 */
           if(unpacked && unpacked.obj && unpacked.obj.globals){
             const _DL_BLOAT = /^tpi_(draft|unsaved_data|upload_snapshots|download_snapshots|error_logs|banner_dismissed|direct_raw|cloud_backup)_/;
@@ -42925,7 +43189,7 @@ h3.card-title, h4.card-title,
   function _v157_collectAll(){
     var result={
       _meta:{
-        version: window.TPI_VERSION||'全维效能管理系统 TPI（V2.02）',
+        version: window.TPI_VERSION||'全维效能管理系统 TPI（V2.07）',
         appVersion: window.TPI_APP_VERSION||'1.70',
         backupVersion:'V1.57',
         backupFormat:'full_v157_ultimate',
@@ -43294,7 +43558,7 @@ h3.card-title, h4.card-title,
 
     var result = {
       _meta: {
-        version: window.TPI_VERSION || '全维效能管理系统 TPI（V2.02）',
+        version: window.TPI_VERSION || '全维效能管理系统 TPI（V2.07）',
         appVersion: window.TPI_APP_VERSION || '1.70',
         backupVersion: 'V1.60',
         backupFormat: 'full_v159_ultimate',
