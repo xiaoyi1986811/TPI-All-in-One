@@ -117,13 +117,13 @@
   };
 })();
 </script>
-<meta content="全维效能管理系统 TPI（V2.19）" property="og:title"/>
+<meta content="全维效能管理系统 TPI（V2.20）" property="og:title"/>
 <meta content="全维效能管理系统（TPI）| 全面追踪 · 科学管理 · 高效提升" property="og:description"/>
 <meta content="website" property="og:type"/>
 <meta content="https://mytpi.netlify.app/" property="og:url"/>
 <meta content="zh_CN" property="og:locale"/>
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="全维效能管理系统 TPI（V2.19）"/>
+<meta name="twitter:title" content="全维效能管理系统 TPI（V2.20）"/>
 <meta name="twitter:description" content="全维效能管理系统（TPI）"/>
 <meta content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" name="viewport"/>
 <meta content="全维效能管理系统（TPI）- 跨设备同步 | 支持电脑/手机/平板访问" name="description"/>
@@ -1970,7 +1970,7 @@ window.__tpi_clearAllForm = function() {
       md += `**今日反思**：${getVal('daily-reflection')}\n\n`;
       md += `**微小胜利**：\n- ${getVal('victory-1')}\n- ${getVal('victory-2')}\n- ${getVal('victory-3')}\n\n`;
 
-      md += `---\n*报告由全维效能管理系统 TPI（V2.19）自动生成，时间：${new Date().toLocaleString('zh-CN')}*\n`;
+      md += `---\n*报告由全维效能管理系统 TPI（V2.20）自动生成，时间：${new Date().toLocaleString('zh-CN')}*\n`;
 
       // 下载文件
       const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
@@ -2716,7 +2716,7 @@ window.getTpiDayDataAsync = async function(dateStr) {
   } catch (e) {}
 })();
 </script>
-<title>全维效能管理系统 TPI（V2.19）</title>
+<title>全维效能管理系统 TPI（V2.20）</title>
 <script>
    'use strict';
         const getCurrentDate = () => {
@@ -2727,7 +2727,7 @@ window.getTpiDayDataAsync = async function(dateStr) {
             return `${year}-${month}-${day}`;
         };
 
-        window.TPI_VERSION = '全维效能管理系统 TPI（V2.19）';
+        window.TPI_VERSION = '全维效能管理系统 TPI（V2.20）';
         window.TPI_APP_VERSION = '2.19';
 
         // V1.50: 检查是否有待恢复的数据（import后不刷新，直接恢复）
@@ -2822,7 +2822,7 @@ window.TPI.DOM = window.TPI.DOM || {
                             : '三十';
             const lunarStr = `农历${lunarMonth}${lunarDay}${lunar.isLeap ? '(闰)' : ''}`;
 
-            document.title = `全维效能管理系统 TPI（V2.19）（${window.TPI_BUILD_DATE} ${weekday} ${lunarStr}）`;
+            document.title = `全维效能管理系统 TPI（V2.20）（${window.TPI_BUILD_DATE} ${weekday} ${lunarStr}）`;
 
             const dateDisplay = document.getElementById('current-date-display');
             if (dateDisplay) {
@@ -7816,7 +7816,8 @@ var TPI_SUBMODS = {
       { icon: '🏆', name: '里程碑徽章 MBS', id: 'submod-da-badges' },
       { icon: '🔥', name: '点火完成率趋势 ICR', id: 'submod-da-ignition' },
       { icon: '🏅', name: '评级分布时间线 RDT', id: 'submod-da-rating' },
-      { icon: '🔬', name: '高级分析工具 AAT', id: 'submod-da-advanced' }
+      { icon: '🔬', name: '高级分析工具 AAT', id: 'submod-da-advanced' },
+      { icon: '📋', name: '今日任务明细 DTL', id: 'submod-da-tasklog' }
     ]
   },
   workshop: {
@@ -12883,7 +12884,7 @@ document.addEventListener('click', function(e) {
               🥉 临界 (00:30-01:00): 1分
              </li>
 <li>
-              ⭕ 缺口 (&gt; 01:00): 0分 (触发动态比较)
+              ⭕ 缺口 (&gt; 01:00): 0分 + 动态改善奖励（仅奖不罚）：早&lt;30min +0.5，早30-60min +1，早60min以上 +2
              </li>
 </ul>
 </li>
@@ -13516,6 +13517,7 @@ document.addEventListener('click', function(e) {
              </strong>
              :
              <br/>
+             <strong>🌙 1点以前睡觉（基础分段）：</strong><br/>
              Δt ≤ -30分钟:
              <strong>
               +1.0
@@ -13536,6 +13538,20 @@ document.addEventListener('click', function(e) {
              | Δt &gt; 60:
              <strong>
               -1.0
+             </strong>
+<br/>
+             <strong>🔴 1点以后睡觉（缺口段，仅奖不罚）：</strong><br/>
+             今天比昨天早 &lt; 30分钟:
+             <strong>
+              +0.5
+             </strong>
+             | 早30–60分钟:
+             <strong>
+              +1.0
+             </strong>
+             | 早60分钟以上:
+             <strong>
+              +2.0
              </strong>
 <br/>
              今日:
@@ -15157,6 +15173,28 @@ document.addEventListener('click', function(e) {
 </div>
 </div>
   </div>
+
+<div class="tpi-submodule" id="submod-da-tasklog" style="border-color:#a7f3d0;margin-bottom:16px;">
+  <div class="tpi-submodule-header" onclick="tpiToggleSubmodule('submod-da-tasklog')" role="button" tabindex="0" aria-expanded="true" aria-controls="submod-da-tasklog-body" title="展开/折叠 今日任务明细" style="background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border-bottom-color:#a7f3d0;">
+    <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex:1;text-align:center;">
+      <span style="font-size:18px;">📋</span>
+      <span style="font-size:15px;font-weight:700;color:#065f46;">今日任务明细</span>
+      <span style="font-size:11px;font-weight:600;color:#065f46;background:#d1fae5;padding:3px 10px;border-radius:12px;letter-spacing:0.03em;">Daily Task Log · DTL</span>
+    </div>
+    <span class="tpi-submodule-arrow" aria-hidden="true">▼</span>
+  </div>
+  <div class="tpi-submodule-body" id="submod-da-tasklog-body">
+    <p style="font-size:0.85em;color:var(--color-text-muted);margin-bottom:10px;text-align:center;">
+      自动汇总当日所有产生得分的项目/任务，点击「刷新」实时更新。
+    </p>
+    <div style="text-align:center;margin-bottom:12px;">
+      <button type="button" class="btn btn-secondary" style="font-size:12px;padding:5px 14px;" onclick="window.__tpiRenderTaskLog && window.__tpiRenderTaskLog()">🔄 刷新任务明细</button>
+    </div>
+    <div id="tpi-tasklog-container" style="overflow-x:auto;">
+      <p style="text-align:center;color:var(--color-text-muted);font-size:0.85em;">请点击「刷新任务明细」按钮加载数据。</p>
+    </div>
+  </div>
+</div>
 </div>
 </section>
 
@@ -17293,18 +17331,35 @@ function calculateAMI() {
                 if (yesterdayTime && yesterdayTime !== '--:--') {
                     const todayMinutes = toNightMinutes(timeStr);
                     const yesterdayMinutes = toNightMinutes(yesterdayTime);
-                    const deltaT = todayMinutes - yesterdayMinutes; // 正数=今天更晚
+                    const deltaT = todayMinutes - yesterdayMinutes; // 正数=今天更晚，负数=今天更早
 
-                    if (deltaT <= -30) {
-                        dynamicBonus = 1.0;
-                    } else if (deltaT > -30 && deltaT <= 0) {
-                        dynamicBonus = 0.5;
-                    } else if (deltaT > 0 && deltaT <= 30) {
-                        dynamicBonus = 0;
-                    } else if (deltaT > 30 && deltaT <= 60) {
-                        dynamicBonus = -0.5;
-                    } else if (deltaT > 60) {
-                        dynamicBonus = -1.0;
+                    // V2.20: 1点以后睡觉（minutes >= 25*60，即01:00）使用新奖励规则：
+                    // 今天比昨天早<30min +0.5，早30-60min +1，早>60min +2
+                    // 1点以前（高分段）仍使用原有规则
+                    if (minutes >= 25 * 60) {
+                        // 今天在1点之后睡觉，应用新动态奖励规则
+                        if (deltaT < -60) {
+                            dynamicBonus = 2.0;  // 早60分钟以上 +2
+                        } else if (deltaT >= -60 && deltaT < -30) {
+                            dynamicBonus = 1.0;  // 早30-60分钟 +1
+                        } else if (deltaT >= -30 && deltaT < 0) {
+                            dynamicBonus = 0.5;  // 早30分钟以内 +0.5
+                        } else {
+                            dynamicBonus = 0;    // 没有更早，不奖励
+                        }
+                    } else {
+                        // 1点以前睡觉，使用原有动态奖惩规则
+                        if (deltaT <= -30) {
+                            dynamicBonus = 1.0;
+                        } else if (deltaT > -30 && deltaT <= 0) {
+                            dynamicBonus = 0.5;
+                        } else if (deltaT > 0 && deltaT <= 30) {
+                            dynamicBonus = 0;
+                        } else if (deltaT > 30 && deltaT <= 60) {
+                            dynamicBonus = -0.5;
+                        } else if (deltaT > 60) {
+                            dynamicBonus = -1.0;
+                        }
                     }
                 }
 
@@ -23244,7 +23299,7 @@ window.addEventListener('resize', function() {
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#f8fafc;border-bottom: 1px solid #d1fae5;flex-shrink:0;">
                             <h3 style="margin:0;font-size:18px;color:#1e293b;">👁️ 报告预览</h3>
                             <div style="display:flex;gap:10px;">
-                                <button type="button" onclick="(function(){var p=document.getElementById('tpi-preview-body');if(p){var w=window.open('','_blank');if(w){w.document.write('<html><head><meta charset=UTF-8><title>全维效能管理系统 TPI（V2.19）</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:20px;}h2{color:#0d9488;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border: 1px solid #bbf7d0;}th{background:#f3f4f6;}.btn{padding:10px 20px;margin:10px 5px;cursor:pointer;border: 1px solid #86efac;border-radius:6px;background:#fff;}</style><\/head><body>'+p.innerHTML+'<div style=text-align:center;margin-top:30px><button type="button" class=btn onclick=window.print()>🖨️ 打印</button><button type="button" class=btn onclick=window.close()>关闭</button></div><\/body></html>');w.document.close();}}})()" style="padding:6px 14px;border: 1px solid #6ee7b7;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:#334155;transition:all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">🌐 新窗口打开</button>
+                                <button type="button" onclick="(function(){var p=document.getElementById('tpi-preview-body');if(p){var w=window.open('','_blank');if(w){w.document.write('<html><head><meta charset=UTF-8><title>全维效能管理系统 TPI（V2.20）</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:20px;}h2{color:#0d9488;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border: 1px solid #bbf7d0;}th{background:#f3f4f6;}.btn{padding:10px 20px;margin:10px 5px;cursor:pointer;border: 1px solid #86efac;border-radius:6px;background:#fff;}</style><\/head><body>'+p.innerHTML+'<div style=text-align:center;margin-top:30px><button type="button" class=btn onclick=window.print()>🖨️ 打印</button><button type="button" class=btn onclick=window.close()>关闭</button></div><\/body></html>');w.document.close();}}})()" style="padding:6px 14px;border: 1px solid #6ee7b7;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:#334155;transition:all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">🌐 新窗口打开</button>
                                 <button class="tpi-preview-close-btn" type="button" onclick="document.getElementById('tpi-preview-modal').remove()" style="padding:6px 14px;border: 1px solid #86efac;border-radius:6px;background:#f9fafb;color:#374151;cursor:pointer;font-size:13px;font-weight:600;transition:background 0.15s;">✕ 关闭</button>
                             </div>
                         </div>
@@ -24050,7 +24105,7 @@ window.addEventListener('resize', function() {
                 filename = 'TPI_数据导出_' + new Date().toISOString().split('T')[0] + '.txt';
                 mimeType = 'text/plain';
             } else if (format === 'html') {
-                let html = `<html><head><meta charset="UTF-8"><title>全维效能管理系统 TPI（V2.19）</title><\/head><body>
+                let html = `<html><head><meta charset="UTF-8"><title>全维效能管理系统 TPI（V2.20）</title><\/head><body>
 
         <div id="score-dashboard" style="background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%); padding: 8px 16px; border-radius: 0; margin: 0; color: #1e293b; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
             <div style="max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: nowrap;">
@@ -25065,7 +25120,7 @@ window.archiveOldDataComplete = function() {
                         alert('✅ JSON导出成功！');
                     }
                     else if (format === 'html') {
-                        let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>全维效能管理系统 TPI（V2.19）</title>';
+                        let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>全维效能管理系统 TPI（V2.20）</title>';
                         html += `<style>
 
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; align-items: center; justify-content: center; }
@@ -27613,7 +27668,7 @@ window.addEventListener('unhandledrejection', function(event) {
   }
 
   function backupAllDataNow(){
-    const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统 TPI（V2.19）'), appVersion: (window.TPI_APP_VERSION||'2.19'), exportedAt: new Date().toISOString() }, localStorage: {} };
+    const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统 TPI（V2.20）'), appVersion: (window.TPI_APP_VERSION||'2.19'), exportedAt: new Date().toISOString() }, localStorage: {} };
     for(let i=0;i<__tpi_ls_length();i++){
       const k = __tpi_ls_key(i);
       if(!k) continue;
@@ -27920,7 +27975,7 @@ try{
       }
       window.__tpi_backup_lock = true;
 
-      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统 TPI（V2.19）'), appVersion: (window.TPI_APP_VERSION||'2.19'), exportedAt: new Date().toISOString() }, localStorage: {} };
+      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统 TPI（V2.20）'), appVersion: (window.TPI_APP_VERSION||'2.19'), exportedAt: new Date().toISOString() }, localStorage: {} };
 
       for(let i=0;i<__tpi_ls_length();i++){
         const k = __tpi_ls_key(i);
@@ -28471,7 +28526,7 @@ try{
       }
       window.__tpi_backup_lock = true;
 
-      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统 TPI（V2.19）'), appVersion: (window.TPI_APP_VERSION||'2.19'), exportedAt: new Date().toISOString() }, localStorage: {} };
+      const out = { _meta: { version: (window.TPI_VERSION||'全维效能管理系统 TPI（V2.20）'), appVersion: (window.TPI_APP_VERSION||'2.19'), exportedAt: new Date().toISOString() }, localStorage: {} };
 
       for(let i=0;i<__tpi_ls_length();i++){
         const k = __tpi_ls_key(i);
@@ -43827,7 +43882,7 @@ h3.card-title, h4.card-title,
   function _v157_collectAll(){
     var result={
       _meta:{
-        version: window.TPI_VERSION||'全维效能管理系统 TPI（V2.19）',
+        version: window.TPI_VERSION||'全维效能管理系统 TPI（V2.20）',
         appVersion: window.TPI_APP_VERSION||'2.19',
         backupVersion:'V2.19',
         backupFormat:'full_v157_ultimate',
@@ -44211,7 +44266,7 @@ h3.card-title, h4.card-title,
 
     var result = {
       _meta: {
-        version: window.TPI_VERSION || '全维效能管理系统 TPI（V2.19）',
+        version: window.TPI_VERSION || '全维效能管理系统 TPI（V2.20）',
         appVersion: window.TPI_APP_VERSION || '2.19',
         backupVersion: 'V2.19',
         backupFormat: 'full_v219_ultimate',
@@ -44569,6 +44624,342 @@ h3.card-title, h4.card-title,
   }
 
   console.log('[TPI V2.00] 终极备份/恢复补丁已安装 ✅ — 豁免校验完全绕过+DOM直读+全量存储扫描+多路预保存+IDB三路合并');
+})();
+</script>
+
+
+<script>
+'use strict';
+(function() {
+
+  // V2.20 今日任务明细 (Daily Task Log · DTL)
+  // 读取当日所有得分项，汇总成表格展示
+
+  function _safeNum(v) {
+    var n = parseFloat(v);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function _getEl(id) {
+    return document.getElementById(id);
+  }
+
+  function _getVal(id) {
+    var el = _getEl(id);
+    if (!el) return '';
+    return el.value !== undefined ? el.value : (el.textContent || '');
+  }
+
+  function _getNumVal(id) {
+    return _safeNum(_getVal(id));
+  }
+
+  function _getCheckVal(id) {
+    var el = _getEl(id);
+    return el ? el.checked : false;
+  }
+
+  function _scoreColor(score) {
+    if (score > 0) return '#065f46';
+    if (score < 0) return '#991b1b';
+    return '#6b7280';
+  }
+
+  function _scoreBg(score) {
+    if (score > 0) return '#d1fae5';
+    if (score < 0) return '#fee2e2';
+    return '#f3f4f6';
+  }
+
+  function _makeRow(category, item, detail, score, maxScore, note) {
+    return {
+      category: category,
+      item: item,
+      detail: detail || '',
+      score: score,
+      maxScore: maxScore || '--',
+      note: note || ''
+    };
+  }
+
+  function _collectRows() {
+    var rows = [];
+
+    // ── AMI 各时段 ──
+    var amiPeriods = [
+      { period: '上午', selector: '#ami-sub-morning-body' },
+      { period: '下午', selector: '#ami-sub-afternoon-body' },
+      { period: '晚间①', selector: '#ami-sub-evening1-body' },
+      { period: '晚间②', selector: '#ami-sub-evening2-body' },
+      { period: '弹性', selector: '#ami-sub-flexible-body' }
+    ];
+
+    amiPeriods.forEach(function(p) {
+      var container = document.querySelector(p.selector);
+      if (!container) return;
+      var scoreInput = container.querySelector('.tpi-inline-04[readonly]');
+      var scoreVal = scoreInput ? _safeNum(scoreInput.value) : 0;
+      if (scoreVal === 0) return;
+
+      var statusSel = container.querySelector('select[aria-label$="状态"]');
+      var statusTxt = statusSel ? (statusSel.options[statusSel.selectedIndex] ? statusSel.options[statusSel.selectedIndex].text : '') : '';
+
+      var taskTA = container.querySelector('textarea[aria-label$="任务"]');
+      var taskText = taskTA ? (taskTA.value || '').trim() : '';
+
+      var durationInput = container.querySelector('input[aria-label$="时长"]');
+      var durationVal = durationInput ? durationInput.value : '';
+
+      var noteTA = container.querySelector('textarea[aria-label$="备注"]');
+      var noteText = noteTA ? (noteTA.value || '').trim() : '';
+
+      var detail = [];
+      if (statusTxt) detail.push(statusTxt.replace(/^[⭕✅🛡️🔍]\s*/, ''));
+      if (durationVal) detail.push('时长 ' + durationVal + 'h');
+      if (taskText) detail.push(taskText.substring(0, 40) + (taskText.length > 40 ? '…' : ''));
+
+      rows.push(_makeRow('AMI 学术战力', 'AMI · ' + p.period + '时段', detail.join(' | '), scoreVal, '--', noteText.substring(0, 30)));
+    });
+
+    // AMI 总分
+    var amiTotalEl = _getEl('ami-total-score') || _getEl('ami-score');
+    var amiTotal = amiTotalEl ? _safeNum(amiTotalEl.textContent || amiTotalEl.value) : 0;
+    if (amiTotal > 0) {
+      // 学术论著扫描奖励
+      var scanCb = _getEl('ami-scan-reading');
+      if (scanCb && scanCb.checked) {
+        rows.push(_makeRow('AMI 学术战力', 'AMI · 学术论著扫描奖励', '已完成扫描阅读', 0.5, 0.5, ''));
+      }
+    }
+
+    // ── BCM 行为纪律 ──
+    var bcmItems = [
+      { id: 'bcm-morning-score', label: 'BCM · 晨间入馆', max: 5 },
+      { id: 'bcm-lunch-score',   label: 'BCM · 午间防守', max: 4 },
+      { id: 'bcm-dinner-score',  label: 'BCM · 晚间防守', max: 4 },
+      { id: 'bcm-evening-score', label: 'BCM · 晚间离馆', max: 3 },
+      { id: 'bcm-sleep-score',   label: 'BCM · 睡眠计分', max: 5 },
+      { id: 'bcm-digital-score', label: 'BCM · 数字气隙', max: 3 },
+      { id: 'bcm-afternoon-score', label: 'BCM · 下午奖励', max: 1 }
+    ];
+    bcmItems.forEach(function(b) {
+      var score = _getNumVal(b.id);
+      if (score === 0) return;
+      var detail = '';
+      if (b.id === 'bcm-morning-score') {
+        var t = _getVal('bcm-morning-today') || _getVal('bcm-morning-time') || '';
+        if (t) detail = '入馆: ' + t;
+      } else if (b.id === 'bcm-sleep-score') {
+        var st = _getVal('bcm-sleep-time') || '';
+        var syt = _getVal('bcm-sleep-yesterday') || '';
+        if (st) detail = '今日: ' + st;
+        if (syt) detail += ' | 昨日: ' + syt;
+      } else if (b.id === 'bcm-evening-score') {
+        var et = _getVal('bcm-evening-exit') || '';
+        if (et) detail = '离馆: ' + et;
+      }
+      rows.push(_makeRow('BCM 行为纪律', b.label, detail, score, b.max, ''));
+    });
+
+    // ── HSM 健康活力 ──
+    var hsmItems = [
+      { id: 'hsm-core-score',           label: 'HSM · 核心运动',    max: 3 },
+      { id: 'hsm-morning-score',        label: 'HSM · 上午微运动',  max: 1 },
+      { id: 'hsm-afternoon-score',      label: 'HSM · 下午微运动',  max: 1 },
+      { id: 'hsm-water-morning-score',  label: 'HSM · 上午饮水',    max: 1 },
+      { id: 'hsm-water-afternoon-score',label: 'HSM · 下午饮水',    max: 1 },
+      { id: 'hsm-water-evening-score',  label: 'HSM · 晚上饮水',    max: 1 }
+    ];
+    hsmItems.forEach(function(h) {
+      var score = _getNumVal(h.id);
+      if (score === 0) return;
+      rows.push(_makeRow('HSM 健康活力', h.label, '', score, h.max, ''));
+    });
+
+    // ── FLI 语言智识 ──
+    var fliCoreScore = _getNumVal('fli-core-score');
+    if (fliCoreScore !== 0) {
+      var fliNote = _getVal('fli-core-notes') || '';
+      rows.push(_makeRow('FLI 语言智识', 'FLI · 核心学习', '', fliCoreScore, 8, fliNote.substring(0, 30)));
+    }
+    var fliFragScore = _getNumVal('fli-fragment-score');
+    if (fliFragScore !== 0) {
+      rows.push(_makeRow('FLI 语言智识', 'FLI · 碎片磨耳', '', fliFragScore, 2, ''));
+    }
+
+    // ── Sys 系统分 ──
+    var sysScore = _getNumVal('sys-score');
+    if (sysScore !== 0) {
+      rows.push(_makeRow('Sys 系统维护', 'Sys · 系统分', '', sysScore, 25, ''));
+    }
+
+    // ── Bonus 奖励分 ──
+    var bonusScore = _getNumVal('bonus-score');
+    if (bonusScore !== 0) {
+      var bonusReason = _getVal('bonus-reason') || '';
+      rows.push(_makeRow('Bonus 奖励', 'Bonus · 额外奖励', bonusReason.substring(0, 40), bonusScore, 5, ''));
+    }
+
+    return rows;
+  }
+
+  function _renderTable(rows) {
+    var container = _getEl('tpi-tasklog-container');
+    if (!container) return;
+
+    if (!rows || rows.length === 0) {
+      container.innerHTML = '<p style="text-align:center;color:var(--color-text-muted);padding:20px;font-size:0.9em;">当日暂无得分记录，请先填写各模块数据。</p>';
+      return;
+    }
+
+    // 计算总分
+    var totalScore = 0;
+    rows.forEach(function(r) { totalScore += r.score; });
+
+    // 按分类分组
+    var groups = {};
+    var groupOrder = [];
+    rows.forEach(function(r) {
+      if (!groups[r.category]) {
+        groups[r.category] = [];
+        groupOrder.push(r.category);
+      }
+      groups[r.category].push(r);
+    });
+
+    var categoryColors = {
+      'AMI 学术战力': { bg: '#ecfdf5', border: '#6ee7b7', text: '#065f46', badge: '#d1fae5' },
+      'BCM 行为纪律': { bg: '#eff6ff', border: '#93c5fd', text: '#1e40af', badge: '#dbeafe' },
+      'HSM 健康活力': { bg: '#fff7ed', border: '#fdba74', text: '#92400e', badge: '#fef3c7' },
+      'FLI 语言智识': { bg: '#fdf4ff', border: '#d8b4fe', text: '#6b21a8', badge: '#f3e8ff' },
+      'Sys 系统维护': { bg: '#f8fafc', border: '#94a3b8', text: '#334155', badge: '#e2e8f0' },
+      'Bonus 奖励':   { bg: '#fffbeb', border: '#fcd34d', text: '#b45309', badge: '#fef9c3' }
+    };
+
+    var html = '';
+
+    // 顶部总分汇总卡片
+    html += '<div style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid #6ee7b7;border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">';
+    html += '<div style="display:flex;align-items:center;gap:10px;">';
+    html += '<span style="font-size:22px;">📋</span>';
+    html += '<div><div style="font-size:14px;font-weight:700;color:#065f46;">今日得分汇总</div>';
+    html += '<div style="font-size:12px;color:#047857;margin-top:2px;">共 ' + rows.length + ' 个得分项目</div></div></div>';
+    html += '<div style="font-size:28px;font-weight:800;color:#065f46;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',Arial,sans-serif;font-variant-numeric:tabular-nums;">' + totalScore.toFixed(1) + ' <span style="font-size:14px;font-weight:600;">分</span></div>';
+    html += '</div>';
+
+    // 各分类分组表格
+    groupOrder.forEach(function(cat) {
+      var c = categoryColors[cat] || { bg: '#f9fafb', border: '#e5e7eb', text: '#374151', badge: '#f3f4f6' };
+      var catRows = groups[cat];
+      var catTotal = 0;
+      catRows.forEach(function(r) { catTotal += r.score; });
+
+      html += '<div style="margin-bottom:14px;border:1.5px solid ' + c.border + ';border-radius:10px;overflow:hidden;">';
+      // 分类标题行
+      html += '<div style="background:' + c.bg + ';padding:8px 14px;display:flex;align-items:center;justify-content:space-between;">';
+      html += '<span style="font-size:13px;font-weight:700;color:' + c.text + ';">' + cat + '</span>';
+      html += '<span style="font-size:13px;font-weight:700;color:' + c.text + ';background:' + c.badge + ';padding:2px 10px;border-radius:20px;">小计 ' + catTotal.toFixed(1) + ' 分</span>';
+      html += '</div>';
+      // 表格
+      html += '<table style="width:100%;border-collapse:collapse;font-size:12.5px;">';
+      html += '<thead><tr style="background:#f8fafc;">';
+      html += '<th style="padding:7px 10px;text-align:left;border-bottom:1px solid ' + c.border + ';color:#6b7280;font-weight:600;white-space:nowrap;">项目</th>';
+      html += '<th style="padding:7px 10px;text-align:left;border-bottom:1px solid ' + c.border + ';color:#6b7280;font-weight:600;">说明</th>';
+      html += '<th style="padding:7px 10px;text-align:center;border-bottom:1px solid ' + c.border + ';color:#6b7280;font-weight:600;white-space:nowrap;">满分</th>';
+      html += '<th style="padding:7px 10px;text-align:center;border-bottom:1px solid ' + c.border + ';color:#6b7280;font-weight:600;white-space:nowrap;">得分</th>';
+      html += '</tr></thead><tbody>';
+
+      catRows.forEach(function(r, i) {
+        var rowBg = i % 2 === 0 ? '#ffffff' : '#fafafa';
+        var scoreBg = _scoreBg(r.score);
+        var scoreColor = _scoreColor(r.score);
+        var noteHtml = r.note ? '<br><span style="color:#9ca3af;font-size:11px;">' + _esc(r.note) + '</span>' : '';
+        var detailHtml = r.detail ? '<span style="color:#4b5563;">' + _esc(r.detail) + '</span>' : '<span style="color:#d1d5db;">—</span>';
+        html += '<tr style="background:' + rowBg + ';border-bottom:1px solid #f3f4f6;">';
+        html += '<td style="padding:7px 10px;font-weight:600;color:#1f2937;white-space:nowrap;">' + _esc(r.item) + '</td>';
+        html += '<td style="padding:7px 10px;color:#374151;">' + detailHtml + noteHtml + '</td>';
+        html += '<td style="padding:7px 10px;text-align:center;color:#9ca3af;">' + (r.maxScore === '--' ? '—' : r.maxScore) + '</td>';
+        html += '<td style="padding:7px 10px;text-align:center;"><span style="display:inline-block;padding:2px 10px;border-radius:20px;font-weight:700;font-variant-numeric:tabular-nums;background:' + scoreBg + ';color:' + scoreColor + ';">' + (r.score >= 0 ? '+' : '') + r.score.toFixed(1) + '</span></td>';
+        html += '</tr>';
+      });
+
+      html += '</tbody></table></div>';
+    });
+
+    // 提示文字
+    html += '<p style="font-size:11.5px;color:var(--color-text-muted);text-align:center;margin-top:8px;">💡 表格仅汇总当日已填写且产生得分（≠0）的项目。得分为 0 的项目不显示。</p>';
+
+    container.innerHTML = html;
+  }
+
+  function _esc(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  window.__tpiRenderTaskLog = function() {
+    try {
+      var rows = _collectRows();
+      _renderTable(rows);
+    } catch(e) {
+      var container = document.getElementById('tpi-tasklog-container');
+      if (container) container.innerHTML = '<p style="color:#991b1b;text-align:center;padding:16px;">⚠️ 加载失败：' + (e && e.message ? e.message : '未知错误') + '</p>';
+      console.error('[TPI DTL] 任务明细加载失败:', e);
+    }
+  };
+
+  // 当 data-analytics 展开时自动刷新
+  document.addEventListener('DOMContentLoaded', function() {
+    var analyticsCard = document.getElementById('data-analytics');
+    if (analyticsCard) {
+      var cardHeader = analyticsCard.querySelector('.card-header');
+      if (cardHeader) {
+        cardHeader.addEventListener('click', function() {
+          setTimeout(function() {
+            if (!analyticsCard.classList.contains('collapsed')) {
+              window.__tpiRenderTaskLog && window.__tpiRenderTaskLog();
+            }
+          }, 450);
+        });
+      }
+    }
+  });
+
+  // 当任意计分函数调用后延迟刷新（节流：2秒内最多刷一次）
+  var _taskLogThrottle = null;
+  function _scheduleTaskLogRefresh() {
+    if (_taskLogThrottle) return;
+    _taskLogThrottle = setTimeout(function() {
+      _taskLogThrottle = null;
+      var analyticsCard = document.getElementById('data-analytics');
+      if (analyticsCard && !analyticsCard.classList.contains('collapsed')) {
+        window.__tpiRenderTaskLog && window.__tpiRenderTaskLog();
+      }
+    }, 2000);
+  }
+
+  // 监听所有得分输入的变化以触发刷新
+  document.addEventListener('DOMContentLoaded', function() {
+    var scoreIds = [
+      'bcm-morning-score','bcm-lunch-score','bcm-dinner-score','bcm-evening-score',
+      'bcm-sleep-score','bcm-digital-score','bcm-afternoon-score',
+      'hsm-core-score','hsm-morning-score','hsm-afternoon-score',
+      'hsm-water-morning-score','hsm-water-afternoon-score','hsm-water-evening-score',
+      'fli-core-score','fli-fragment-score','sys-score','bonus-score',
+      'ami-score','ami-total-score'
+    ];
+    scoreIds.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) {
+        var obs = new MutationObserver(_scheduleTaskLogRefresh);
+        obs.observe(el, { attributes: true, childList: true, characterData: true, subtree: true });
+      }
+    });
+  });
+
 })();
 </script>
 
